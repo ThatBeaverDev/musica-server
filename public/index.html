@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Music app</title>
+		<link rel="stylesheet" href="./styles.css" type="text/css" />
+	</head>
+
+	<body>
+		<div class="sidebar">
+			<h2 class="title">Music Server</h2>
+
+			<div class="nav">
+				<div class="nav-item active">Home</div>
+				<div class="nav-item">Search</div>
+				<div class="nav-item">Library</div>
+			</div>
+
+			<!-- <div class="sidebar-footer">
+				<div class="mini-user">Guest</div>
+			</div> -->
+		</div>
+
+		<div class="main">
+			<div class="topbar">
+				<input class="search" placeholder="Search the Library..." />
+			</div>
+
+			<div class="content">
+				<h1>Welcome</h1>
+
+				<div class="section">
+					<h3>Tracks</h3>
+					<div class="grid" id="tracksGrid"></div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			async function load() {
+				const tracks = await (await fetch("/api/tracks/list")).json();
+
+				//const stats = await (
+				//	await fetch("/api/bulk/tracks/info", {
+				//		headers: { tracks: JSON.stringify(tracks) }
+				//	})
+				//).json();
+				const stats = await Promise.all(
+					tracks.map(async (item) => {
+						return await (
+							await fetch(`/api/track/${item}/info`)
+						).json();
+					})
+				);
+
+				const trackContainer = document.getElementById("tracksGrid");
+				for (const info of stats) {
+					const div = document.createElement("div");
+					div.classList.add("card");
+
+					const trackImage = document.createElement("img");
+					trackImage.classList.add("albumArt");
+					trackImage.src = `/api/track/${info.id}/art`;
+					div.appendChild(trackImage);
+
+					const trackTitle = document.createElement("p");
+					trackTitle.classList.add("trackTitle");
+					trackTitle.innerText = info.title;
+					div.appendChild(trackTitle);
+
+					trackContainer.appendChild(div);
+				}
+			}
+
+			load();
+		</script>
+	</body>
+</html>

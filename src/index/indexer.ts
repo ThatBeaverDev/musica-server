@@ -7,10 +7,11 @@ import {
 	parseFile
 } from "music-metadata";
 import mime from "mime/lite";
+import { getId } from "../id.js";
 
 const supportedMimeTypes = getSupportedMimeTypes();
 
-export type Entry = {
+export interface Entry {
 	title: string;
 	album: string;
 	artist: string;
@@ -19,8 +20,8 @@ export type Entry = {
 	modified: number;
 
 	path: string;
-	id: string; // btoa(Entry.path)
-};
+	id: string;
+}
 
 export type Index = {
 	root: string;
@@ -30,6 +31,37 @@ export type Index = {
 export default class Indexer {
 	index?: Index;
 	constructor(public directory: string) {}
+
+	#tracksMap = new Map<Entry, { mime: string }>();
+	async getCover(entry: Entry) {
+		const mapEntry = this.#tracksMap.get(entry);
+
+		const artPath = path.resolve(
+			process.cwd(),
+			`./mediaCache/${entry.id}_art`
+		);
+
+		if (mapEntry) {
+			return {
+				mime: mapEntry.mime,
+				directory: artPath
+			};
+		} else {
+			const metadata = await parseFile(entry.path);
+
+			const picture = metadata.common.picture?.[0];
+			if (!picture) return null;
+
+			await fs.writeFile(artPath, picture.data);
+
+			this.#tracksMap.set(entry, { mime: picture.format });
+
+			return {
+				mime: picture.format,
+				directory: artPath
+			};
+		}
+	}
 
 	async init() {
 		const startingIndex: Index = {
@@ -43,22 +75,37 @@ export default class Indexer {
 
 		this.index = startingIndex;
 
-		watch(
-			this.directory,
-			{ recursive: true },
-			async (eventType, filename) => {
-				if (!filename) return;
+		watch(this.directory, { recursive: true }, async (_, filename) => {
+			if (!filename) return;
 
-				const fullPath = path.join(this.directory, filename);
-				console.log(`File change detected [${eventType}]: ${fullPath}`);
+			const fullPath = path.join(this.directory, filename);
+
+			try {
+				const stats = await fs.stat(fullPath);
+
+				if (stats.isFile()) {
+					const entry = await this.fileMetadata(fullPath);
+					this.index!.items[entry.id] = entry;
+					console.log(`Updated index: ${entry.title}`);
+				}
+			} catch {
+				// file deleted
+				const relative = path.relative(process.cwd(), filename);
+				const id = Buffer.from(relative).toString("base64url");
+
+				const entry = this.index!.items[id];
+				if (entry) this.#tracksMap.delete(entry);
+
+				delete this.index!.items[id];
+				console.log(`Removed from index: ${relative}`);
 			}
-		);
+		});
 	}
 
 	async fileMetadata(directory: string): Promise<Entry> {
 		const relative = path.relative(process.cwd(), directory);
 
-		const id = btoa(relative);
+		const id = getId(directory);
 		console.debug(`Indexing file at ${directory} (id: ${id})`);
 
 		let metadata: IAudioMetadata | undefined = undefined;
@@ -78,7 +125,7 @@ export default class Indexer {
 
 		// title
 		const trackTitle = metadata?.common?.title;
-		const fileName = directory.substring(0, directory.lastIndexOf("."));
+		const fileName = path.basename(directory, path.extname(directory));
 
 		const title = trackTitle ?? fileName;
 
