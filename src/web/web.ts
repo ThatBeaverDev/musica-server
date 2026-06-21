@@ -26,7 +26,7 @@ export default class WebServer {
 					}
 
 					const stats = tracks.map((id) => {
-						const entry = this.indexer.index?.items?.[id];
+						const entry = this.indexer.index?.tracks?.[id];
 
 						if (entry) return entry;
 						else return null;
@@ -40,7 +40,7 @@ export default class WebServer {
 				}>("/track/:id/info", async (request, reply) => {
 					const { id } = request.params;
 
-					const track = this.indexer.index?.items?.[id];
+					const track = this.indexer.index?.tracks?.[id];
 					if (!track) {
 						return reply
 							.status(404)
@@ -55,7 +55,7 @@ export default class WebServer {
 				}>("/track/:id/art", async (request, reply) => {
 					const { id } = request.params;
 
-					const track = this.indexer.index?.items?.[id];
+					const track = this.indexer.index?.tracks?.[id];
 					if (!track) {
 						return reply
 							.status(404)
@@ -110,7 +110,7 @@ export default class WebServer {
 				}>("/track/:id/get", async (request, reply) => {
 					const { id } = request.params;
 
-					const track = this.indexer.index?.items?.[id];
+					const track = this.indexer.index?.tracks?.[id];
 					if (!track) {
 						return reply
 							.status(404)
@@ -154,7 +154,7 @@ export default class WebServer {
 				});
 
 				apiPlugin.get("/tracks/list", async (_, reply) => {
-					const list = Object.keys(this.indexer.index?.items ?? {});
+					const list = Object.keys(this.indexer.index?.tracks ?? {});
 
 					return reply.send(list);
 				});

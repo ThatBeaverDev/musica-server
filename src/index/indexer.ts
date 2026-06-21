@@ -11,30 +11,39 @@ import { getId } from "../id.js";
 
 const supportedMimeTypes = getSupportedMimeTypes();
 
-export interface Entry {
+export interface Track {
 	title: string;
 	album: string;
 	artist: string;
 
 	// used to update files changed when inactive
 	modified: number;
+	release?: ReturnType<typeof Date.now>;
 
 	path: string;
 	id: string;
 }
 
-export type Index = {
+export interface Album {
+	title: string;
+	release: ReturnType<typeof Date.now>;
+	tracks: Track[];
+}
+
+export interface TrackIndex {
 	root: string;
-	items: Partial<Record<string, Entry>>;
-};
+	tracks: Partial<Record<string, Track>>;
+	albums: Album[];
+}
 
 export default class Indexer {
-	index?: Index;
+	index?: TrackIndex;
 	constructor(public directory: string) {}
 
-	#tracksMap = new Map<Entry, { mime: string }>();
-	async getCover(entry: Entry) {
-		const mapEntry = this.#tracksMap.get(entry);
+	#dirToTrackMap = new Map<string, Track>();
+	#trackToPictureStoreMap = new Map<Track, { mime: string }>();
+	async getCover(entry: Track) {
+		const mapEntry = this.#trackToPictureStoreMap.get(entry);
 
 		const artPath = path.resolve(
 			process.cwd(),
@@ -54,7 +63,7 @@ export default class Indexer {
 
 			await fs.writeFile(artPath, picture.data);
 
-			this.#tracksMap.set(entry, { mime: picture.format });
+			this.#trackToPictureStoreMap.set(entry, { mime: picture.format });
 
 			return {
 				mime: picture.format,
@@ -64,9 +73,18 @@ export default class Indexer {
 	}
 
 	async init() {
-		const startingIndex: Index = {
+		const startingIndex: TrackIndex = {
 			root: this.directory,
-			items: {}
+			tracks: {},
+			albums: []
+		};
+
+		const removeTrack = (track: Track) => {
+			this.#trackToPictureStoreMap.delete(track);
+			this.#dirToTrackMap.delete(path.resolve(track.path));
+
+			if (this.index?.tracks?.[track.id])
+				delete this.index.tracks[track.id];
 		};
 
 		const queue: Promise<any>[] = [];
@@ -83,27 +101,64 @@ export default class Indexer {
 			try {
 				const stats = await fs.stat(fullPath);
 
+				const addTrack = async (path: string) => {
+					const entry = await this.fileMetadata(path);
+
+					if (entry) {
+						this.#dirToTrackMap.set(path, entry);
+						this.index!.tracks[entry.id] = entry;
+					}
+				};
+
+				const addRecursive = async (dir: string) => {
+					const contents = await fs.readdir(dir, {
+						withFileTypes: true
+					});
+
+					for (const child of contents) {
+						const fullPath = path.join(dir, child.name);
+
+						if (child.isDirectory()) {
+							await addRecursive(fullPath);
+						} else {
+							await addTrack(fullPath);
+						}
+					}
+				};
+
 				if (stats.isFile()) {
-					const entry = await this.fileMetadata(fullPath);
-					this.index!.items[entry.id] = entry;
-					console.log(`Updated index: ${entry.title}`);
+					await addTrack(fullPath);
+				} else {
+					await addRecursive(fullPath);
 				}
 			} catch {
 				// file deleted
-				const relative = path.relative(process.cwd(), filename);
-				const id = Buffer.from(relative).toString("base64url");
+				const relative = path.relative(process.cwd(), fullPath);
+				const id = getId(relative);
 
-				const entry = this.index!.items[id];
-				if (entry) this.#tracksMap.delete(entry);
+				if (this.#dirToTrackMap.get(fullPath)) {
+					// track
+					const track = this.index?.tracks?.[id];
+					if (track) removeTrack(track);
+				} else {
+					// directory
+					const children = this.#dirToTrackMap
+						.entries()
+						.filter((item) => item[0].startsWith(fullPath + "/"));
 
-				delete this.index!.items[id];
-				console.log(`Removed from index: ${relative}`);
+					console.debug(this.#dirToTrackMap.entries(), fullPath);
+					for (const [_, child] of children) {
+						removeTrack(child);
+					}
+				}
 			}
 		});
 	}
 
-	async fileMetadata(directory: string): Promise<Entry> {
+	async fileMetadata(directory: string): Promise<Track | undefined> {
 		const relative = path.relative(process.cwd(), directory);
+		const mimeType = mime.getType(directory) ?? "text/plain";
+		if (!supportedMimeTypes.includes(mimeType)) return;
 
 		const id = getId(directory);
 		console.debug(`Indexing file at ${directory} (id: ${id})`);
@@ -138,10 +193,16 @@ export default class Indexer {
 		// modified time
 		const { mtimeMs: modified } = await fs.stat(directory);
 
-		const stats: Entry = {
+		// release
+		const release = metadata?.common.releasedate
+			? new Date(metadata?.common.releasedate).getTime()
+			: undefined;
+
+		const stats: Track = {
 			title,
 			artist,
 			album,
+			release,
 
 			modified,
 			path: relative,
@@ -152,7 +213,11 @@ export default class Indexer {
 		return stats;
 	}
 
-	async #walk(directory: string, index: Index, promiseQueue: Promise<any>[]) {
+	async #walk(
+		directory: string,
+		index: TrackIndex,
+		promiseQueue: Promise<any>[]
+	) {
 		const contents = await fs.readdir(directory, { withFileTypes: true });
 
 		for (const child of contents) {
@@ -165,8 +230,12 @@ export default class Indexer {
 				if (!supportedMimeTypes.includes(mimeType)) continue;
 
 				const processFile = async () => {
-					const indexStats = await this.fileMetadata(fullPath);
-					index.items[indexStats.id] = indexStats;
+					const entry = await this.fileMetadata(fullPath);
+
+					if (entry) {
+						this.#dirToTrackMap.set(fullPath, entry);
+						index.tracks[entry.id] = entry;
+					}
 				};
 
 				promiseQueue.push(processFile());

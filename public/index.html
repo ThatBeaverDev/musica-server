@@ -39,11 +39,6 @@
 			async function load() {
 				const tracks = await (await fetch("/api/tracks/list")).json();
 
-				//const stats = await (
-				//	await fetch("/api/bulk/tracks/info", {
-				//		headers: { tracks: JSON.stringify(tracks) }
-				//	})
-				//).json();
 				const stats = await Promise.all(
 					tracks.map(async (item) => {
 						return await (
