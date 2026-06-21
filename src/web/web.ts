@@ -3,7 +3,7 @@ import fastifyStatic from "@fastify/static";
 import Indexer from "../index/indexer.js";
 import path from "node:path";
 import fs from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readdir, rm, rmdir } from "node:fs/promises";
 
 export default class WebServer {
 	server: FastifyInstance;
@@ -171,8 +171,28 @@ export default class WebServer {
 	}
 
 	async listen(port: number) {
-		const exists = fs.existsSync("./mediaCache");
-		if (!exists) await mkdir("./mediaCache");
+		async function deleteDirectory(dir: string) {
+			const contents = await readdir(dir, { withFileTypes: true });
+
+			for (const child of contents) {
+				const directory = path.join(dir, child.name);
+
+				if (child.isDirectory()) {
+					await deleteDirectory(directory);
+				} else {
+					await rm(directory);
+				}
+			}
+
+			await rmdir(dir);
+		}
+
+		console.debug("Deleting media cache.");
+		try {
+			await deleteDirectory("./mediaCache");
+		} catch {}
+		await mkdir("./mediaCache");
+		console.debug("media cache deleted.");
 
 		try {
 			const address = await this.server.listen({
