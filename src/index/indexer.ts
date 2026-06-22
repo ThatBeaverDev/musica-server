@@ -89,9 +89,7 @@ export default class Indexer {
 			albums: {}
 		};
 
-		const queue: Promise<any>[] = [];
-		await this.#walk(this.directory, startingIndex, queue);
-		await Promise.all(queue);
+		await this.#walk(this.directory, startingIndex);
 
 		this.index = startingIndex;
 
@@ -266,27 +264,19 @@ export default class Indexer {
 		}
 	}
 
-	async #walk(
-		directory: string,
-		index: TrackIndex,
-		promiseQueue: Promise<any>[]
-	) {
+	async #walk(directory: string, index: TrackIndex) {
 		const contents = await fs.readdir(directory, { withFileTypes: true });
+		contents.sort();
 
 		for (const child of contents) {
 			const fullPath = path.join(directory, child.name);
 
 			if (child.isDirectory()) {
-				await this.#walk(fullPath, index, promiseQueue);
+				await this.#walk(fullPath, index);
 			} else {
 				const mimeType = mime.getType(fullPath) ?? "text/plain";
 				if (!supportedMimeTypes.includes(mimeType)) continue;
 
-				const processFile = async () => {
-					await this.indexTrack(fullPath, index);
-				};
-
-				promiseQueue.push(processFile());
 			}
 		}
 	}
