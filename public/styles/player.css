@@ -1,0 +1,23 @@
+.player {
+    position: absolute;
+    left: 240px;
+    bottom: 0px;
+
+    width: calc(100% - 240px);
+	height: 60px;
+
+	display: flex;
+	align-items: center;
+	padding: 0px;
+	background: var(--panel);
+
+	border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+img#track-art {
+    width: auto;
+    height: 100%;
+    padding-right: 10px;
+
+    border-radius: 4px;
+}

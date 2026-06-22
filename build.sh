@@ -1,1 +1,3 @@
-npx tsc || true # || true ignores the error. Fastify requires a module with broken types. Typical.
+npx tsc
+
+npx rollup -c

@@ -2,15 +2,17 @@
 <html>
 	<head>
 		<title>Music app</title>
-		<link rel="stylesheet" href="./styles.css" type="text/css" />
+		<link rel="stylesheet" href="/styles/styles.css" type="text/css" />
+		<link rel="stylesheet" href="/styles/album.css" type="text/css" />
+		<link rel="stylesheet" href="/styles/player.css" type="text/css" />
 	</head>
 
 	<body>
 		<div class="sidebar">
-			<h2 class="title">Music Server</h2>
+			<h2 class="app-title">Music Server</h2>
 
 			<div class="nav">
-				<div class="nav-item active">Home</div>
+				<div class="nav-item">Home</div>
 				<div class="nav-item">Search</div>
 				<div class="nav-item">Library</div>
 			</div>
@@ -25,48 +27,20 @@
 				<input class="search" placeholder="Search the Library..." />
 			</div>
 
-			<div class="content">
-				<h1>Welcome</h1>
+			<div class="content"></div>
 
-				<div class="section">
-					<h3>Tracks</h3>
-					<div class="grid" id="tracksGrid"></div>
+			<div class="player">
+				<img id="track-art" />
+
+				<div class="track-info">
+					<p class="album-title">Nothing is playing.</p>
+					<p class="album-artist"></p>
 				</div>
 			</div>
 		</div>
 
-		<script>
-			async function load() {
-				const tracks = await (await fetch("/api/tracks/list")).json();
+		<audio id="player"></audio>
 
-				const stats = await Promise.all(
-					tracks.map(async (item) => {
-						return await (
-							await fetch(`/api/track/${item}/info`)
-						).json();
-					})
-				);
-
-				const trackContainer = document.getElementById("tracksGrid");
-				for (const info of stats) {
-					const div = document.createElement("div");
-					div.classList.add("card");
-
-					const trackImage = document.createElement("img");
-					trackImage.classList.add("albumArt");
-					trackImage.src = `/api/track/${info.id}/art`;
-					div.appendChild(trackImage);
-
-					const trackTitle = document.createElement("p");
-					trackTitle.classList.add("trackTitle");
-					trackTitle.innerText = info.title;
-					div.appendChild(trackTitle);
-
-					trackContainer.appendChild(div);
-				}
-			}
-
-			load();
-		</script>
+		<script src="/app.js"></script>
 	</body>
 </html>

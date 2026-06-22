@@ -7,14 +7,16 @@ import {
 	parseFile
 } from "music-metadata";
 import mime from "mime/lite";
-import { getId } from "../id.js";
+import { trackId } from "../id.js";
 
 const supportedMimeTypes = getSupportedMimeTypes();
 
 export interface Track {
 	title: string;
-	album: string;
 	artist: string;
+
+	album: string;
+	albumArtist: string;
 
 	// used to update files changed when inactive
 	modified: number;
@@ -26,14 +28,21 @@ export interface Track {
 
 export interface Album {
 	title: string;
-	release: ReturnType<typeof Date.now>;
+	artist: string;
+	id: string; // URLEncoded(btoa(albumSpecifier))
+
+	release?: ReturnType<typeof Date.now>;
 	tracks: Track[];
 }
 
 export interface TrackIndex {
 	root: string;
 	tracks: Partial<Record<string, Track>>;
-	albums: Album[];
+	albums: Partial<Record<string, Album>>;
+}
+
+export function getAlbumSpecifier(entry: Track) {
+	return `${entry.albumArtist}:${entry.album}`;
 }
 
 export default class Indexer {
@@ -76,15 +85,7 @@ export default class Indexer {
 		const startingIndex: TrackIndex = {
 			root: this.directory,
 			tracks: {},
-			albums: []
-		};
-
-		const removeTrack = (track: Track) => {
-			this.#trackToPictureStoreMap.delete(track);
-			this.#dirToTrackMap.delete(path.resolve(track.path));
-
-			if (this.index?.tracks?.[track.id])
-				delete this.index.tracks[track.id];
+			albums: {}
 		};
 
 		const queue: Promise<any>[] = [];
@@ -102,12 +103,7 @@ export default class Indexer {
 				const stats = await fs.stat(fullPath);
 
 				const addTrack = async (path: string) => {
-					const entry = await this.fileMetadata(path);
-
-					if (entry) {
-						this.#dirToTrackMap.set(path, entry);
-						this.index!.tracks[entry.id] = entry;
-					}
+					await this.indexTrack(path, this.index!);
 				};
 
 				const addRecursive = async (dir: string) => {
@@ -134,21 +130,20 @@ export default class Indexer {
 			} catch {
 				// file deleted
 				const relative = path.relative(process.cwd(), fullPath);
-				const id = getId(relative);
+				const id = trackId(relative);
 
 				if (this.#dirToTrackMap.get(fullPath)) {
 					// track
 					const track = this.index?.tracks?.[id];
-					if (track) removeTrack(track);
+					if (track) this.removeTrack(track, this.index!);
 				} else {
 					// directory
 					const children = this.#dirToTrackMap
 						.entries()
 						.filter((item) => item[0].startsWith(fullPath + "/"));
 
-					console.debug(this.#dirToTrackMap.entries(), fullPath);
 					for (const [_, child] of children) {
-						removeTrack(child);
+						this.removeTrack(child, this.index!);
 					}
 				}
 			}
@@ -160,7 +155,7 @@ export default class Indexer {
 		const mimeType = mime.getType(directory) ?? "text/plain";
 		if (!supportedMimeTypes.includes(mimeType)) return;
 
-		const id = getId(directory);
+		const id = trackId(directory);
 		console.debug(`Indexing file at ${directory} (id: ${id})`);
 
 		let metadata: IAudioMetadata | undefined = undefined;
@@ -188,22 +183,30 @@ export default class Indexer {
 		const artist = metadata?.common?.artist ?? "Various Artists";
 
 		// album
-		const album = metadata?.common?.album ?? "Singles";
+		const album = metadata?.common?.album ?? title;
+		const albumArtist =
+			metadata?.common.albumartist ??
+			metadata?.common.artist ??
+			"Various Artists";
 
 		// modified time
 		const { mtimeMs: modified } = await fs.stat(directory);
 
 		// release
-		const release = metadata?.common.releasedate
-			? new Date(metadata?.common.releasedate).getTime()
+		const releaseStore =
+			metadata?.common.date ?? metadata?.common.releasedate;
+		const release = releaseStore
+			? new Date(releaseStore).getTime()
 			: undefined;
 
 		const stats: Track = {
 			title,
 			artist,
-			album,
-			release,
 
+			album,
+			albumArtist,
+
+			release,
 			modified,
 			path: relative,
 
@@ -211,6 +214,51 @@ export default class Indexer {
 		};
 
 		return stats;
+	}
+
+	async indexTrack(directory: string, index: TrackIndex) {
+		const entry = await this.fileMetadata(directory);
+
+		if (entry) {
+			this.#dirToTrackMap.set(directory, entry);
+			index.tracks[entry.id] = entry;
+
+			const albumSpecifier = getAlbumSpecifier(entry);
+
+			const album = index.albums[albumSpecifier];
+			if (album) {
+				if (!album.release && entry.release)
+					album.release = entry.release;
+
+				album.tracks.push(entry);
+			} else {
+				index.albums[albumSpecifier] = {
+					title: entry.album,
+					artist: entry.albumArtist,
+					release: entry.release,
+					tracks: [entry],
+					id: albumSpecifier
+				};
+			}
+		}
+	}
+
+	async removeTrack(track: Track, index: TrackIndex) {
+		this.#trackToPictureStoreMap.delete(track);
+		this.#dirToTrackMap.delete(path.resolve(track.path));
+
+		delete index.tracks[track.id];
+
+		for (const albumId in index.albums) {
+			const album = index.albums[albumId];
+			if (!album) continue;
+
+			if (album.tracks.includes(track)) {
+				album.tracks = album.tracks.filter(
+					(item) => item.id !== track.id
+				);
+			}
+		}
 	}
 
 	async #walk(
@@ -230,12 +278,7 @@ export default class Indexer {
 				if (!supportedMimeTypes.includes(mimeType)) continue;
 
 				const processFile = async () => {
-					const entry = await this.fileMetadata(fullPath);
-
-					if (entry) {
-						this.#dirToTrackMap.set(fullPath, entry);
-						index.tracks[entry.id] = entry;
-					}
+					await this.indexTrack(fullPath, index);
 				};
 
 				promiseQueue.push(processFile());
