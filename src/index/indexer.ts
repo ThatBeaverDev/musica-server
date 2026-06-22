@@ -21,6 +21,7 @@ export interface Track {
 	// used to update files changed when inactive
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
+	number?: number;
 
 	path: string;
 	id: string;
@@ -199,6 +200,9 @@ export default class Indexer {
 			? new Date(releaseStore).getTime()
 			: undefined;
 
+		// number
+		const number = metadata?.common.track.no ?? undefined;
+
 		const stats: Track = {
 			title,
 			artist,
@@ -210,7 +214,8 @@ export default class Indexer {
 			modified,
 			path: relative,
 
-			id
+			id,
+			number
 		};
 
 		return stats;

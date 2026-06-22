@@ -2,19 +2,22 @@
     width: 240px;
     padding: 24px;
     background: #181818;
-    border-right: 1px solid rgba(255,255,255,0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .player {
     width: 100%;
 
-	display: flex;
+    display: flex;
     flex-direction: column;
 
-	align-items: center;
-	margin: 20px 0px;
+    align-items: center;
+    margin: 20px 0px;
 
-	/*border-bottom: 1px solid rgba(255, 255, 255, 0.05);*/
+    /*border-bottom: 1px solid rgba(255, 255, 255, 0.05);*/
 }
 
 img#track-art {
@@ -40,14 +43,14 @@ p.album-title {
     font-size: 0.95rem;
     font-weight: 500;
     color: white;
-    
+
     text-align: center;
 }
 
 p.album-artist {
     font-size: 0.9rem;
     color: #888;
-    
+
     text-align: center;
 }
 
@@ -55,6 +58,7 @@ p.album-artist {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
 
     width: 100%;
 }
@@ -63,7 +67,17 @@ p.album-artist {
     filter: invert(100%);
     margin: 3px;
 
+    width: 20px;
+    height: 20px;
+
     transition: 0.2s ease;
+
+    user-select: none;
+}
+
+.control-play {
+    width: 25px;
+    height: 25px;
 }
 
 .player-control:hover {
@@ -74,24 +88,74 @@ p.album-artist {
     transform: scale(0.75);
 }
 
+.progress-bar-outer {
+    width: 100%;
+    height: 6px;
+
+    overflow: hidden;
+    border-radius: 1000px;
+
+    margin: 5px 0px;
+
+    background-color: var(--item);
+}
+
+.progress-bar-inner {
+    position: relative;
+    left: 0px;
+    top: 0px;
+
+    /* width set in JS */
+    height: 100%;
+
+    background-color: var(--item2);
+
+    pointer-events: none;
+}
+
+.queue-empty-text {
+    user-select: none;
+}
+
 .player-queue-item {
     display: flex;
     flex-direction: row;
     margin-bottom: 5px;
 
+    width: 100%;
+
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.player-queue-item > .track-info {
-     justify-content: center;
+.player-queue-item:hover {
+    background-color: var(--panel);
 }
 
-.player-queue-item > .track-info > p {
+.player-queue-item>.track-info {
+    justify-content: center;
+    overflow: hidden;
+
+    pointer-events: none;
+    user-select: none;
+}
+
+.player-queue-item>.track-info>p {
     text-align: left;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    pointer-events: none;
+    user-select: none;
 }
 
 .queue-item-art {
+    width: 50px;
     height: 50px;
     margin-right: 10px;
     border-radius: 6%;
+
+    pointer-events: none;
+    user-select: none;
 }

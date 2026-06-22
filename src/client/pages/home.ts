@@ -1,4 +1,4 @@
-import { Album } from "../index/indexer";
+import { Album } from "../../index/indexer";
 import album from "./album";
 
 export default async function home(div: HTMLDivElement) {
@@ -9,6 +9,8 @@ export default async function home(div: HTMLDivElement) {
         <h3>Albums</h3>
         <div class="grid" id="albumsGrid"></div>
     </div>`;
+
+	document.title = "Home - Musica";
 
 	const albums: string[] = await (await fetch("/api/albums/list")).json();
 

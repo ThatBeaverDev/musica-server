@@ -1,5 +1,5 @@
-import { Album } from "../index/indexer";
-import { player } from "./player.js";
+import { Album } from "../../index/indexer";
+import { player } from "../player.js";
 
 export default async function album(div: HTMLDivElement) {
 	div.innerHTML = `
@@ -18,8 +18,12 @@ export default async function album(div: HTMLDivElement) {
             <div class="trackList" id="trackList"></div>
         </div>`;
 
+	document.title = `Album - Musica`;
+
 	const id = new URL(window.location.href).pathname.split("/")[2];
 	const album: Album = await (await fetch(`/api/album/${id}/info`)).json();
+
+	document.title = `${album.title} by ${album.artist} - Musica`;
 
 	const title = document.getElementById("title")!;
 	title.innerText = album.title;
@@ -31,6 +35,8 @@ export default async function album(div: HTMLDivElement) {
 
 	const art = document.getElementById("art")! as HTMLImageElement;
 	art.src = `/api/track/${album.tracks[0].id}/art`;
+
+	album.tracks.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 
 	const tracksContainer = document.getElementById("trackList")!;
 	let i = 1;

@@ -29,13 +29,23 @@ class AudioPlayer {
 		"player-queue"
 	)! as HTMLDivElement;
 
+	#progressBarInner: HTMLDivElement = document.getElementById(
+		"player-progress-inner"
+	)! as HTMLDivElement;
+	#progressBarOuter: HTMLDivElement = document.getElementById(
+		"player-progress-outer"
+	)! as HTMLDivElement;
+
 	constructor(audio?: HTMLAudioElement) {
 		this.audio =
 			audio ??
 			(document.querySelector("audio#player") as HTMLAudioElement);
 
+		/* ----- Audio rollover when finished ----- */
+
 		this.audio.addEventListener("ended", () => this.rollover());
 
+		/* ----- Media control buttons ----- */
 		this.#skipBackButton.addEventListener("mouseup", () => {
 			this.skipBack();
 		});
@@ -46,32 +56,94 @@ class AudioPlayer {
 			this.skipForward();
 		});
 
+		/* ----- Keyboard controls ----- */
+		window.addEventListener("keydown", (event) => {
+			switch (event.key) {
+				case " ":
+					this.toggle();
+					event.preventDefault();
+					break;
+			}
+		});
+
+		/* ----- Progress bar logic ----- */
+
+		let active = false;
+		let wasPlaying = false;
+
+		const adjustTime = (event: MouseEvent) => {
+			const rect = this.#progressBarOuter.getBoundingClientRect();
+			const x = event.clientX - rect.left; // x position within the element
+
+			this.#progressBarInner.style.width = `${x}px`;
+
+			const decimalProgression = x / rect.width;
+			this.seek(this.audio.duration * decimalProgression);
+		};
+
+		this.#progressBarOuter.addEventListener("mousedown", (event) => {
+			active = true;
+			wasPlaying = this.isPlaying;
+			this.pause();
+
+			adjustTime(event);
+		});
+		window.addEventListener("mouseup", () => {
+			active = false;
+
+			if (wasPlaying) this.resume();
+		});
+		window.addEventListener("mousemove", (event) => {
+			if (!active) return;
+
+			adjustTime(event);
+		});
+
+		const refreshProgressbar = () => {
+			const rect = this.#progressBarOuter.getBoundingClientRect();
+
+			const decimalProgression =
+				this.audio.currentTime / this.audio.duration;
+
+			const progress = `${rect.width * decimalProgression}px`;
+
+			if (this.#progressBarInner.style.width !== progress)
+				this.#progressBarInner.style.width = progress;
+		};
+
+		setInterval(refreshProgressbar, 500);
+
 		this.#renderQueue();
 	}
 
-	#getNextTrack(): Track | undefined {
+	#getNextTrack(number: number): Track | undefined {
 		switch (this.queue.loop) {
 			case "one":
 				return this.currentTrack;
 
 			case "none":
-				return this.queue.nextTracks.shift();
+				return this.queue.nextTracks.splice(0, number).at(-1);
 
 			case "all":
-				if (this.queue.nextTracks.length === 0) {
-					this.queue.nextTracks = []; // insure not linked
-					this.queue.pastTracks.forEach((item) => {
-						this.addToQueue(item);
-					});
-					this.queue.pastTracks = [];
+				let val: Track | undefined;
+				for (let i = 0; i < number; i++) {
+					if (this.queue.nextTracks.length === 0) {
+						this.queue.nextTracks = []; // insure not linked
+						this.queue.pastTracks.forEach((item) => {
+							this.addToQueue(item);
+						});
+						this.queue.pastTracks = [];
+					}
+
+					val = this.queue.nextTracks.shift();
 				}
 
-				return this.queue.nextTracks.shift();
+				return val;
 		}
 	}
 
-	async rollover() {
-		const next = this.#getNextTrack();
+	async rollover(number: number = 1) {
+		const next = this.#getNextTrack(number);
 
 		if (!next) {
 			this.resetQueue();
@@ -90,6 +162,15 @@ class AudioPlayer {
 		this.currentTrack = track;
 
 		this.audio.src = `/api/track/${track.id}/get`;
+
+		var link: HTMLLinkElement =
+			document.querySelector("link[rel~='icon']")!;
+		if (!link) {
+			link = document.createElement("link");
+			link.rel = "icon";
+			document.head.appendChild(link);
+		}
+		link.href = `/api/track/${track.id}/art`;
 
 		document.getElementById("player-title")!.textContent = track.title;
 		document.getElementById("player-artist")!.textContent = track.artist;
@@ -120,52 +201,64 @@ class AudioPlayer {
 		this.#renderQueue();
 	}
 
+	rerenderScheduled: boolean = false;
 	#renderQueue() {
-		this.#queueContainer.innerHTML = "";
+		if (this.rerenderScheduled) return;
 
-		if (this.queue.nextTracks.length === 0) {
-			const noQueue = document.createElement("p");
-			noQueue.innerText = "Nothing queued at the moment";
-			noQueue.classList.add("queue-empty-text");
+		this.rerenderScheduled = true;
+		requestAnimationFrame(() => {
+			this.#queueContainer.innerHTML = "";
+			debug("rebuildQueue");
 
-			this.#queueContainer.appendChild(noQueue);
+			if (this.queue.nextTracks.length === 0) {
+				const noQueue = document.createElement("p");
+				noQueue.innerText = "Nothing queued at the moment";
+				noQueue.classList.add("queue-empty-text");
 
-			return;
-		}
+				this.#queueContainer.appendChild(noQueue);
+			} else {
+				const frag = document.createDocumentFragment();
 
-		let i = 0;
-		for (const track of this.queue.nextTracks) {
-			i++;
+				let i = 0;
+				for (const track of this.queue.nextTracks) {
+					i++;
+					const trackNumber = i;
 
-			const container = document.createElement("div");
-			container.classList.add("player-queue-item");
+					const container = document.createElement("div");
+					container.classList.add("player-queue-item");
 
-			const image = document.createElement("img");
-			image.classList.add("queue-item-art");
-			image.src = `/api/track/${track.id}/art`;
+					const image = document.createElement("img");
+					image.classList.add("queue-item-art");
+					image.src = `/api/track/${track.id}/art`;
+					image.loading = "eager";
 
-			const info = document.createElement("div");
-			info.classList.add("track-info");
+					const info = document.createElement("div");
+					info.classList.add("track-info");
 
-			const title = document.createElement("p");
-			title.classList.add("album-title");
-			title.textContent = track.title;
+					const title = document.createElement("p");
+					title.classList.add("album-title");
+					title.textContent = track.title;
 
-			const artist = document.createElement("p");
-			artist.classList.add("album-artist");
-			artist.textContent = track.artist;
+					const artist = document.createElement("p");
+					artist.classList.add("album-artist");
+					artist.textContent = track.artist;
 
-			info.append(title, artist);
-			container.append(image, info);
+					info.append(title, artist);
+					container.append(image, info);
 
-			container.addEventListener("mouseup", async () => {
-				for (let times = 0; times > i; times++) {
-					await this.skipForward();
+					container.addEventListener("click", async () => {
+						debug("skipTo", trackNumber);
+						await this.skipForward(trackNumber);
+					});
+
+					frag.appendChild(container);
 				}
-			});
 
-			this.#queueContainer.appendChild(container);
-		}
+				this.#queueContainer.appendChild(frag);
+			}
+
+			this.rerenderScheduled = false;
+		});
 	}
 
 	addToQueue(track: Track) {
@@ -213,6 +306,8 @@ class AudioPlayer {
 	}
 
 	async skipBack() {
+		debug("back");
+
 		if (this.audio.currentTime > 5) {
 			this.audio.currentTime = 0;
 			return;
@@ -232,14 +327,17 @@ class AudioPlayer {
 		await this.#playTrack(previous);
 	}
 
-	async skipForward() {
+	async skipForward(number: number = 1) {
+		debug("next");
+
 		this.audio.pause();
 		this.audio.currentTime = 0;
-		await this.rollover();
+		await this.rollover(number);
 	}
 
 	stop() {
 		debug("stop");
+
 		this.audio.pause();
 		this.audio.currentTime = 0;
 		this.#playButton.src = "/img/play.svg";
@@ -247,6 +345,7 @@ class AudioPlayer {
 
 	seek(seconds: number) {
 		debug("seek to", seconds);
+
 		this.audio.currentTime = seconds;
 	}
 

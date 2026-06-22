@@ -43,21 +43,32 @@
 					<p class="album-artist" id="player-artist"></p>
 				</div>
 
+				<div class="progress-bar-outer" id="player-progress-outer">
+					<div
+						class="progress-bar-inner"
+						id="player-progress-inner"
+						style="width: 0px"
+					></div>
+				</div>
+
 				<div class="player-controls">
 					<img
 						class="player-control"
 						id="player-back"
 						src="/img/skip-back.svg"
+						draggable="false"
 					/>
 					<img
-						class="player-control"
+						class="player-control control-play"
 						id="player-play"
 						src="/img/play.svg"
+						draggable="false"
 					/>
 					<img
 						class="player-control"
 						id="player-forward"
 						src="/img/skip-forward.svg"
+						draggable="false"
 					/>
 				</div>
 			</div>

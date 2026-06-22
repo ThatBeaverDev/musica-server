@@ -1,5 +1,5 @@
-import album from "./album";
-import home from "./home";
+import album from "./pages/album";
+import home from "./pages/home";
 
 const url = new URL(window.location.href);
 const contentDiv = document.querySelector("div.content") as HTMLDivElement;
