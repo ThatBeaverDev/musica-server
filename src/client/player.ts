@@ -15,76 +15,93 @@ class AudioPlayer {
 		pastTracks: Track[];
 	} = { loop: "none", shuffle: false, nextTracks: [], pastTracks: [] };
 
+	#skipBackButton: HTMLImageElement = document.getElementById(
+		"player-back"
+	) as HTMLImageElement;
+	#playButton: HTMLImageElement = document.getElementById(
+		"player-play"
+	) as HTMLImageElement;
+	#skipForwardButton: HTMLImageElement = document.getElementById(
+		"player-forward"
+	) as HTMLImageElement;
+
+	#queueContainer: HTMLDivElement = document.getElementById(
+		"player-queue"
+	)! as HTMLDivElement;
+
 	constructor(audio?: HTMLAudioElement) {
 		this.audio =
 			audio ??
 			(document.querySelector("audio#player") as HTMLAudioElement);
 
 		this.audio.addEventListener("ended", () => this.rollover());
+
+		this.#skipBackButton.addEventListener("mouseup", () => {
+			this.skipBack();
+		});
+		this.#playButton.addEventListener("mouseup", () => {
+			this.toggle();
+		});
+		this.#skipForwardButton.addEventListener("mouseup", () => {
+			this.skipForward();
+		});
+
+		this.#renderQueue();
+	}
+
+	#getNextTrack(): Track | undefined {
+		switch (this.queue.loop) {
+			case "one":
+				return this.currentTrack;
+
+			case "none":
+				return this.queue.nextTracks.shift();
+
+			case "all":
+				if (this.queue.nextTracks.length === 0) {
+					this.queue.nextTracks = []; // insure not linked
+					this.queue.pastTracks.forEach((item) => {
+						this.addToQueue(item);
+					});
+					this.queue.pastTracks = [];
+				}
+
+				return this.queue.nextTracks.shift();
+		}
 	}
 
 	async rollover() {
-		debug("rollover");
-		let track: Track;
+		const next = this.#getNextTrack();
 
-		const halt = () => {
-			this.currentTrack = undefined;
-			this.pause();
+		if (!next) {
 			this.resetQueue();
-		};
-
-		switch (this.queue.loop) {
-			case "none":
-				[track] = this.queue.nextTracks.splice(0, 1);
-
-				if (!track) {
-					halt();
-					return;
-				}
-				break;
-
-			case "one":
-				if (this.currentTrack) {
-					track = this.currentTrack;
-				} else {
-					halt();
-					return; // no queue
-				}
-				break;
-
-			case "all":
-				[track] = this.queue.nextTracks.splice(0, 1);
-
-				if (!track) {
-					halt();
-
-					this.queue.nextTracks = this.queue.pastTracks;
-					[track] = this.queue.nextTracks.splice(0, 1);
-				}
-
-				break;
+			return;
 		}
 
-		this.queue.pastTracks.push(track);
+		if (this.currentTrack && this.queue.loop !== "one") {
+			this.queue.pastTracks.push(this.currentTrack);
+		}
 
+		this.#renderQueue();
+		await this.#playTrack(next);
+	}
+
+	async #playTrack(track: Track) {
 		this.currentTrack = track;
+
 		this.audio.src = `/api/track/${track.id}/get`;
 
-		document.querySelector(
-			"body > div.main > div.player > div > p.album-title"
-		)!.textContent = track.title;
-
-		document.querySelector(
-			"body > div.main > div.player > div > p.album-artist"
-		)!.textContent = track.artist;
-
-		(document.getElementById("track-art")! as HTMLImageElement).src =
+		document.getElementById("player-title")!.textContent = track.title;
+		document.getElementById("player-artist")!.textContent = track.artist;
+		(document.getElementById("track-art") as HTMLImageElement).src =
 			`/api/track/${track.id}/art`;
+
+		this.#playButton.src = "/img/pause.svg";
 
 		try {
 			await this.audio.play();
 		} catch (err) {
-			console.error("Playback failed:", err);
+			console.error(err);
 		}
 	}
 
@@ -99,15 +116,78 @@ class AudioPlayer {
 			nextTracks: [],
 			pastTracks: []
 		};
+
+		this.#renderQueue();
 	}
 
-	async addToQueue(track: Track) {
+	#renderQueue() {
+		this.#queueContainer.innerHTML = "";
+
+		if (this.queue.nextTracks.length === 0) {
+			const noQueue = document.createElement("p");
+			noQueue.innerText = "Nothing queued at the moment";
+			noQueue.classList.add("queue-empty-text");
+
+			this.#queueContainer.appendChild(noQueue);
+
+			return;
+		}
+
+		let i = 0;
+		for (const track of this.queue.nextTracks) {
+			i++;
+
+			const container = document.createElement("div");
+			container.classList.add("player-queue-item");
+
+			const image = document.createElement("img");
+			image.classList.add("queue-item-art");
+			image.src = `/api/track/${track.id}/art`;
+
+			const info = document.createElement("div");
+			info.classList.add("track-info");
+
+			const title = document.createElement("p");
+			title.classList.add("album-title");
+			title.textContent = track.title;
+
+			const artist = document.createElement("p");
+			artist.classList.add("album-artist");
+			artist.textContent = track.artist;
+
+			info.append(title, artist);
+			container.append(image, info);
+
+			container.addEventListener("mouseup", async () => {
+				for (let times = 0; times > i; times++) {
+					await this.skipForward();
+				}
+			});
+
+			this.#queueContainer.appendChild(container);
+		}
+	}
+
+	addToQueue(track: Track) {
 		debug("add", track);
+
 		this.queue.nextTracks.push(track);
+		this.#renderQueue();
+	}
+
+	setQueue(before: Track[], now: Track, after: Track[]) {
+		this.resetQueue();
+
+		this.queue.pastTracks = [...before];
+		this.queue.nextTracks = [now, ...after];
+
+		this.#renderQueue();
 	}
 
 	pause() {
 		debug("pause");
+
+		this.#playButton.src = "/img/play.svg";
 		this.audio.pause();
 	}
 
@@ -116,23 +196,53 @@ class AudioPlayer {
 
 		if (!this.currentTrack) await this.rollover();
 
+		this.#playButton.src = "/img/pause.svg";
 		await this.audio.play();
+
+		this.#renderQueue();
 	}
 
 	toggle() {
 		if (this.audio.paused) {
 			debug("toggle (playing)");
-			this.audio.play();
+			this.resume();
 		} else {
 			debug("toggle (pausing)");
-			this.audio.pause();
+			this.pause();
 		}
+	}
+
+	async skipBack() {
+		if (this.audio.currentTime > 5) {
+			this.audio.currentTime = 0;
+			return;
+		}
+
+		const previous = this.queue.pastTracks.pop();
+
+		if (!previous) {
+			this.audio.currentTime = 0;
+			return;
+		}
+
+		if (this.currentTrack) {
+			this.queue.nextTracks.unshift(this.currentTrack);
+		}
+
+		await this.#playTrack(previous);
+	}
+
+	async skipForward() {
+		this.audio.pause();
+		this.audio.currentTime = 0;
+		await this.rollover();
 	}
 
 	stop() {
 		debug("stop");
 		this.audio.pause();
 		this.audio.currentTime = 0;
+		this.#playButton.src = "/img/play.svg";
 	}
 
 	seek(seconds: number) {

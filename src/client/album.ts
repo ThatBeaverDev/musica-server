@@ -34,7 +34,10 @@ export default async function album(div: HTMLDivElement) {
 
 	const tracksContainer = document.getElementById("trackList")!;
 	let i = 1;
-	for (const info of album.tracks) {
+	for (const index in album.tracks) {
+		const idx = Number(index);
+		const info = album.tracks[idx];
+
 		const div = document.createElement("div");
 		div.classList.add("listTerm");
 
@@ -59,8 +62,12 @@ export default async function album(div: HTMLDivElement) {
 		div.appendChild(infoDiv);
 
 		div.addEventListener("click", () => {
-			player.resetQueue();
-			player.addToQueue(info);
+			player.setQueue(
+				album.tracks.slice(0, idx - 1),
+				info,
+				album.tracks.slice(idx + 1)
+			);
+
 			player.resume();
 		});
 

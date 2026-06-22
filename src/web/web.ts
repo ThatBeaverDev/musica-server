@@ -260,6 +260,28 @@ export default class WebServer {
 			"text/css"
 		);
 
+		// svg
+		passthroughFile(
+			"/img/play.svg",
+			"./public/img/play.svg",
+			"image/svg+xml"
+		);
+		passthroughFile(
+			"/img/pause.svg",
+			"./public/img/pause.svg",
+			"image/svg+xml"
+		);
+		passthroughFile(
+			"/img/skip-forward.svg",
+			"./public/img/skip-forward.svg",
+			"image/svg+xml"
+		);
+		passthroughFile(
+			"/img/skip-back.svg",
+			"./public/img/skip-back.svg",
+			"image/svg+xml"
+		);
+
 		// js
 		passthroughFile("/app.js", "./public/app.js", "text/javascript");
 

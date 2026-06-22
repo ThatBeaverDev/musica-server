@@ -138,7 +138,7 @@ body {
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 6%;
 }
 
 .card .album-title {

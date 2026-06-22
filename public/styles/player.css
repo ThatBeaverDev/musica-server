@@ -1,23 +1,97 @@
-.player {
-    position: absolute;
-    left: 240px;
-    bottom: 0px;
+.queue {
+    width: 240px;
+    padding: 24px;
+    background: #181818;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
 
-    width: calc(100% - 240px);
-	height: 60px;
+.player {
+    width: 100%;
 
 	display: flex;
-	align-items: center;
-	padding: 0px;
-	background: var(--panel);
+    flex-direction: column;
 
-	border-top: 1px solid rgba(255, 255, 255, 0.05);
+	align-items: center;
+	margin: 20px 0px;
+
+	/*border-bottom: 1px solid rgba(255, 255, 255, 0.05);*/
 }
 
 img#track-art {
-    width: auto;
-    height: 100%;
+    width: 100%;
+    height: auto;
     padding-right: 10px;
 
-    border-radius: 4px;
+    border-radius: 6%;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin: 5px;
+
+    gap: 2px;
+    flex: 1;
+}
+
+p.album-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: white;
+    
+    text-align: center;
+}
+
+p.album-artist {
+    font-size: 0.9rem;
+    color: #888;
+    
+    text-align: center;
+}
+
+.player-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    width: 100%;
+}
+
+.player-control {
+    filter: invert(100%);
+    margin: 3px;
+
+    transition: 0.2s ease;
+}
+
+.player-control:hover {
+    transform: scale(1.1);
+}
+
+.player-control:active {
+    transform: scale(0.75);
+}
+
+.player-queue-item {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.player-queue-item > .track-info {
+     justify-content: center;
+}
+
+.player-queue-item > .track-info > p {
+    text-align: left;
+}
+
+.queue-item-art {
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 6%;
 }
