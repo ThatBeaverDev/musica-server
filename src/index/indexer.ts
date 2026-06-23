@@ -68,8 +68,10 @@ export default class Indexer {
 		} else {
 			const metadata = await parseFile(entry.path);
 
-			const picture = metadata.common.picture?.[0];
-			if (!picture) return null;
+			const picture = metadata.common.picture?.[0] ?? {
+				data: await fs.readFile("./public/img/no-art.png"),
+				format: "image/png"
+			};
 
 			await fs.writeFile(artPath, picture.data);
 

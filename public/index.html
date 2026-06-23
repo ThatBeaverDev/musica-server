@@ -1,116 +1,90 @@
 <!doctype html>
 <html>
-	<head>
-		<title>Musica</title>
 
-		<link
-			rel="icon"
-			type="image/png"
-			href="/favicon-96x96.png"
-			sizes="96x96"
-		/>
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="shortcut icon" href="/favicon.ico" />
-		<link
-			rel="apple-touch-icon"
-			sizes="180x180"
-			href="/apple-touch-icon.png"
-		/>
-		<meta name="apple-mobile-web-app-title" content="Musica" />
-		<link rel="manifest" href="/manifest.webmanifest" />
+<head>
+	<title>Musica</title>
 
-		<link rel="stylesheet" href="/styles/styles.css" type="text/css" />
-		<link rel="stylesheet" href="/styles/album.css" type="text/css" />
-		<link rel="stylesheet" href="/styles/player.css" type="text/css" />
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+	<meta name="apple-mobile-web-app-title" content="Musica" />
+	<link rel="manifest" href="/manifest.webmanifest" />
 
-		<link rel="manifest" href="/manifest.json" />
-		<meta name="theme-color" content="#181818" />
-	</head>
+	<link rel="stylesheet" href="/styles/styles.css" type="text/css" />
+	<link rel="stylesheet" href="/styles/album.css" type="text/css" />
+	<link rel="stylesheet" href="/styles/player.css" type="text/css" />
+	<link rel="stylesheet" href="/styles/desktop.css" type="text/css" />
+	<link rel="stylesheet" href="/styles/mobile.css" type="text/css" />
 
-	<body>
-		<div class="sidebar">
-			<h2 class="app-title">Musica</h2>
+	<link rel="manifest" href="/manifest.json" />
+	<meta name="theme-color" content="#181818" />
+</head>
 
-			<div class="nav">
-				<div class="nav-item">Home</div>
-				<div class="nav-item">Search</div>
-				<div class="nav-item">Library</div>
-			</div>
+<body>
+	<div class="sidebar">
+		<h2 class="app-title">Musica</h2>
 
-			<!-- <div class="sidebar-footer">
+		<div class="nav">
+			<div class="nav-item">Home</div>
+			<div class="nav-item">Search</div>
+			<div class="nav-item">Library</div>
+		</div>
+
+		<input class="search" placeholder="Search the Library..." />
+
+		<!-- <div class="sidebar-footer">
 				<div class="mini-user">Guest</div>
 			</div> -->
-		</div>
+	</div>
 
-		<div class="main">
-			<div class="topbar">
-				<input class="search" placeholder="Search the Library..." />
-			</div>
+	<div class="main">
+		<div class="content"></div>
+	</div>
 
-			<div class="content"></div>
-		</div>
+	<div class="queue">
+		<h2 class="queue-title">Queue</h2>
 
-		<div class="queue">
-			<h2 class="queue-title">Queue</h2>
+		<div class="player">
+			<img id="track-art" />
 
-			<div class="player">
-				<img id="track-art" />
-
-				<div class="player-info">
-					<p class="album-title" id="player-title">
-						Nothing is playing.
-					</p>
-					<p class="album-artist" id="player-artist"></p>
-				</div>
+			<div class="player-info">
+				<p class="album-title" id="player-title">
+					Nothing is playing.
+				</p>
+				<p class="album-artist" id="player-artist"></p>
 
 				<div class="progress-bar-outer" id="player-progress-outer">
-					<div
-						class="progress-bar-inner"
-						id="player-progress-inner"
-						style="width: 0px"
-					></div>
+					<div class="progress-bar-inner" id="player-progress-inner" style="width: 0px"></div>
 				</div>
 
 				<div class="player-controls">
-					<img
-						class="player-control"
-						id="player-back"
-						src="/img/skip-back.svg"
-						draggable="false"
-					/>
-					<img
-						class="player-control control-play"
-						id="player-play"
-						src="/img/play.svg"
-						draggable="false"
-					/>
-					<img
-						class="player-control"
-						id="player-forward"
-						src="/img/skip-forward.svg"
-						draggable="false"
-					/>
+					<img class="player-control" id="player-back" src="/img/skip-back.svg" draggable="false" />
+					<img class="player-control control-play" id="player-play" src="/img/play.svg" draggable="false" />
+					<img class="player-control" id="player-forward" src="/img/skip-forward.svg" draggable="false" />
 				</div>
 			</div>
-
-			<div class="player-queue" id="player-queue">
-				<div class="player-queue-item">
-					<img class="queue-item-art" src="/api/track/44/art" />
-
-					<div class="track-info">
-						<p class="album-title">UNIX 82</p>
-						<p class="album-artist">Ben Elson</p>
-					</div>
-				</div>
-			</div>
-
-			<!-- <div class="sidebar-footer">
-				<div class="mini-user">Guest</div>
-			</div> -->
 		</div>
 
-		<audio id="player"></audio>
+		<div class="player-queue" id="player-queue">
+			<div class="player-queue-item">
+				<img class="queue-item-art" src="/api/track/44/art" />
 
-		<script src="/app.js"></script>
-	</body>
+				<div class="track-info">
+					<p class="album-title">UNIX 82</p>
+					<p class="album-artist">Ben Elson</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- <div class="sidebar-footer">
+				<div class="mini-user">Guest</div>
+			</div> -->
+	</div>
+
+	<audio id="player"></audio>
+
+	<script src="/app.js"></script>
+</body>
+
 </html>

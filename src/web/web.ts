@@ -262,6 +262,16 @@ export default class WebServer {
 			"./public/styles/player.css",
 			"text/css"
 		);
+		passthroughFile(
+			"/styles/desktop.css",
+			"./public/styles/desktop.css",
+			"text/css"
+		);
+		passthroughFile(
+			"/styles/mobile.css",
+			"./public/styles/mobile.css",
+			"text/css"
+		);
 
 		// images
 		passthroughFile(

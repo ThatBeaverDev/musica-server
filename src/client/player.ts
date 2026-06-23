@@ -260,7 +260,7 @@ class AudioPlayer {
 					const image = document.createElement("img");
 					image.classList.add("queue-item-art");
 					image.src = `/api/track/${track.id}/art`;
-					image.loading = "eager";
+					image.loading = "lazy";
 
 					const info = document.createElement("div");
 					info.classList.add("track-info");

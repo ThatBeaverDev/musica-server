@@ -1,0 +1,17 @@
+@media (min-aspect-ratio: 7/10) {
+    .queue {
+        width: 260px;
+        padding: 24px;
+        background: #181818;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    img#track-art {
+        width: 100%;
+        height: auto;
+        padding-right: 10px;
+    }
+}

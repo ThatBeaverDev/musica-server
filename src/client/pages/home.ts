@@ -14,11 +14,11 @@ export default async function home(div: HTMLDivElement) {
 
 	const albums: string[] = await (await fetch("/api/albums/list")).json();
 
-	const stats: Album[] = await Promise.all(
-		albums.filter(Boolean).map(async (item) => {
-			return await (await fetch(`/api/album/${item}/info`)).json();
+	const stats: Album[] = await (
+		await fetch(`/api/bulk/albums/info`, {
+			headers: { albums: JSON.stringify(albums) }
 		})
-	);
+	).json();
 
 	const albumContainer = document.getElementById("albumsGrid");
 	if (!albumContainer) return;
@@ -30,6 +30,7 @@ export default async function home(div: HTMLDivElement) {
 		const albumImage = document.createElement("img");
 		albumImage.classList.add("albumArt");
 		albumImage.src = `/api/track/${info.tracks?.[0].id}/art`;
+		albumImage.loading = "lazy";
 		tileDiv.appendChild(albumImage);
 
 		const albumTitle = document.createElement("p");

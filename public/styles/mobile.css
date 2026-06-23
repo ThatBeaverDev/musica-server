@@ -1,0 +1,32 @@
+@media (max-aspect-ratio: 7/10) {
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content {
+        height: calc(100vh - (50px + 40vh));
+    }
+
+    .queue {
+        width: 100vw;
+        height: 40vh;
+
+        padding: 24px;
+        background: #181818;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    .player {
+        flex-direction: row;
+    }
+
+    img#track-art {
+        width: 15vh;
+        height: auto;
+        padding-right: 10px;
+    }
+}
