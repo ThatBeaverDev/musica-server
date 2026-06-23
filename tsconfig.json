@@ -10,7 +10,6 @@
 
 		"module": "esnext",
 		"moduleResolution": "bundler",
-		"types": ["node"],
 
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,

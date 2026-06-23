@@ -1,4 +1,4 @@
-import { Album } from "../../index/indexer";
+import { Album } from "../types.js";
 import { player } from "../player.js";
 
 export default async function album(div: HTMLDivElement) {

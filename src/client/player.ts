@@ -1,4 +1,4 @@
-import { Track } from "../index/indexer";
+import { Track } from "./types";
 
 const willDebug = true;
 function debug(...data: any[]) {
