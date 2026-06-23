@@ -260,7 +260,12 @@ export default class WebServer {
 			"text/css"
 		);
 
-		// svg
+		// images
+		passthroughFile(
+			"/favicon.svg",
+			"./public/img/favicon.svg",
+			"image/svg+xml"
+		);
 		passthroughFile(
 			"/img/play.svg",
 			"./public/img/play.svg",

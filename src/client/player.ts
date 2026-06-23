@@ -161,16 +161,8 @@ class AudioPlayer {
 	async #playTrack(track: Track) {
 		this.currentTrack = track;
 
-		this.audio.src = `/api/track/${track.id}/get`;
 
-		var link: HTMLLinkElement =
-			document.querySelector("link[rel~='icon']")!;
-		if (!link) {
-			link = document.createElement("link");
-			link.rel = "icon";
-			document.head.appendChild(link);
-		}
-		link.href = `/api/track/${track.id}/art`;
+		this.audio.src = `/api/track/${track.id}/get`;
 
 		document.getElementById("player-title")!.textContent = track.title;
 		document.getElementById("player-artist")!.textContent = track.artist;
