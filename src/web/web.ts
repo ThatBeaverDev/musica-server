@@ -226,7 +226,7 @@ export default class WebServer {
 			server.get(serverPath, async (_, reply) => {
 				try {
 					reply.header("content-type", contentType);
-					return reply.send(await readFile(filePath, "utf8"));
+					return reply.send(await readFile(filePath));
 				} catch (e) {
 					console.error(
 						`DynamicGet[${filePath} -> ${serverPath}]:`,
@@ -265,10 +265,36 @@ export default class WebServer {
 
 		// images
 		passthroughFile(
+			"/apple-touch-icon.png",
+			"./public/img/apple-touch-icon.png",
+			"image/png"
+		);
+		passthroughFile(
+			"/favicon-96x96.png",
+			"./public/img/favicon-96x96.png",
+			"image/png"
+		);
+		passthroughFile(
+			"/favicon.ico",
+			"./public/img/favicon.ico",
+			"image/x-icon"
+		);
+		passthroughFile(
 			"/favicon.svg",
 			"./public/img/favicon.svg",
 			"image/svg+xml"
 		);
+		passthroughFile(
+			"/web-app-manifest-192x192.png",
+			"./public/img/web-app-manifest-192x192.png",
+			"image/png"
+		);
+		passthroughFile(
+			"/web-app-manifest-512x512.png",
+			"./public/img/web-app-manifest-512x512.png",
+			"image/png"
+		);
+
 		passthroughFile(
 			"/img/play.svg",
 			"./public/img/play.svg",
@@ -292,6 +318,13 @@ export default class WebServer {
 
 		// js
 		passthroughFile("/app.js", "./public/app.js", "text/javascript");
+
+		// config
+		passthroughFile(
+			"/manifest.webmanifest",
+			"./public/manifest.webmanifest",
+			"application/manifest+json"
+		);
 	}
 
 	async listen(port: number) {
