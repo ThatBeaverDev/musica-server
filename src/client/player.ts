@@ -119,6 +119,23 @@ class AudioPlayer {
 		setInterval(refreshProgressbar, 500);
 
 		this.#renderQueue();
+
+		// media session
+		if (navigator.mediaSession) {
+			navigator.mediaSession.setActionHandler("play", () =>
+				this.resume()
+			);
+			navigator.mediaSession.setActionHandler("pause", () =>
+				this.pause()
+			);
+			navigator.mediaSession.setActionHandler("nexttrack", () =>
+				this.skipForward()
+			);
+			navigator.mediaSession.setActionHandler("previoustrack", () =>
+				this.skipBack()
+			);
+			navigator.mediaSession.setActionHandler("stop", () => this.stop());
+		}
 	}
 
 	#getNextTrack(number: number): Track | undefined {
