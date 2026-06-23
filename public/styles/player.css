@@ -98,6 +98,13 @@ p.album-artist {
     margin: 5px 0px;
 
     background-color: var(--item);
+
+    transition: ease 0.2s;
+}
+
+.progress-bar-outer:hover,
+.progress-bar-outer:active {
+    background-color: var(--item2);
 }
 
 .progress-bar-inner {
@@ -109,8 +116,16 @@ p.album-artist {
     height: 100%;
 
     background-color: var(--item2);
+    transition: ease 0.2s;
 
     pointer-events: none;
+}
+
+.progress-bar-outer:hover .progress-bar-inner {
+    background-color: var(--item3) !important;
+}
+.progress-bar-outer:active .progress-bar-inner {
+    background-color: var(--item3) !important;
 }
 
 .queue-empty-text {
