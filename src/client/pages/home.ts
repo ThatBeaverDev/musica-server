@@ -15,7 +15,7 @@ export default async function home(div: HTMLDivElement) {
 	const albums: string[] = await (await fetch("/api/albums/list")).json();
 
 	const stats: Album[] = await Promise.all(
-		albums.map(async (item) => {
+		albums.filter(Boolean).map(async (item) => {
 			return await (await fetch(`/api/album/${item}/info`)).json();
 		})
 	);

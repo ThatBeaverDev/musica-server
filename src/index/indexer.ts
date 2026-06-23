@@ -82,6 +82,17 @@ export default class Indexer {
 		}
 	}
 
+	#cleanupAlbums() {
+		for (const name in this.index?.albums) {
+			const album = this.index.albums[name];
+			if (!album) continue;
+
+			if ((album.tracks.length ?? 0) == 0) {
+				delete this.index.albums[name];
+			}
+		}
+	}
+
 	async init() {
 		const startingIndex: TrackIndex = {
 			root: this.directory,
@@ -92,6 +103,7 @@ export default class Indexer {
 		await this.#walk(this.directory, startingIndex);
 
 		this.index = startingIndex;
+		this.#cleanupAlbums();
 
 		watch(this.directory, { recursive: true }, async (_, filename) => {
 			if (!filename) return;
@@ -146,6 +158,8 @@ export default class Indexer {
 					}
 				}
 			}
+
+			this.#cleanupAlbums();
 		});
 	}
 
@@ -277,6 +291,7 @@ export default class Indexer {
 				const mimeType = mime.getType(fullPath) ?? "text/plain";
 				if (!supportedMimeTypes.includes(mimeType)) continue;
 
+				await this.indexTrack(fullPath, index);
 			}
 		}
 	}

@@ -203,11 +203,13 @@ export default class WebServer {
 					const list = Object.keys(this.indexer.index?.albums ?? {});
 
 					return reply.send(
-						list.map((item) => {
-							const id = specifierToAlbumId(item);
+						list
+							.map((item) => {
+								const id = specifierToAlbumId(item);
 
-							return id;
-						})
+								return id;
+							})
+							.filter(Boolean)
 					);
 				});
 			},
