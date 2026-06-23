@@ -95,6 +95,8 @@ class AudioPlayer {
 			active = false;
 
 			if (wasPlaying) this.resume();
+			// prevent unrelated clicks causing it to start playing
+			wasPlaying = false;
 		});
 		window.addEventListener("mousemove", (event) => {
 			if (!active) return;
@@ -148,7 +150,10 @@ class AudioPlayer {
 	async rollover(number: number = 1) {
 		const next = this.#getNextTrack(number);
 
+		debug("next", next);
+
 		if (!next) {
+			this.stop();
 			this.resetQueue();
 			return;
 		}
