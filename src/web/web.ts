@@ -2,7 +2,7 @@ import Fastify, { FastifyInstance } from "fastify";
 import Indexer from "../index/indexer.js";
 import path from "node:path";
 import fs from "node:fs";
-import { mkdir, readdir, readFile, rm, rmdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { albumIdToSpecifier, specifierToAlbumId } from "../id.js";
 
 export default class WebServer {
@@ -25,12 +25,14 @@ export default class WebServer {
 						});
 					}
 
-					const stats = tracks.map((id) => {
-						const entry = this.indexer.index?.tracks?.[id];
+					const stats = await Promise.all(
+						tracks.map(async (id) => {
+							const track = this.indexer.index?.tracks?.[id];
 
-						if (entry) return entry;
-						else return null;
-					});
+							if (track) return track;
+							else return null;
+						})
+					);
 
 					return reply.send(stats);
 				});
@@ -293,29 +295,6 @@ export default class WebServer {
 	}
 
 	async listen(port: number) {
-		async function deleteDirectory(dir: string) {
-			const contents = await readdir(dir, { withFileTypes: true });
-
-			for (const child of contents) {
-				const directory = path.join(dir, child.name);
-
-				if (child.isDirectory()) {
-					await deleteDirectory(directory);
-				} else {
-					await rm(directory);
-				}
-			}
-
-			await rmdir(dir);
-		}
-
-		console.debug("Deleting media cache.");
-		try {
-			await deleteDirectory("./mediaCache");
-		} catch {}
-		await mkdir("./mediaCache");
-		console.debug("media cache deleted.");
-
 		try {
 			const address = await this.server.listen({
 				port: port,

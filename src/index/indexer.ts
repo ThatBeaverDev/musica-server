@@ -7,7 +7,7 @@ import {
 	parseFile
 } from "music-metadata";
 import mime from "mime/lite";
-import { trackId } from "../id.js";
+import { specifierToAlbumId, trackId } from "../id.js";
 
 const supportedMimeTypes = getSupportedMimeTypes();
 
@@ -100,6 +100,29 @@ export default class Indexer {
 			albums: {}
 		};
 
+		async function deleteDirectory(dir: string) {
+			const contents = await fs.readdir(dir, { withFileTypes: true });
+
+			for (const child of contents) {
+				const directory = path.join(dir, child.name);
+
+				if (child.isDirectory()) {
+					await deleteDirectory(directory);
+				} else {
+					await fs.rm(directory);
+				}
+			}
+
+			await fs.rmdir(dir);
+		}
+
+		console.log("Deleting media cache.");
+		try {
+			await deleteDirectory("./mediaCache");
+		} catch {}
+		await fs.mkdir("./mediaCache");
+		console.log("Media cache deleted.");
+
 		await this.#walk(this.directory, startingIndex);
 
 		this.index = startingIndex;
@@ -169,7 +192,7 @@ export default class Indexer {
 		if (!supportedMimeTypes.includes(mimeType)) return;
 
 		const id = trackId(directory);
-		console.debug(`Indexing file at ${directory} (id: ${id})`);
+		console.log(`Indexing file at ${directory} (id: ${id})`);
 
 		let metadata: IAudioMetadata | undefined = undefined;
 		try {
@@ -241,6 +264,8 @@ export default class Indexer {
 			index.tracks[entry.id] = entry;
 
 			const albumSpecifier = getAlbumSpecifier(entry);
+			// get it in the 'cache'
+			specifierToAlbumId(albumSpecifier);
 
 			const album = index.albums[albumSpecifier];
 			if (album) {
