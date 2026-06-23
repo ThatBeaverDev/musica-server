@@ -221,7 +221,7 @@ export default class WebServer {
 			filePath: string,
 			contentType: string = "text/html"
 		) => {
-			server.get(serverPath, async (request, reply) => {
+			server.get(serverPath, async (_, reply) => {
 				try {
 					reply.header("content-type", contentType);
 					return reply.send(await readFile(filePath, "utf8"));
@@ -243,7 +243,6 @@ export default class WebServer {
 		serve("/");
 		serve("/album/:id");
 		serve("/artist/:id");
-		//passthroughFile("/album/:id", "./public/dynamic/album.html");
 
 		// css
 		passthroughFile(
@@ -291,13 +290,6 @@ export default class WebServer {
 
 		// js
 		passthroughFile("/app.js", "./public/app.js", "text/javascript");
-
-		//server.register(fastifyStatic, {
-		//	root: path.join(process.cwd(), "public"),
-		//	prefix: "/",
-		//	index: ["index.html"],
-		//	wildcard: true
-		//});
 	}
 
 	async listen(port: number) {
