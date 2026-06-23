@@ -1,1 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-music-icon lucide-file-music"><path d="M11.65 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v10.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M8 20v-7l3 1.474"/><circle cx="6" cy="20" r="2"/></svg>
+<svg
+	version="1.1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="18"
+	height="22"
+	viewBox="0,0,18,22"
+>
+	<g transform="translate(-231,-169)">
+		<g
+			fill="none"
+			stroke="#ffffff"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			stroke-miterlimit="10"
+		>
+			<path
+				d="M232,182.35v-10.35c0,-1.10457 0.89543,-2 2,-2h8c0.64006,-0.00157 1.25423,0.25259 1.706,0.706l3.588,3.588c0.45341,0.45177 0.70757,1.06594 0.706,1.706v12c0,1.10457 -0.89543,2 -2,2h-6.35"
+			/>
+			<path d="M248,176h-5c-0.55228,0 -1,-0.44772 -1,-1v-5" />
+			<path d="M236,188v-7l3,1.474" />
+			<path
+				d="M232,188c0,-1.10457 0.89543,-2 2,-2c1.10457,0 2,0.89543 2,2c0,1.10457 -0.89543,2 -2,2c-1.10457,0 -2,-0.89543 -2,-2z"
+			/>
+		</g>
+	</g></svg
+><!--rotationCenter:9:11-->
