@@ -43,7 +43,10 @@ class AudioPlayer {
 
 		/* ----- Audio rollover when finished ----- */
 
-		this.audio.addEventListener("ended", () => this.rollover());
+		this.audio.addEventListener("ended", () => {
+			navigator.mediaSession.metadata = null;
+			this.rollover();
+		});
 
 		/* ----- Media control buttons ----- */
 		this.#skipBackButton.addEventListener("mouseup", () => {
@@ -161,6 +164,19 @@ class AudioPlayer {
 	async #playTrack(track: Track) {
 		this.currentTrack = track;
 
+		if (navigator.mediaSession && window.MediaMetadata) {
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: track.title,
+				artist: track.artist,
+				album: track.album,
+				artwork: [
+					{
+						src: `/api/track/${track.id}/art`,
+						type: "image/png"
+					}
+				]
+			});
+		}
 
 		this.audio.src = `/api/track/${track.id}/get`;
 
