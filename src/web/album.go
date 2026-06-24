@@ -1,6 +1,7 @@
 package webServer
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -14,7 +15,16 @@ func (ws *WebServer) listAlbums(w http.ResponseWriter, r *http.Request) {
 		list = append(list, id)
 	}
 
-	json.NewEncoder(w).Encode(list)
+	var buf bytes.Buffer
+
+	err := json.NewEncoder(&buf).Encode(list)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(buf.Bytes())
 }
 
 func (ws *WebServer) albumInfo(w http.ResponseWriter, r *http.Request) {

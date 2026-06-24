@@ -120,8 +120,6 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		return Track{}, fmt.Errorf("Failed to retrieve track ID: %w", err)
 	}
 
-	fmt.Println("Indexing file at", directory, "(id:", id, ")")
-
 	tags, err := taglib.ReadTags(directory)
 	if err != nil {
 		return Track{}, fmt.Errorf("Failed to read file tags: %w", err)
@@ -214,6 +212,8 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 	} else {
 		number = 0
 	}
+
+	fmt.Println("Indexed file at", directory, "(id:", id, ")")
 
 	track := Track{
 		Title:  title,

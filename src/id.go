@@ -10,11 +10,11 @@ import (
 )
 
 type IdentityStorage struct {
-	trackIds   map[string]string
+	trackIds   sync.Map
 	trackMutex sync.RWMutex
 
-	albumSpecifierToId map[string]string
-	albumIdToSpecifier map[string]string
+	albumSpecifierToId sync.Map
+	albumIdToSpecifier sync.Map
 	nextAlbumId        int32
 	albumMutex         sync.RWMutex
 
@@ -28,13 +28,11 @@ func New() (*IdentityStorage, error) {
 	}
 
 	return &IdentityStorage{
-		trackIds:   make(map[string]string),
-		trackMutex: sync.RWMutex{},
+		trackIds: sync.Map{},
 
-		albumSpecifierToId: make(map[string]string),
-		albumIdToSpecifier: make(map[string]string),
+		albumSpecifierToId: sync.Map{},
+		albumIdToSpecifier: sync.Map{},
 		nextAlbumId:        0,
-		albumMutex:         sync.RWMutex{},
 
 		workingDirectory: workingDirectory,
 	}, nil
@@ -52,13 +50,13 @@ func (s *IdentityStorage) TrackId(dir string) (string, error) {
 	s.trackMutex.Lock()
 	defer s.trackMutex.Unlock()
 
-	id, ok := s.trackIds[directory]
+	id, ok := s.trackIds.Load(directory)
 	if ok {
 		return fmt.Sprint(id), nil
 	} else {
 		newID := fmt.Sprint(hash(directory))
 
-		s.trackIds[directory] = newID
+		s.trackIds.Store(directory, newID)
 
 		return fmt.Sprint(newID), nil
 	}
@@ -68,15 +66,15 @@ func (s *IdentityStorage) SpecifierToAlbumId(specifier string) string {
 	s.albumMutex.Lock()
 	defer s.albumMutex.Unlock()
 
-	id, ok := s.albumSpecifierToId[specifier]
+	id, ok := s.albumSpecifierToId.Load(specifier)
 
 	if ok {
-		return id
+		return fmt.Sprint(id)
 	} else {
 		newId := fmt.Sprint(hash(specifier))
 
-		s.albumSpecifierToId[specifier] = newId
-		s.albumIdToSpecifier[newId] = specifier
+		s.albumSpecifierToId.Store(specifier, newId)
+		s.albumIdToSpecifier.Store(newId, specifier)
 
 		return newId
 	}
@@ -86,10 +84,10 @@ func (s *IdentityStorage) AlbumIdToSpecifier(id string) (string, error) {
 	s.albumMutex.RLock()
 	defer s.albumMutex.RUnlock()
 
-	specifier, ok := s.albumIdToSpecifier[id]
+	specifier, ok := s.albumIdToSpecifier.Load(id)
 
 	if ok {
-		return specifier, nil
+		return fmt.Sprint(specifier), nil
 	} else {
 		return "", errors.New("Specifier has no assigned ID.")
 	}

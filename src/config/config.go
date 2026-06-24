@@ -40,7 +40,5 @@ func New() (*Config, error) {
 		Cfg.Port = 3000
 	}
 
-	fmt.Println(Cfg)
-
 	return &Cfg, nil
 }
