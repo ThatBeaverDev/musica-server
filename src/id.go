@@ -3,17 +3,20 @@ package ids
 import (
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"os"
 	"path"
+	"sync"
 )
 
 type IdentityStorage struct {
-	trackIds    map[string]int32
-	nextTrackId int32
+	trackIds   map[string]string
+	trackMutex sync.RWMutex
 
 	albumSpecifierToId map[string]string
 	albumIdToSpecifier map[string]string
 	nextAlbumId        int32
+	albumMutex         sync.RWMutex
 
 	workingDirectory string
 }
@@ -25,31 +28,35 @@ func New() (*IdentityStorage, error) {
 	}
 
 	return &IdentityStorage{
-		trackIds:    make(map[string]int32),
-		nextTrackId: 0,
+		trackIds:   make(map[string]string),
+		trackMutex: sync.RWMutex{},
 
 		albumSpecifierToId: make(map[string]string),
 		albumIdToSpecifier: make(map[string]string),
 		nextAlbumId:        0,
+		albumMutex:         sync.RWMutex{},
 
 		workingDirectory: workingDirectory,
 	}, nil
 }
 
-func (s *IdentityStorage) TrackId(dir string) (string, error) {
-	workingDirectory, err := os.Getwd()
-	if err != nil {
-		return "-1", fmt.Errorf("Failed to retrieve working directory: %w", err)
-	}
+func hash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
 
-	directory := path.Join(workingDirectory, dir)
+func (s *IdentityStorage) TrackId(dir string) (string, error) {
+	directory := path.Join(s.workingDirectory, dir)
+
+	s.trackMutex.Lock()
+	defer s.trackMutex.Unlock()
 
 	id, ok := s.trackIds[directory]
 	if ok {
 		return fmt.Sprint(id), nil
 	} else {
-		newID := s.nextTrackId
-		s.nextTrackId++
+		newID := fmt.Sprint(hash(directory))
 
 		s.trackIds[directory] = newID
 
@@ -58,13 +65,15 @@ func (s *IdentityStorage) TrackId(dir string) (string, error) {
 }
 
 func (s *IdentityStorage) SpecifierToAlbumId(specifier string) string {
+	s.albumMutex.Lock()
+	defer s.albumMutex.Unlock()
+
 	id, ok := s.albumSpecifierToId[specifier]
 
 	if ok {
 		return id
 	} else {
-		newId := fmt.Sprint(s.nextAlbumId)
-		s.nextAlbumId++
+		newId := fmt.Sprint(hash(specifier))
 
 		s.albumSpecifierToId[specifier] = newId
 		s.albumIdToSpecifier[newId] = specifier
@@ -74,6 +83,9 @@ func (s *IdentityStorage) SpecifierToAlbumId(specifier string) string {
 }
 
 func (s *IdentityStorage) AlbumIdToSpecifier(id string) (string, error) {
+	s.albumMutex.RLock()
+	defer s.albumMutex.RUnlock()
+
 	specifier, ok := s.albumIdToSpecifier[id]
 
 	if ok {

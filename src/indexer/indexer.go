@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	identityStorage "musica-server/src"
+	"musica-server/src/config"
 	"musica-server/util"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	taglib "go.senan.xyz/taglib"
 )
@@ -41,6 +43,8 @@ type trackIndex struct {
 	Root   string
 	Tracks map[string]*Track
 	Albums map[string]*Album
+
+	mutex sync.RWMutex
 }
 
 func GetTrackAlbumSpecifier(track Track) string {
@@ -52,17 +56,19 @@ func GetTrackAlbumSpecifier(track Track) string {
 type Indexer struct {
 	Index *trackIndex
 
-	dirToTrackMap          map[string]*Track
 	trackToPictureStoreMap map[string]string // ID to MIME
+	mutex                  sync.RWMutex
 
-	identityStorage  *identityStorage.IdentityStorage
 	WorkingDirectory string
+
+	identityStorage *identityStorage.IdentityStorage
+	config          *config.Config
 }
 
-func New(directory string, idStorage *identityStorage.IdentityStorage) (Indexer, error) {
+func New(directory string, idStorage *identityStorage.IdentityStorage, config *config.Config) (*Indexer, error) {
 	workingDirectory, err := os.Getwd()
 	if err != nil {
-		return Indexer{}, fmt.Errorf("Failed to retrieve working directory: %w", err)
+		return &Indexer{}, fmt.Errorf("Failed to retrieve working directory: %w", err)
 	}
 
 	indexer := Indexer{
@@ -70,32 +76,37 @@ func New(directory string, idStorage *identityStorage.IdentityStorage) (Indexer,
 			Root:   directory,
 			Tracks: make(map[string]*Track),
 			Albums: make(map[string]*Album),
+
+			mutex: sync.RWMutex{},
 		},
 
-		dirToTrackMap:          make(map[string]*Track),
 		trackToPictureStoreMap: make(map[string]string), // ID to MIME
 
 		WorkingDirectory: workingDirectory,
-		identityStorage:  idStorage,
+
+		identityStorage: idStorage,
+		config:          config,
 	}
 
 	fmt.Println("Deleting media cache.")
-	util.DeleteDirectory("./mediaCache")
+	util.DeleteDirectory(config.MediaCache)
 
-	err = os.Mkdir("./mediaCache", 0700)
+	err = os.Mkdir(config.MediaCache, 0700)
 	if err != nil {
-		return Indexer{}, fmt.Errorf("Failed to create ./mediaCache: %w", err)
+		return &Indexer{}, fmt.Errorf(fmt.Sprint("Failed to create '", config.MediaCache, "': %w"), err)
 	}
 	fmt.Println("Media cache deleted.")
 
-	err = indexer.walk(indexer.Index.Root)
+	waitGroup := sync.WaitGroup{}
+	err = indexer.walk(indexer.Index.Root, &waitGroup)
 	if err != nil {
-		return Indexer{}, fmt.Errorf("Failed to walk IndexRoot: %w", err)
+		return &Indexer{}, fmt.Errorf("Failed to walk IndexRoot: %w", err)
 	}
+	waitGroup.Wait()
 
 	indexer.cleanupAlbums()
 
-	return indexer, nil
+	return &indexer, nil
 }
 
 func (s *Indexer) fileMetaData(directory string) (Track, error) {
@@ -228,14 +239,21 @@ func (s *Indexer) indexTrack(directory string) error {
 	}
 
 	track := t
+
+	// lock mutex
+	s.Index.mutex.Lock()
+
+	// write data
 	s.Index.Tracks[t.ID] = &t
-	s.dirToTrackMap[directory] = &t
+
+	// free mutex (wait for index.mutex since we work with albums below)
+	defer s.Index.mutex.Unlock()
 
 	albumSpecifier := GetTrackAlbumSpecifier(track)
 	// insure the ID is prepared so things are consistent
-	s.identityStorage.SpecifierToAlbumId(albumSpecifier)
+	id := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
 
-	album, ok := s.Index.Albums[albumSpecifier]
+	album, ok := s.Index.Albums[id]
 	if ok {
 		if album.Release == 0 && track.Release != 0 {
 			album.Release = track.Release
@@ -243,13 +261,13 @@ func (s *Indexer) indexTrack(directory string) error {
 
 		album.Tracks = append(album.Tracks, &track)
 	} else {
-		s.Index.Albums[albumSpecifier] = &Album{
+		s.Index.Albums[id] = &Album{
 			Title:  track.Album,
 			Artist: track.AlbumArtist,
 
 			Release: track.Release,
 			Tracks:  []*Track{&track},
-			ID:      albumSpecifier,
+			ID:      id,
 		}
 	}
 
@@ -265,7 +283,7 @@ func albumHasTrack(slice []Track, target Track) bool {
 	return false
 }
 
-func (s *Indexer) walk(dir string) error {
+func (s *Indexer) walk(dir string, waitGroup *sync.WaitGroup) error {
 	contents, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("Failed to list directory: %w", err)
@@ -279,7 +297,7 @@ func (s *Indexer) walk(dir string) error {
 		directory := path.Join(dir, child.Name())
 
 		if child.IsDir() {
-			err := s.walk(directory)
+			err := s.walk(directory, waitGroup)
 
 			if err != nil {
 				return err
@@ -291,11 +309,18 @@ func (s *Indexer) walk(dir string) error {
 				continue
 			}
 
-			err := s.indexTrack(directory)
+			waitGroup.Add(1)
 
-			if err != nil {
-				return fmt.Errorf("Failed to index track: %w", err)
-			}
+			go func(path string) {
+				defer waitGroup.Done()
+
+				err := s.indexTrack(path)
+
+				if err != nil {
+					fmt.Println(fmt.Errorf("Failed to index track: %w", err))
+				}
+			}(directory)
+
 		}
 	}
 
@@ -323,17 +348,21 @@ type CoverResult struct {
 func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	artPath := path.Join(
 		s.WorkingDirectory,
-		"mediaCache",
+		s.config.MediaCache,
 		fmt.Sprint(track.ID, "_art"),
 	)
 
+	s.mutex.RLock()
+
 	// cache hit
 	if mime, ok := s.trackToPictureStoreMap[track.ID]; ok {
+		s.mutex.RUnlock()
 		return CoverResult{
 			Mime:      mime,
 			Directory: artPath,
 		}, nil
 	}
+	s.mutex.RUnlock()
 
 	// read image from audio file
 	imgBytes, err := taglib.ReadImage(track.Path)
@@ -349,7 +378,9 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 		}
 
 		// PNG fallback
+		s.mutex.Lock()
 		s.trackToPictureStoreMap[track.ID] = "image/png"
+		s.mutex.Unlock()
 
 		err = os.WriteFile(artPath, imgBytes, 0644)
 		if err != nil {
@@ -370,7 +401,9 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 
 	// store mime (best-effort detection via file header)
 	mime := http.DetectContentType(imgBytes)
+	s.mutex.Lock()
 	s.trackToPictureStoreMap[track.ID] = mime
+	s.mutex.Unlock()
 
 	return CoverResult{
 		Mime:      mime,
