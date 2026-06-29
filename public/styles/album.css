@@ -1,91 +1,91 @@
 .hero {
-    display: flex;
-    align-items: flex-end;
-    gap: 32px;
-    margin-bottom: 40px;
+	display: flex;
+	align-items: flex-end;
+	gap: 32px;
+	margin-bottom: 40px;
 }
 
 #art {
-    width: 240px;
-    height: 240px;
-    object-fit: cover;
-    border-radius: 6%;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    flex-shrink: 0;
+	width: 240px;
+	height: 240px;
+	object-fit: cover;
+	border-radius: 6%;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	flex-shrink: 0;
 }
 
 .list {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 0;
 }
 
 .hero .album-title {
-    margin: 0;
-    font-size: 3rem;
-    font-weight: 700;
-    text-align: left;
-    white-space: normal;
+	margin: 0;
+	font-size: 3rem;
+	font-weight: 700;
+	text-align: left;
+	white-space: normal;
 }
 
 .hero .album-artist {
-    margin: 0;
-    font-size: 1rem;
-    color: #a0a0a0;
-    text-align: left;
+	margin: 0;
+	font-size: 1rem;
+	color: #a0a0a0;
+	text-align: left;
 }
 
 .trackList {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .listTerm {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 
-    padding: 12px 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	padding: 12px 16px;
+	border-top: 1px solid rgba(255, 255, 255, 0.05);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
-    transition: background 0.15s;
+	transition: background 0.15s;
 }
 
 .listTerm:hover {
-    background: rgba(255, 255, 255, 0.05);
+	background: rgba(255, 255, 255, 0.05);
 }
 
 .listTerm .album-title,
 .listTerm .album-artist {
-    margin: 0;
-    text-align: left;
-    pointer-events: none;
+	margin: 0;
+	text-align: left;
+	pointer-events: none;
 }
 
 .listTerm .album-title {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: white;
+	font-size: 0.95rem;
+	font-weight: 500;
+	color: white;
 }
 
 .listTerm .album-artist {
-    font-size: 0.9rem;
-    color: #888;
+	font-size: 0.9rem;
+	color: #888;
 }
 
 .track-number {
-    width: 32px;
-    color: #777;
-    font-size: 0.9rem;
+	width: 32px;
+	color: #777;
+	font-size: 0.9rem;
 }
 
 .track-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
 }
