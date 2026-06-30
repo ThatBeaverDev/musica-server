@@ -11,6 +11,8 @@ import (
 
 type WebServer struct {
 	indexer *indexer.Indexer
+	search *indexer.SearchManager
+
 	router  *chi.Mux
 
 	identityStorage *identityStorage.IdentityStorage
@@ -21,6 +23,8 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 
 	ws := &WebServer{
 		indexer: idx,
+		search: indexer.NewSearcher(idx),
+
 		router:  r,
 
 		identityStorage: idStorage,
@@ -28,10 +32,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 
 	api := chi.NewRouter()
 
-	// =====================
-	// TRACKS
-	// =====================
-
+	// Tracks
 	api.Get("/tracks/list", ws.listTracks)
 
 	api.Get("/track/{id}/info", ws.trackInfo)
@@ -40,20 +41,18 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 
 	api.Post("/bulk/tracks/info", ws.bulkTracks)
 
-	// =====================
-	// ALBUMS
-	// =====================
-
+	// Albums
 	api.Get("/albums/list", ws.listAlbums)
 	api.Get("/album/{id}/info", ws.albumInfo)
 	api.Get("/bulk/albums/info", ws.bulkAlbums)
 
+	// Search
+	api.Get("/search/{query}", ws.searchQuery)
+
 	r.Mount("/api", api)
 
-	// =====================
-	// STATIC FILES
-	// =====================
-
+	
+	// Static files
 	ws.static("/", "./public/index.html", "text/html")
 	ws.static("/album/*", "./public/index.html", "text/html")
 	ws.static("/artist/*", "./public/index.html", "text/html")
