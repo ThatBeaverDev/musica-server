@@ -4,3 +4,4 @@ audio
 mediaCache
 /public/app.js
 musica-server
+config.json
