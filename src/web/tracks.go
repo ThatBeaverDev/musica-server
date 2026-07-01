@@ -48,7 +48,8 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(fullPath)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		fmt.Println(err)
+		http.Error(w, "Track media file does not exist. Server may need to restart to update index.", 500)
 		return
 	}
 	defer file.Close()
@@ -70,12 +71,23 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 	// parse range: bytes=start-end
 	parts := strings.Split(strings.Replace(rangeHeader, "bytes=", "", 1), "-")
 
-	start, _ := strconv.ParseInt(parts[0], 10, 64)
-	end := size - 1
+	start, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil || start < 0 {
+		start = 0
+	}
 
+	end := size - 1
 	if len(parts) > 1 && parts[1] != "" {
-		e, _ := strconv.ParseInt(parts[1], 10, 64)
-		end = e
+		e, err := strconv.ParseInt(parts[1], 10, 64)
+		if err == nil {
+			end = e
+		}
+	}
+
+	if start >= size || end >= size || start > end {
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
+		http.Error(w, "Range not satisfiable", http.StatusRequestedRangeNotSatisfiable)
+		return
 	}
 
 	chunkSize := end - start + 1
@@ -105,7 +117,8 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(cover.Directory)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		fmt.Println(err)
+		http.Error(w, "Loaded cover could not be found", 500)
 		return
 	}
 	defer file.Close()
@@ -115,9 +128,22 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
-	var ids []string
+	tracksHeader := r.Header.Get("tracks")
+	if tracksHeader == "" {
+		http.Error(w, "Tracks to receive bulk properties for must be specified in the 'tracks' header.", http.StatusBadRequest)
+		return
+	}
 
-	json.NewDecoder(r.Body).Decode(&ids)
+	if len(tracksHeader) > 20000 {
+		http.Error(w, "Too many characters in `tracjs` header", http.StatusBadRequest)
+		return
+	}
+
+	var ids []string
+	if err := json.Unmarshal([]byte(tracksHeader), &ids); err != nil {
+		http.Error(w, "Invalid tracks header: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	var result []any
 

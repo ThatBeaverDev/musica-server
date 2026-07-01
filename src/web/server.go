@@ -5,6 +5,7 @@ import (
 	identityStorage "musica-server/src"
 	"musica-server/src/indexer"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -128,6 +129,15 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 func (ws *WebServer) Listen(port int) error {
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 
+		srv := &http.Server{
+		Addr:              addr,
+		Handler:           ws.router,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+
 	fmt.Println("Server listening on", addr)
-	return http.ListenAndServe(addr, ws.router)
+	return srv.ListenAndServe()
 }

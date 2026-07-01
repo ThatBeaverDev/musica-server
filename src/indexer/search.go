@@ -94,7 +94,17 @@ func scoreAlbum(query string, a *Album) int {
 	return best
 }
 
+const maxQueryLen = 256
+
 func (s *SearchManager) Query(query string) SearchResult {
+	query = strings.TrimSpace(query)
+	if query == "" {
+		return SearchResult{}
+	}
+	if len(query) > maxQueryLen {
+		query = query[:maxQueryLen]
+	}
+	
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return SearchResult{}

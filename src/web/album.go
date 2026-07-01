@@ -40,14 +40,19 @@ func (ws *WebServer) albumInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
-	albumHeader := r.Header.Get("albums")
-	if albumHeader == "" {
+	albumsHeader := r.Header.Get("albums")
+	if albumsHeader == "" {
 		http.Error(w, "Albums to receive bulk properties for must be specified in the 'albums' header.", http.StatusBadRequest)
 		return
 	}
 
+	if len(albumsHeader) > 20000 {
+		http.Error(w, "Too many characters in `albums` header", http.StatusBadRequest)
+		return
+	}
+
 	var ids []string
-	if err := json.Unmarshal([]byte(albumHeader), &ids); err != nil {
+	if err := json.Unmarshal([]byte(albumsHeader), &ids); err != nil {
 		http.Error(w, "Invalid albums header: "+err.Error(), http.StatusBadRequest)
 		return
 	}
