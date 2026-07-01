@@ -23,6 +23,7 @@ type Track struct {
 	Album       string `json:"album"`
 	AlbumArtist string `json:"albumArtist"`
 
+	Modified int64 `json:"modified"`
 	Release int `json:"release"`
 	Number  int `json:"number"`
 
@@ -35,6 +36,7 @@ type Album struct {
 	Artist string `json:"artist"`
 	ID     string `json:"id"`
 
+	Modified int64 `json:"modified"`
 	Release int      `json:"release"`
 	Tracks  []*Track `json:"tracks"`
 }
@@ -190,7 +192,7 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 			return Track{}, fmt.Errorf("Failed to parse year of track: %w", err)
 		}
 
-		release = int(releaseTime.Unix() * 1000)
+		release = int(releaseTime.UnixMilli())
 	} else {
 		release = 0
 	}
@@ -213,6 +215,12 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		number = 0
 	}
 
+	stats, err := os.Stat(directory)
+	if err != nil {
+		return Track{}, err
+	}
+	modified := stats.ModTime().UnixMilli()
+
 	fmt.Println("Indexed file at", directory, "(id:", id, ")")
 
 	track := Track{
@@ -222,6 +230,7 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		Album:       album,
 		AlbumArtist: albumArtist,
 
+		Modified: modified,
 		Release: release,
 		Path:    relative,
 
@@ -259,12 +268,17 @@ func (s *Indexer) indexTrack(directory string) error {
 			album.Release = track.Release
 		}
 
+		if track.Modified > album.Modified {
+			album.Modified = track.Modified
+		}
+
 		album.Tracks = append(album.Tracks, &track)
 	} else {
 		s.Index.Albums[id] = &Album{
 			Title:  track.Album,
 			Artist: track.AlbumArtist,
 
+			Modified: track.Modified,
 			Release: track.Release,
 			Tracks:  []*Track{&track},
 			ID:      id,
