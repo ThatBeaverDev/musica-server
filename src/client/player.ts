@@ -1,4 +1,4 @@
-import { Track } from "./types";
+import { Track } from "./musica";
 
 const willDebug = true;
 function debug(...data: any[]) {

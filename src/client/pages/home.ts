@@ -1,4 +1,4 @@
-import { Album } from "../types";
+import { Album } from "../musica";
 import album from "./album";
 
 export default async function home(div: HTMLDivElement) {
@@ -12,21 +12,35 @@ export default async function home(div: HTMLDivElement) {
 
 	document.title = "Home - Musica";
 
-	const albums: string[] = await (await fetch("/api/albums/list")).json();
-	albums.sort();
+	const idURL = `/api/albums/list`;
+	const albumIdsRequest = await fetch(idURL);
 
-	const stats: Album[] = await (
-		await fetch(`/api/bulk/albums/info`, {
-			headers: { albums: JSON.stringify(albums) }
-		})
-	).json();
+	if (!albumIdsRequest.ok) {
+		throw new Error(
+			`Failed to list albums from ${idURL}: HTTP Status ${albumIdsRequest.status}: ${albumIdsRequest.statusText}`
+		);
+	}
+	const albumIDs = await albumIdsRequest.json();
 
-	console.debug(stats);
+	const albumStatsRequest = await fetch(`/api/bulk/albums/info`, {
+		headers: { albums: JSON.stringify(albumIDs) }
+	});
+
+	if (!albumStatsRequest.ok) {
+		throw new Error(
+			`Failed to list albums from ${idURL}: HTTP Status ${albumStatsRequest.status}: ${albumStatsRequest.statusText}`
+		);
+	}
+	const albums: Album[] = await albumStatsRequest.json();
+
+	albums.sort((a, b) => {
+		return b.modified - a.modified;
+	});
 
 	const albumContainer = document.getElementById("albumsGrid");
 	if (!albumContainer) return;
 
-	for (const info of stats) {
+	for (const info of albums) {
 		const tileDiv = document.createElement("div");
 		tileDiv.classList.add("card");
 

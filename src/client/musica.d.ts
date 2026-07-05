@@ -5,7 +5,6 @@ export interface Track {
 	album: string;
 	albumArtist: string;
 
-	// used to update files changed when inactive
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	number?: number;
@@ -17,8 +16,14 @@ export interface Track {
 export interface Album {
 	title: string;
 	artist: string;
-	id: string; // URLEncoded(btoa(albumSpecifier))
+	id: string;
 
+	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	tracks: Track[];
+}
+
+export interface SearchResult {
+	tracks: Track[];
+	albums: Album[];
 }
