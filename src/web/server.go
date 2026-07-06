@@ -46,6 +46,11 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 	api.Get("/albums/list", ws.listAlbums)
 	api.Get("/album/{id}/info", ws.albumInfo)
 	api.Get("/bulk/albums/info", ws.bulkAlbums)
+	
+	// Artists
+	api.Get("/artists/list", ws.listArtists)
+	api.Get("/artist/{id}/info", ws.artistInfo)
+	api.Get("/bulk/artists/info", ws.bulkArtists)
 
 	// Search
 	api.Get("/search/{query}", ws.searchQuery)

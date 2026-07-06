@@ -14,6 +14,7 @@ type SearchManager struct {
 type SearchResult struct {
 	Tracks []*Track `json:"tracks"`
 	Albums []*Album `json:"albums"`
+	Artists []*Artist `json:"artists"`
 }
 
 type rankedTrack struct {
@@ -23,6 +24,11 @@ type rankedTrack struct {
 
 type rankedAlbum struct {
 	Album *Album
+	Rank  int
+}
+
+type rankedArtist struct {
+	Artist *Artist
 	Rank  int
 }
 
@@ -66,12 +72,56 @@ func scoreTrack(query string, t *Track) int {
 func scoreAlbum(query string, a *Album) int {
 	best := -1
 
-	fields := []struct {
-		value  string
+	type Field struct {
+		value string
 		weight int
-	}{
+	}
+
+	fields := []Field{
 		{a.Title, 0},
 		{a.Artist, 100},
+	}
+
+	// insure album for a track shows up
+	for _, track := range a.Tracks {
+		fields = append(fields, Field{value: track.Title, weight: 20})
+	}
+
+	for _, field := range fields {
+		if field.value == "" {
+			continue
+		}
+
+		rank := fuzzy.RankMatchNormalizedFold(query, field.value)
+		if rank == -1 {
+			continue
+		}
+
+		rank += field.weight
+
+		if best == -1 || rank < best {
+			best = rank
+		}
+	}
+
+	return best
+}
+
+func scoreArtist(query string, a *Artist) int {
+	best := -1
+
+	type Field struct {
+		value string
+		weight int
+	}
+
+	fields := []Field{
+		{a.Name, 100},
+	}
+
+	// insure album for a track shows up
+	for _, track := range a.Albums {
+		fields = append(fields, Field{value: track.Title, weight: 20})
 	}
 
 	for _, field := range fields {
@@ -115,6 +165,7 @@ func (s *SearchManager) Query(query string) SearchResult {
 
 	var rankedTracks []rankedTrack
 	var rankedAlbums []rankedAlbum
+	var rankedArtists []rankedArtist
 
 	for _, track := range s.indexer.Index.Tracks {
 		if rank := scoreTrack(query, track); rank != -1 {
@@ -133,6 +184,15 @@ func (s *SearchManager) Query(query string) SearchResult {
 			})
 		}
 	}
+	
+	for _, artist := range s.indexer.Index.Artists {
+		if rank := scoreArtist(query, artist); rank != -1 {
+			rankedArtists = append(rankedArtists, rankedArtist{
+				Artist: artist,
+				Rank:  rank,
+			})
+		}
+	}
 
 	sort.Slice(rankedTracks, func(i, j int) bool {
 		return rankedTracks[i].Rank < rankedTracks[j].Rank
@@ -142,9 +202,14 @@ func (s *SearchManager) Query(query string) SearchResult {
 		return rankedAlbums[i].Rank < rankedAlbums[j].Rank
 	})
 
+	sort.Slice(rankedArtists, func(i, j int) bool {
+		return rankedArtists[i].Rank < rankedArtists[j].Rank
+	})
+
 	result := SearchResult{
 		Tracks: make([]*Track, len(rankedTracks)),
 		Albums: make([]*Album, len(rankedAlbums)),
+		Artists: make([]*Artist, len(rankedArtists)),
 	}
 
 	for i, t := range rankedTracks {
@@ -153,6 +218,10 @@ func (s *SearchManager) Query(query string) SearchResult {
 
 	for i, a := range rankedAlbums {
 		result.Albums[i] = a.Album
+	}
+
+	for i, a := range rankedArtists {
+		result.Artists[i] = a.Artist
 	}
 
 	return result

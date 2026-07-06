@@ -20,6 +20,7 @@ import (
 type Track struct {
 	Title       string `json:"title"`
 	Artist      string `json:"artist"`
+	
 	Album       string `json:"album"`
 	AlbumArtist string `json:"albumArtist"`
 
@@ -41,18 +42,28 @@ type Album struct {
 	Tracks  []*Track `json:"tracks"`
 }
 
+type Artist struct {
+	Name string `json:"name"`
+	ID string `json:"id"`
+
+	Albums []*Album `json:"albums"`
+}
+
 type trackIndex struct {
 	Root   string
 	Tracks map[string]*Track
 	Albums map[string]*Album
+	Artists map[string]*Artist
 
 	mutex sync.RWMutex
 }
 
 func GetTrackAlbumSpecifier(track Track) string {
-
 	return fmt.Sprint(track.AlbumArtist, ":", track.Album)
+}
 
+func GetAlbumArtistSpecifier(album *Album) string {
+	return fmt.Sprint(album.Artist)
 }
 
 type Indexer struct {
@@ -78,6 +89,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 			Root:   directory,
 			Tracks: make(map[string]*Track),
 			Albums: make(map[string]*Album),
+			Artists: make(map[string]*Artist),
 
 			mutex: sync.RWMutex{},
 		},
@@ -258,6 +270,8 @@ func (s *Indexer) indexTrack(directory string) error {
 	// free mutex (wait for index.mutex since we work with albums below)
 	defer s.Index.mutex.Unlock()
 
+	// add to album
+
 	albumSpecifier := GetTrackAlbumSpecifier(track)
 	// insure the ID is prepared so things are consistent
 	id := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
@@ -274,7 +288,7 @@ func (s *Indexer) indexTrack(directory string) error {
 
 		album.Tracks = append(album.Tracks, &track)
 	} else {
-		s.Index.Albums[id] = &Album{
+		album := &Album{
 			Title:  track.Album,
 			Artist: track.AlbumArtist,
 
@@ -282,6 +296,27 @@ func (s *Indexer) indexTrack(directory string) error {
 			Release: track.Release,
 			Tracks:  []*Track{&track},
 			ID:      id,
+		}
+
+		s.Index.Albums[id] = album
+
+		// add the new album to artist too
+		artistSpecifier := GetAlbumArtistSpecifier(album)
+		// insure the ID is prepared so things are consistent
+		id := s.identityStorage.ASpecifierToArtistId(artistSpecifier)
+
+		artist, ok := s.Index.Artists[id]
+		if ok {
+			artist.Albums = append(artist.Albums, album)
+		} else {
+			artist := &Artist{
+				Name: album.Artist,
+
+				ID: id,
+				Albums: []*Album{album},
+			}
+
+			s.Index.Artists[id] = artist
 		}
 	}
 
@@ -350,6 +385,19 @@ func (s *Indexer) cleanupAlbums() {
 
 		if album.Title == "" || album.Artist == "" {
 			delete(s.Index.Albums, albumId)
+		}
+	}
+}
+
+// deletes empty artists
+func (s *Indexer) cleanupArtists() {
+	for artistId, artist := range s.Index.Artists {
+		if len(artist.Albums) == 0 {
+			delete(s.Index.Albums, artistId)
+		}
+
+		if artist.Name == ""  {
+			delete(s.Index.Artists, artistId)
 		}
 	}
 }
