@@ -7,7 +7,7 @@
   "type": "module",
   "dependencies": {
     "rollup": "^4.62.2",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "version": "1.0.0"
 }
