@@ -5,6 +5,7 @@ import (
 	identityStorage "musica-server/src"
 	"musica-server/src/config"
 	"musica-server/src/indexer"
+	scores "musica-server/src/scores"
 	webServer "musica-server/src/web"
 	"os"
 	"path/filepath"
@@ -43,7 +44,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	server := webServer.New(indexer, idStorage)
+	scorer, err := scores.New()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	server := webServer.New(indexer, idStorage, scorer)
 
 	err = server.Listen(config.Port)
 	if err != nil {

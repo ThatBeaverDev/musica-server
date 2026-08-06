@@ -135,7 +135,7 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(tracksHeader) > 20000 {
-		http.Error(w, "Too many characters in `tracjs` header", http.StatusBadRequest)
+		http.Error(w, "Too many characters in `tracks` header", http.StatusBadRequest)
 		return
 	}
 
@@ -156,4 +156,40 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(result)
+}
+
+func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	track, ok := ws.indexer.Index.Tracks[id]
+	if !ok {
+		http.Error(w, "Track not found", 404)
+		return
+	}
+
+	ws.scores.SpecificPlay(track)
+}
+
+func (ws *WebServer) trackPlayed(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	track, ok := ws.indexer.Index.Tracks[id]
+	if !ok {
+		http.Error(w, "Track not found", 404)
+		return
+	}
+
+	ws.scores.Played(track)
+}
+
+func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	track, ok := ws.indexer.Index.Tracks[id]
+	if !ok {
+		http.Error(w, "Track not found", 404)
+		return
+	}
+
+	ws.scores.Skipped(track)
 }

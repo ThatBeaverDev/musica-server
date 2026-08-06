@@ -1,5 +1,5 @@
 import { Album } from "../musica.js";
-import { player } from "../player.js";
+import { onTrackPlay, player } from "../player.js";
 
 export default async function album(div: HTMLDivElement) {
 	div.innerHTML = `
@@ -68,6 +68,8 @@ export default async function album(div: HTMLDivElement) {
 		div.appendChild(infoDiv);
 
 		div.addEventListener("click", () => {
+			onTrackPlay(info.id);
+
 			player.setQueue(
 				album.tracks.slice(0, idx - 1),
 				info,

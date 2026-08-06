@@ -15,6 +15,17 @@ class AudioPlayer {
 		pastTracks: Track[];
 	} = { loop: "none", shuffle: false, nextTracks: [], pastTracks: [] };
 
+	// 80% of current track played
+	onTrackPlayed?: (track: Track) => void;
+	// user skipped this track when it was playing
+	onTrackSkipped?: (
+		track: Track,
+		secondsPlayed: number,
+		duration: number
+	) => void;
+
+	#hasTriggeredPlayedEvent: boolean = false;
+
 	#skipBackButton: HTMLImageElement = document.getElementById(
 		"player-back"
 	) as HTMLImageElement;
@@ -40,6 +51,21 @@ class AudioPlayer {
 		this.audio =
 			audio ??
 			(document.querySelector("audio#player") as HTMLAudioElement);
+
+		// detect for playback to 80%
+		this.audio.addEventListener("timeupdate", () => {
+			if (!this.currentTrack || this.#hasTriggeredPlayedEvent) return;
+
+			if (this.audio.duration > 0) {
+				const progression =
+					this.audio.currentTime / this.audio.duration;
+				if (progression >= 0.8) {
+					this.#hasTriggeredPlayedEvent = true;
+					debug("Event: Track played to 80%", this.currentTrack);
+					this.onTrackPlayed?.(this.currentTrack);
+				}
+			}
+		});
 
 		/* ----- Audio rollover when finished ----- */
 
@@ -185,6 +211,7 @@ class AudioPlayer {
 
 	async #playTrack(track: Track) {
 		this.currentTrack = track;
+		this.#hasTriggeredPlayedEvent = false;
 
 		if (navigator.mediaSession && window.MediaMetadata) {
 			navigator.mediaSession.metadata = new MediaMetadata({
@@ -219,6 +246,7 @@ class AudioPlayer {
 	resetQueue() {
 		debug("reset");
 		this.currentTrack = undefined;
+		this.#hasTriggeredPlayedEvent = false;
 		this.stop();
 
 		this.queue = {
@@ -358,7 +386,17 @@ class AudioPlayer {
 	}
 
 	async skipForward(number: number = 1) {
-		debug("next");
+		debug("next (user action)");
+
+		// Notify track skipped (user clicked Forward or selected a item in queue)
+		if (this.currentTrack && !this.audio.ended) {
+			debug("Event: track manually skipped", this.currentTrack);
+			this.onTrackSkipped?.(
+				this.currentTrack,
+				this.audio.currentTime,
+				this.audio.duration
+			);
+		}
 
 		this.audio.pause();
 		this.audio.currentTime = 0;
@@ -391,3 +429,13 @@ class AudioPlayer {
 }
 
 export const player = new AudioPlayer();
+player.onTrackPlayed = (track) => {
+	fetch(`/api/track/${track.id}/played`);
+};
+player.onTrackSkipped = (track) => {
+	fetch(`/api/track/${track.id}/skipped`);
+};
+
+export function onTrackPlay(id: string) {
+	fetch(`/api/track/${id}/explicitPlay`);
+}

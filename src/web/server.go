@@ -4,6 +4,7 @@ import (
 	"fmt"
 	identityStorage "musica-server/src"
 	"musica-server/src/indexer"
+	scores "musica-server/src/scores"
 	"net/http"
 	"time"
 
@@ -12,21 +13,23 @@ import (
 
 type WebServer struct {
 	indexer *indexer.Indexer
-	search *indexer.SearchManager
+	search  *indexer.SearchManager
+	scores  *scores.ScoreManager
 
-	router  *chi.Mux
+	router *chi.Mux
 
 	identityStorage *identityStorage.IdentityStorage
 }
 
-func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebServer {
+func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager) *WebServer {
 	r := chi.NewRouter()
 
 	ws := &WebServer{
 		indexer: idx,
-		search: indexer.NewSearcher(idx),
+		search:  indexer.NewSearcher(idx),
+		scores:  scores,
 
-		router:  r,
+		router: r,
 
 		identityStorage: idStorage,
 	}
@@ -39,6 +42,9 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 	api.Get("/track/{id}/info", ws.trackInfo)
 	api.Get("/track/{id}/get", ws.trackFile)
 	api.Get("/track/{id}/art", ws.trackArt)
+	api.Get("/track/{id}/explicitPlay", ws.userSpecificPlay)
+	api.Get("/track/{id}/played", ws.trackPlayed)
+	api.Get("/track/{id}/skipped", ws.trackSkipped)
 
 	api.Post("/bulk/tracks/info", ws.bulkTracks)
 
@@ -46,7 +52,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 	api.Get("/albums/list", ws.listAlbums)
 	api.Get("/album/{id}/info", ws.albumInfo)
 	api.Get("/bulk/albums/info", ws.bulkAlbums)
-	
+
 	// Artists
 	api.Get("/artists/list", ws.listArtists)
 	api.Get("/artist/{id}/info", ws.artistInfo)
@@ -57,7 +63,6 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 
 	r.Mount("/api", api)
 
-	
 	// Static files
 	ws.static("/", "./public/index.html", "text/html")
 	ws.static("/album/*", "./public/index.html", "text/html")
@@ -134,7 +139,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage) *WebS
 func (ws *WebServer) Listen(port int) error {
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 
-		srv := &http.Server{
+	srv := &http.Server{
 		Addr:              addr,
 		Handler:           ws.router,
 		ReadTimeout:       10 * time.Second,

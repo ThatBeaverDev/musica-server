@@ -18,15 +18,15 @@ import (
 )
 
 type Track struct {
-	Title       string `json:"title"`
-	Artist      string `json:"artist"`
-	
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+
 	Album       string `json:"album"`
 	AlbumArtist string `json:"albumArtist"`
 
 	Modified int64 `json:"modified"`
-	Release int `json:"release"`
-	Number  int `json:"number"`
+	Release  int   `json:"release"`
+	Number   int   `json:"number"`
 
 	Path string `json:"path"`
 	ID   string `json:"id"`
@@ -37,22 +37,22 @@ type Album struct {
 	Artist string `json:"artist"`
 	ID     string `json:"id"`
 
-	Modified int64 `json:"modified"`
-	Release int      `json:"release"`
-	Tracks  []*Track `json:"tracks"`
+	Modified int64    `json:"modified"`
+	Release  int      `json:"release"`
+	Tracks   []*Track `json:"tracks"`
 }
 
 type Artist struct {
 	Name string `json:"name"`
-	ID string `json:"id"`
+	ID   string `json:"id"`
 
 	Albums []*Album `json:"albums"`
 }
 
 type trackIndex struct {
-	Root   string
-	Tracks map[string]*Track
-	Albums map[string]*Album
+	Root    string
+	Tracks  map[string]*Track
+	Albums  map[string]*Album
 	Artists map[string]*Artist
 
 	mutex sync.RWMutex
@@ -86,9 +86,9 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 
 	indexer := Indexer{
 		Index: &trackIndex{
-			Root:   directory,
-			Tracks: make(map[string]*Track),
-			Albums: make(map[string]*Album),
+			Root:    directory,
+			Tracks:  make(map[string]*Track),
+			Albums:  make(map[string]*Album),
 			Artists: make(map[string]*Artist),
 
 			mutex: sync.RWMutex{},
@@ -243,8 +243,8 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		AlbumArtist: albumArtist,
 
 		Modified: modified,
-		Release: release,
-		Path:    relative,
+		Release:  release,
+		Path:     relative,
 
 		ID:     id,
 		Number: number,
@@ -293,9 +293,9 @@ func (s *Indexer) indexTrack(directory string) error {
 			Artist: track.AlbumArtist,
 
 			Modified: track.Modified,
-			Release: track.Release,
-			Tracks:  []*Track{&track},
-			ID:      id,
+			Release:  track.Release,
+			Tracks:   []*Track{&track},
+			ID:       id,
 		}
 
 		s.Index.Albums[id] = album
@@ -312,7 +312,7 @@ func (s *Indexer) indexTrack(directory string) error {
 			artist := &Artist{
 				Name: album.Artist,
 
-				ID: id,
+				ID:     id,
 				Albums: []*Album{album},
 			}
 
@@ -396,7 +396,7 @@ func (s *Indexer) cleanupArtists() {
 			delete(s.Index.Albums, artistId)
 		}
 
-		if artist.Name == ""  {
+		if artist.Name == "" {
 			delete(s.Index.Artists, artistId)
 		}
 	}
