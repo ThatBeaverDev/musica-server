@@ -28,7 +28,7 @@ type Track struct {
 	Release  int   `json:"release"`
 	Number   int   `json:"number"`
 
-	Path string `json:"path"`
+	Path string `json:"-"`
 	ID   string `json:"id"`
 }
 
