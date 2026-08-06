@@ -15,7 +15,7 @@ type trackScoreEntry struct {
 	Date  time.Time `json:"date"`
 }
 
-type trackScoreMap map[string]trackScoreEntry
+type trackScoreMap map[string]*trackScoreEntry
 
 type ScoreManager struct {
 	trackScores trackScoreMap // id to score
@@ -52,21 +52,25 @@ func (scores *ScoreManager) store() {
 	}
 
 	os.WriteFile("./scores.json", jsonData, 0644)
-
 }
 
-func (sm *ScoreManager) RecordEvent(trackID string, delta float64) {
-	sm.storeMutex.Lock()
-	defer sm.storeMutex.Unlock()
+func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
+	fmt.Println(track.Title, "( by", track.Artist, ") delta by", delta)
 
-	data, exists := sm.trackScores[trackID]
+	scores.storeMutex.Lock()
+	defer scores.storeMutex.Unlock()
+
+	data, exists := scores.trackScores[track.ID]
 	now := time.Now()
 
 	if !exists {
-		sm.trackScores[trackID] = trackScoreEntry{
+		scores.trackScores[track.ID] = &trackScoreEntry{
 			Score: delta,
 			Date:  now,
 		}
+
+		go scores.store()
+
 		return
 	}
 
@@ -87,7 +91,7 @@ func (sm *ScoreManager) RecordEvent(trackID string, delta float64) {
 	data.Date = now
 
 	// save on another thread
-	go sm.store()
+	go scores.store()
 }
 
 const decayLambda = 0.0077
@@ -108,14 +112,14 @@ func (scores *ScoreManager) trackScore(track *indexer.Track) float64 {
 }
 
 func (scores *ScoreManager) SpecificPlay(track *indexer.Track) {
-	scores.RecordEvent(track.ID, 5)
+	scores.DeltaScore(track, 5)
 
 }
 
 func (scores *ScoreManager) Played(track *indexer.Track) {
-	scores.RecordEvent(track.ID, 4)
+	scores.DeltaScore(track, 4)
 }
 
 func (scores *ScoreManager) Skipped(track *indexer.Track) {
-	scores.RecordEvent(track.ID, -2)
+	scores.DeltaScore(track, -2)
 }
