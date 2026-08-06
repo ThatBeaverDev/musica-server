@@ -1,5 +1,6 @@
 import { Album } from "../musica";
-import album from "./album";
+import { player } from "../player";
+import albumPage from "./album";
 
 export default async function home(div: HTMLDivElement) {
 	div.innerHTML = `
@@ -40,30 +41,74 @@ export default async function home(div: HTMLDivElement) {
 	const albumContainer = document.getElementById("albumsGrid");
 	if (!albumContainer) return;
 
-	for (const info of albums) {
+	for (const album of albums) {
 		const tileDiv = document.createElement("div");
 		tileDiv.classList.add("card");
+		tileDiv.addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+
+			const container = document.createElement("div");
+			container.classList.add("album-context-menu");
+			container.style.left = `${e.clientX}px`;
+			container.style.top = `${e.clientY}px`;
+
+			document.body.appendChild(container);
+
+			const items: [string, () => Promise<void> | void][] = [
+				[
+					"Play",
+					() => {
+						player.setQueue(
+							[],
+							album.tracks[0],
+							album.tracks.slice(1)
+						);
+						player.resume();
+					}
+				],
+				["Shuffle", () => {}]
+			];
+
+			const holder = document.createElement("p");
+			holder.classList.add("album-context-menu-title");
+			holder.innerText = `${album.artist} - ${album.title}`;
+			container.appendChild(holder);
+
+			for (const item of items) {
+				const holder = document.createElement("p");
+				holder.classList.add("album-context-menu-item");
+				holder.innerText = item[0];
+
+				holder.addEventListener("pointerdown", () => item[1]());
+
+				container.appendChild(holder);
+			}
+
+			window.addEventListener("pointerdown", () => container.remove(), {
+				once: true
+			});
+		});
 
 		const albumImage = document.createElement("img");
 		albumImage.classList.add("albumArt");
-		albumImage.src = `/api/track/${info.tracks?.[0].id}/art`;
+		albumImage.src = `/api/track/${album.tracks?.[0].id}/art`;
 		albumImage.loading = "lazy";
 		tileDiv.appendChild(albumImage);
 
 		const albumTitle = document.createElement("p");
 		albumTitle.classList.add("album-title");
-		albumTitle.innerText = info.title;
+		albumTitle.innerText = album.title;
 		tileDiv.appendChild(albumTitle);
 
 		const albumArtist = document.createElement("p");
 		albumArtist.classList.add("album-artist");
-		albumArtist.innerText = info.artist;
+		albumArtist.innerText = album.artist;
 		tileDiv.appendChild(albumArtist);
 
 		tileDiv.addEventListener("click", () => {
-			history.pushState({}, "", `/album/${info.id}`);
+			history.pushState({}, "", `/album/${album.id}`);
 
-			album(div);
+			albumPage(div);
 		});
 
 		albumContainer.appendChild(tileDiv);

@@ -1,162 +1,164 @@
 .player {
-    width: 100%;
+	width: 100%;
 
-    display: flex;
-    flex-direction: column;
+	display: flex;
+	flex-direction: column;
 
-    align-items: center;
-    margin: 20px 0px;
+	align-items: center;
+	margin: 20px 0px;
 
-    /*border-bottom: 1px solid rgba(255, 255, 255, 0.05);*/
+	/*border-bottom: 1px solid rgba(255, 255, 255, 0.05);*/
 }
 
 img#track-art {
-    border-radius: 6%;
+	border-radius: 6%;
 }
 
 .player-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 
-    margin: 5px;
+	margin: 5px;
 
-    gap: 2px;
-    flex: 1;
+	gap: 2px;
+	flex: 1;
 }
 
 p.album-title {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: white;
+	font-size: 0.95rem;
+	font-weight: 500;
+	color: white;
 
-    text-align: center;
+	text-align: center;
 }
 
 p.album-artist {
-    font-size: 0.9rem;
-    color: #888;
+	font-size: 0.9rem;
+	color: #888;
 
-    text-align: center;
+	text-align: center;
 }
 
 .player-controls {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
 
-    width: 100%;
+	width: 100%;
 }
 
 .player-control {
-    filter: invert(100%);
-    margin: 10px;
+	filter: invert(100%);
+	margin: 10px;
 
-    width: 30px;
-    height: 30px;
+	width: 30px;
+	height: 30px;
 
-    transition: 0.2s ease;
+	transition: 0.2s ease;
 
-    user-select: none;
+	user-select: none;
 }
 
 .control-play {
-    width: 40px;
-    height: 40px;
+	width: 40px;
+	height: 40px;
 }
 
 .player-control:hover {
-    transform: scale(1.1);
+	transform: scale(1.1);
 }
 
 .player-control:active {
-    transform: scale(0.75);
+	transform: scale(0.75);
 }
 
 .progress-bar-outer {
-    width: 100%;
-    height: 6px;
+	width: 100%;
+	height: 6px;
 
-    overflow: hidden;
-    border-radius: 1000px;
+	overflow: hidden;
+	border-radius: 1000px;
 
-    margin: 5px 0px;
+	margin: 5px 0px;
 
-    background-color: var(--item);
+	background-color: var(--item);
 
-    transition: ease 0.2s;
+	transition: ease 0.2s;
 }
 
 .progress-bar-outer:hover,
 .progress-bar-outer:active {
-    background-color: var(--item2);
+	background-color: var(--item2);
 }
 
 .progress-bar-inner {
-    position: relative;
-    left: 0px;
-    top: 0px;
+	position: relative;
+	left: 0px;
+	top: 0px;
 
-    /* width set in JS */
-    height: 100%;
+	/* width set in JS */
+	height: 100%;
 
-    background-color: var(--item2);
-    transition: ease 0.2s;
+	background-color: var(--item2);
+	transition: ease 0.2s;
 
-    pointer-events: none;
+	pointer-events: none;
 }
 
 .progress-bar-outer:hover .progress-bar-inner {
-    background-color: var(--item3) !important;
+	background-color: var(--item3) !important;
 }
 .progress-bar-outer:active .progress-bar-inner {
-    background-color: var(--item3) !important;
+	background-color: var(--item3) !important;
 }
 
 .queue-empty-text {
-    user-select: none;
+	user-select: none;
+	width: 100%;
+	text-align: center;
 }
 
 .player-queue-item {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 5px;
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 5px;
 
-    width: 100%;
+	width: 100%;
 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .player-queue-item:hover {
-    background-color: var(--panel);
+	background-color: var(--panel);
 }
 
-.player-queue-item>.track-info {
-    justify-content: center;
-    overflow: hidden;
+.player-queue-item > .track-info {
+	justify-content: center;
+	overflow: hidden;
 
-    pointer-events: none;
-    user-select: none;
+	pointer-events: none;
+	user-select: none;
 }
 
-.player-queue-item>.track-info>p {
-    text-align: left;
+.player-queue-item > .track-info > p {
+	text-align: left;
 
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 
-    pointer-events: none;
-    user-select: none;
+	pointer-events: none;
+	user-select: none;
 }
 
 .queue-item-art {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
-    border-radius: 6%;
+	width: 50px;
+	height: 50px;
+	margin-right: 10px;
+	border-radius: 6%;
 
-    pointer-events: none;
-    user-select: none;
+	pointer-events: none;
+	user-select: none;
 }

@@ -89,3 +89,46 @@
 	gap: 2px;
 	flex: 1;
 }
+
+.album-context-menu {
+	position: absolute;
+
+	display: flex;
+	flex-direction: column;
+
+	width: 250px;
+	overflow: hidden;
+
+	background-color: rgb(58 58 58);
+	border: 2px solid rgba(255, 255, 255, 0.06);
+
+	border-radius: 14px;
+}
+
+.album-context-menu-title {
+	width: calc(100% - 5px);
+
+	font-size: 1rem;
+	padding: 10px;
+
+	margin-left: 5px;
+
+	border-top: 1px solid rgba(255, 255, 255, 0.15);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.album-context-menu-item {
+	width: calc(100% - 5px);
+
+	font-size: 1.25rem;
+	padding: 10px;
+
+	margin-left: 5px;
+
+	border-top: 1px solid rgba(255, 255, 255, 0.15);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.album-context-menu-item:hover {
+	background-color: rgb(71 71 71);
+}
