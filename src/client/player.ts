@@ -5,16 +5,50 @@ function debug(...data: any[]) {
 	if (willDebug) console.debug(...data);
 }
 
+export enum LoopState {
+	none = 0,
+	one = 1,
+	all = 2
+}
+
+interface StandardQueue {
+	readonly isDynamic: false;
+
+	readonly loop: LoopState;
+	readonly shuffle: boolean;
+
+	playlist: Track[];
+	playOrder: number[];
+
+	currentPlayOrderIndex: number;
+}
+
+interface DynamicQueue {
+	readonly isDynamic: true;
+
+	history: Track[];
+}
+
+type Queue = StandardQueue | DynamicQueue;
+
 class AudioPlayer {
 	audio: HTMLAudioElement;
-	currentTrack?: Track;
-	queue: {
-		loop: "one" | "all" | "none";
-		readonly shuffle: boolean;
-		nextTracks: Track[];
-		pastTracks: Track[];
-	} = { loop: "none", shuffle: false, nextTracks: [], pastTracks: [] };
 
+	queue: Queue = {
+		isDynamic: false,
+
+		loop: LoopState.none,
+		shuffle: false,
+
+		playlist: [],
+		playOrder: [],
+
+		currentPlayOrderIndex: 0
+	};
+
+	currentInitiated: boolean = false;
+
+	// Callbacks
 	// 80% of current track played
 	onTrackPlayed?: (track: Track) => void;
 	// user skipped this track when it was playing
@@ -70,7 +104,9 @@ class AudioPlayer {
 		/* ----- Audio rollover when finished ----- */
 
 		this.audio.addEventListener("ended", () => {
-			navigator.mediaSession.metadata = null;
+			if (navigator.mediaSession) {
+				navigator.mediaSession.metadata = null;
+			}
 			this.rollover();
 		});
 
@@ -131,6 +167,7 @@ class AudioPlayer {
 		});
 
 		const refreshProgressbar = () => {
+			if (!this.#progressBarOuter || !this.#progressBarInner) return;
 			const rect = this.#progressBarOuter.getBoundingClientRect();
 
 			const decimalProgression =
@@ -164,34 +201,65 @@ class AudioPlayer {
 		}
 	}
 
-	#getNextTrack(number: number): Track | undefined {
+	get currentTrack(): Track | undefined {
+		if (this.queue.isDynamic) {
+			return this.queue.history.at(-1);
+		} else {
+			return this.queue.playlist[
+				this.queue.playOrder[this.queue.currentPlayOrderIndex]
+			];
+		}
+	}
+
+	async #getNextTrack(number: number): Promise<Track | undefined> {
+		if (this.queue.isDynamic) {
+			const nextIdFetch = await fetch("/api/tracks/randomMixTrack");
+			const { id } = await nextIdFetch.json();
+
+			const trackFetch = await fetch(`/api/track/${id}/info`);
+			const track = await trackFetch.json();
+
+			this.queue.history.push(track);
+			console.debug(track);
+
+			return track;
+		}
+
 		switch (this.queue.loop) {
-			case "one":
+			case LoopState.one:
 				return this.currentTrack;
 
-			case "none":
-				return this.queue.nextTracks.splice(0, number).at(-1);
+			case LoopState.none:
+				this.queue.currentPlayOrderIndex += number;
+				this.currentInitiated = false;
 
-			case "all":
-				let val: Track | undefined;
-				for (let i = 0; i < number; i++) {
-					if (this.queue.nextTracks.length === 0) {
-						this.queue.nextTracks = []; // insure not linked
-						this.queue.pastTracks.forEach((item) => {
-							this.addToQueue(item);
-						});
-						this.queue.pastTracks = [];
-					}
-
-					val = this.queue.nextTracks.shift();
+				if (
+					this.queue.currentPlayOrderIndex < 0 ||
+					this.queue.currentPlayOrderIndex >=
+						this.queue.playOrder.length
+				) {
+					return undefined;
 				}
 
-				return val;
+				return this.currentTrack;
+
+			case LoopState.all:
+				const len = this.queue.playOrder.length;
+				if (len === 0) return undefined;
+
+				this.queue.currentPlayOrderIndex =
+					(((this.queue.currentPlayOrderIndex + number) % len) +
+						len) %
+					len;
+
+				this.currentInitiated = false;
+
+				return this.currentTrack;
 		}
 	}
 
 	async rollover(number: number = 1) {
-		const next = this.#getNextTrack(number);
+		const next = await this.#getNextTrack(number);
 
 		debug("next", next);
 
@@ -201,16 +269,12 @@ class AudioPlayer {
 			return;
 		}
 
-		if (this.currentTrack && this.queue.loop !== "one") {
-			this.queue.pastTracks.push(this.currentTrack);
-		}
-
 		this.#renderQueue();
 		await this.#playTrack(next);
 	}
 
 	async #playTrack(track: Track) {
-		this.currentTrack = track;
+		this.currentInitiated = true;
 		this.#hasTriggeredPlayedEvent = false;
 
 		if (navigator.mediaSession && window.MediaMetadata) {
@@ -229,12 +293,17 @@ class AudioPlayer {
 
 		this.audio.src = `/api/track/${track.id}/get`;
 
-		document.getElementById("player-title")!.textContent = track.title;
-		document.getElementById("player-artist")!.textContent = track.artist;
-		(document.getElementById("track-art") as HTMLImageElement).src =
-			`/api/track/${track.id}/art`;
+		const playerTitle = document.getElementById("player-title");
+		const playerArtist = document.getElementById("player-artist");
+		const playerArt = document.getElementById(
+			"track-art"
+		) as HTMLImageElement;
 
-		this.#playButton.src = "/img/pause.svg";
+		if (playerTitle) playerTitle.textContent = track.title;
+		if (playerArtist) playerArtist.textContent = track.artist;
+		if (playerArt) playerArt.src = `/api/track/${track.id}/art`;
+
+		if (this.#playButton) this.#playButton.src = "/img/pause.svg";
 
 		try {
 			await this.audio.play();
@@ -245,43 +314,58 @@ class AudioPlayer {
 
 	resetQueue() {
 		debug("reset");
-		this.currentTrack = undefined;
-		this.#hasTriggeredPlayedEvent = false;
 		this.stop();
 
 		this.queue = {
-			loop: "none",
+			isDynamic: false,
+
+			loop: LoopState.none,
 			shuffle: false,
-			nextTracks: [],
-			pastTracks: []
+
+			playlist: [],
+			playOrder: [],
+
+			currentPlayOrderIndex: 0
 		};
+		this.currentInitiated = false;
 
 		this.#renderQueue();
 	}
 
 	rerenderScheduled: boolean = false;
 	#renderQueue() {
-		if (this.rerenderScheduled) return;
+		if (this.rerenderScheduled || !this.#queueContainer) return;
 
 		this.rerenderScheduled = true;
 		requestAnimationFrame(() => {
 			this.#queueContainer.innerHTML = "";
 			debug("rebuildQueue");
 
-			if (this.queue.nextTracks.length === 0) {
+			const upcomingTrackIndices = this.queue.isDynamic
+				? []
+				: this.queue.playOrder.slice(
+						this.queue.currentPlayOrderIndex + 1
+					);
+
+			if (upcomingTrackIndices.length === 0) {
 				const noQueue = document.createElement("p");
-				noQueue.innerText = "Nothing queued at the moment";
+				noQueue.innerText = this.queue.isDynamic
+					? "Just go with the dynamic queue's flow!"
+					: "Nothing queued at the moment";
 				noQueue.classList.add("queue-empty-text");
 
 				this.#queueContainer.appendChild(noQueue);
 			} else {
 				const frag = document.createDocumentFragment();
 
-				let i = 0;
-				for (const track of this.queue.nextTracks) {
-					i++;
-					const trackNumber = i;
+				let offset = 1;
+				for (const playlistIndex of upcomingTrackIndices) {
+					if (this.queue.isDynamic) continue; // keep typescript happy
 
+					const track = this.queue.playlist[playlistIndex];
+					if (!track) continue;
+
+					const jumpAmount = offset;
 					const container = document.createElement("div");
 					container.classList.add("player-queue-item");
 
@@ -305,11 +389,12 @@ class AudioPlayer {
 					container.append(image, info);
 
 					container.addEventListener("click", async () => {
-						debug("skipTo", trackNumber);
-						await this.skipForward(trackNumber);
+						debug("skipTo", jumpAmount);
+						await this.skipForward(jumpAmount);
 					});
 
 					frag.appendChild(container);
+					offset++;
 				}
 
 				this.#queueContainer.appendChild(frag);
@@ -322,15 +407,40 @@ class AudioPlayer {
 	addToQueue(track: Track) {
 		debug("add", track);
 
-		this.queue.nextTracks.push(track);
+		if (this.queue.isDynamic) return;
+
+		this.queue.playlist.push(track);
+		const index = this.queue.playlist.length - 1;
+		this.queue.playOrder.push(index);
+
 		this.#renderQueue();
 	}
 
-	setQueue(before: Track[], now: Track, after: Track[]) {
+	setQueue(
+		before: Track[],
+		now: Track,
+		after: Track[],
+		shuffle: boolean = false
+	) {
 		this.resetQueue();
 
-		this.queue.pastTracks = [...before];
-		this.queue.nextTracks = [now, ...after];
+		const playlist = [...before, now, ...after];
+
+		this.queue = {
+			isDynamic: false,
+
+			playlist,
+			playOrder: playlist.map((_, i) => i),
+
+			// Position right before the 'now' track so rollover(1) lands on it
+			currentPlayOrderIndex: before.length - 1,
+
+			loop: LoopState.none,
+			shuffle: false
+		};
+
+		this.currentInitiated = false;
+		if (shuffle) this.toggleShuffle();
 
 		this.#renderQueue();
 	}
@@ -338,17 +448,21 @@ class AudioPlayer {
 	pause() {
 		debug("pause");
 
-		this.#playButton.src = "/img/play.svg";
+		if (this.#playButton) this.#playButton.src = "/img/play.svg";
 		this.audio.pause();
 	}
 
 	async resume() {
 		debug("resume");
 
-		if (!this.currentTrack) await this.rollover();
+		if (!this.queue.isDynamic && this.queue.playOrder.length === 0) return;
 
-		this.#playButton.src = "/img/pause.svg";
-		await this.audio.play();
+		if (!this.currentInitiated) {
+			await this.rollover(1);
+		} else {
+			if (this.#playButton) this.#playButton.src = "/img/pause.svg";
+			await this.audio.play();
+		}
 
 		this.#renderQueue();
 	}
@@ -363,36 +477,119 @@ class AudioPlayer {
 		}
 	}
 
+	#setLoopState(state: LoopState) {
+		// @ts-expect-error // this is an intended way to modify
+		this.queue.loop = state;
+	}
+
+	toggleLoop() {
+		if (this.queue.isDynamic) return;
+
+		switch (this.queue.loop) {
+			case LoopState.none:
+				debug("Toggling Loop (Setting all)");
+				this.#setLoopState(LoopState.all);
+				break;
+
+			case LoopState.all:
+				debug("Toggling Loop (Setting one)");
+				this.#setLoopState(LoopState.one);
+				break;
+
+			case LoopState.one:
+				debug("Toggling Loop (Setting off)");
+				this.#setLoopState(LoopState.none);
+				break;
+		}
+	}
+
+	#setShuffleState(state: boolean) {
+		if (this.queue.isDynamic || this.queue.shuffle === state) return;
+
+		function shuffleArray<T>(array: T[]): T[] {
+			let currentIndex = array.length;
+			while (currentIndex !== 0) {
+				let randomIndex = Math.floor(Math.random() * currentIndex);
+				currentIndex--;
+				[array[currentIndex], array[randomIndex]] = [
+					array[randomIndex],
+					array[currentIndex]
+				];
+			}
+			return array;
+		}
+
+		if (state) {
+			const currentTrack = this.currentTrack;
+			// clean clone
+			const cleanIndices = this.queue.playlist.map((_, i) => i);
+
+			const currentPlaylistIndex = currentTrack
+				? this.queue.playlist.indexOf(currentTrack)
+				: 0;
+
+			// remove the current index and shuffle
+			const remaining = cleanIndices.filter(
+				(i) => i !== currentPlaylistIndex
+			);
+			const shuffledRemaining = shuffleArray(remaining);
+
+			// rebuild playOrder
+			this.queue.playOrder = [currentPlaylistIndex, ...shuffledRemaining];
+			this.queue.currentPlayOrderIndex = 0;
+
+			// @ts-expect-error // this is an intended way to modify
+			this.queue.shuffle = true;
+		} else {
+			const track = this.currentTrack;
+
+			if (track) {
+				this.queue.currentPlayOrderIndex =
+					this.queue.playlist.indexOf(track);
+			}
+
+			this.queue.playOrder = this.queue.playlist.map((_, i) => i);
+
+			// @ts-expect-error // this is an intended way to modify
+			this.queue.shuffle = false;
+		}
+		this.#renderQueue();
+	}
+
+	toggleShuffle() {
+		if (this.queue.isDynamic) return;
+
+		if (this.queue.shuffle) {
+			debug("Toggling Shuffle (Setting off)");
+			this.#setShuffleState(false);
+		} else {
+			debug("Toggling Shuffle (Setting on)");
+			this.#setShuffleState(true);
+		}
+	}
+
 	async skipBack() {
 		debug("back");
 
-		if (this.audio.currentTime > 5) {
+		if (
+			this.audio.currentTime > 5 ||
+			(!this.queue.isDynamic && this.queue.loop === LoopState.one)
+		) {
 			this.audio.currentTime = 0;
 			return;
 		}
 
-		const previous = this.queue.pastTracks.pop();
-
-		if (!previous) {
-			this.audio.currentTime = 0;
-			return;
-		}
-
-		if (this.currentTrack) {
-			this.queue.nextTracks.unshift(this.currentTrack);
-		}
-
-		await this.#playTrack(previous);
+		await this.rollover(-1);
 	}
 
 	async skipForward(number: number = 1) {
 		debug("next (user action)");
 
-		// Notify track skipped (user clicked Forward or selected a item in queue)
-		if (this.currentTrack && !this.audio.ended) {
-			debug("Event: track manually skipped", this.currentTrack);
+		const current = this.currentTrack;
+		if (current && !this.audio.ended) {
+			debug("Event: track manually skipped", current);
 			this.onTrackSkipped?.(
-				this.currentTrack,
+				current,
 				this.audio.currentTime,
 				this.audio.duration
 			);
@@ -408,7 +605,7 @@ class AudioPlayer {
 
 		this.audio.pause();
 		this.audio.currentTime = 0;
-		this.#playButton.src = "/img/play.svg";
+		if (this.#playButton) this.#playButton.src = "/img/play.svg";
 	}
 
 	seek(seconds: number) {
@@ -420,6 +617,10 @@ class AudioPlayer {
 	set volume(volume: number) {
 		debug("setVolume", volume);
 		this.audio.volume = Math.max(0, Math.min(1, volume));
+	}
+
+	get volume(): number {
+		return this.audio.volume;
 	}
 
 	get isPlaying() {

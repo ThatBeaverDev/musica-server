@@ -54,19 +54,19 @@ export default async function home(div: HTMLDivElement) {
 
 			document.body.appendChild(container);
 
+			const play = (shuffle: boolean) => {
+				player.setQueue(
+					[],
+					album.tracks[0],
+					album.tracks.slice(1),
+					shuffle
+				);
+				player.resume();
+			};
+
 			const items: [string, () => Promise<void> | void][] = [
-				[
-					"Play",
-					() => {
-						player.setQueue(
-							[],
-							album.tracks[0],
-							album.tracks.slice(1)
-						);
-						player.resume();
-					}
-				],
-				["Shuffle", () => {}]
+				["Play", () => play(false)],
+				["Shuffle", () => [play(true)]]
 			];
 
 			const holder = document.createElement("p");
