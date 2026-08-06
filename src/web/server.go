@@ -38,6 +38,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 
 	// Tracks
 	api.Get("/tracks/list", ws.listTracks)
+	api.Get("/tracks/randomMixTrack", ws.randomMixTrack)
 
 	api.Get("/track/{id}/info", ws.trackInfo)
 	api.Get("/track/{id}/get", ws.trackFile)

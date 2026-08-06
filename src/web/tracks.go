@@ -193,3 +193,19 @@ func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
 
 	ws.scores.Skipped(track)
 }
+
+func (ws *WebServer) randomMixTrack(w http.ResponseWriter, _ *http.Request) {
+	type RandomMixTrackResponse = struct {
+		ID string `json:"id"`
+	}
+
+	track, err := ws.scores.ChooseMixTrack()
+	if err != nil {
+		http.Error(w, "No tracks in library.", 404)
+		return
+	}
+
+	result := RandomMixTrackResponse{ID: track}
+
+	json.NewEncoder(w).Encode(result)
+}

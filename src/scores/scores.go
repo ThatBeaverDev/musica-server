@@ -2,8 +2,10 @@ package Scores
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"musica-server/src/indexer"
 	"os"
 	"sync"
@@ -98,9 +100,9 @@ func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
 
 const decayLambda = 0.0077
 
-func (scores *ScoreManager) trackScore(track *indexer.Track) float64 {
+func (scores *ScoreManager) trackScore(trackID string) float64 {
 	scores.storeMutex.RLock()
-	info, exists := scores.trackScores[track.ID]
+	info, exists := scores.trackScores[trackID]
 	scores.storeMutex.RUnlock()
 
 	if !exists {
@@ -111,6 +113,66 @@ func (scores *ScoreManager) trackScore(track *indexer.Track) float64 {
 	decayedScore := info.Score * math.Exp(-decayLambda*daysElapsed)
 
 	return decayedScore
+}
+
+func (scores *ScoreManager) ScoresInRange(low float64, high float64) []string {
+	tracks := []string{}
+
+	scores.storeMutex.RLock()
+	for id := range scores.trackScores {
+		score := scores.trackScore(id)
+
+		if score >= low && score <= high {
+
+			tracks = append(tracks, id)
+		}
+	}
+	scores.storeMutex.RUnlock()
+
+	return tracks
+}
+
+func (scores *ScoreManager) GetRandomSubset() ([]string, error) {
+	point := rand.Float64() * 100
+
+	var ids []string
+
+	if point < 2.5 {
+		// 2.5% chance
+		// tracks from -25pts to -10pts
+		ids = scores.ScoresInRange(-25, -10)
+	} else if point < 10 {
+		// 7.5% chance
+		// tracks from -10pts to 10pts
+		ids = scores.ScoresInRange(-10, 10)
+	} else {
+		// 90% chance
+		// tracks from 10pts to 50pts
+		ids = scores.ScoresInRange(10, 1000)
+	}
+
+	if len(ids) > 0 {
+		return ids, nil
+	}
+
+	all := scores.ScoresInRange(-1000, 1000)
+	if len(all) > 0 {
+		return all, nil
+	}
+
+	return []string{}, errors.New("No tracks in library.")
+}
+
+func (scores *ScoreManager) ChooseMixTrack() (string, error) {
+	tracks, err := scores.GetRandomSubset()
+	if err != nil {
+		return "", err
+	}
+
+	idx := rand.IntN(len(tracks))
+	id := tracks[idx]
+
+	return id, nil
 }
 
 func (scores *ScoreManager) SpecificPlay(track *indexer.Track) {
