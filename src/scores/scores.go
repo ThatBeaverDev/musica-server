@@ -41,6 +41,8 @@ func New() (*ScoreManager, error) {
 		trackScores: trackScores, // track to score (-50 to 50)
 	}
 
+	go scoreManager.store()
+
 	return scoreManager, nil
 }
 
