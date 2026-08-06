@@ -13,13 +13,17 @@ type Config struct {
 	MediaCache   string `json:"mediaCache"`
 }
 
+const defaultPort = 3000
+const defaultMediaCache = "mediaCache"
+const defaultMediaLibrary = "audio"
+
 func New() (*Config, error) {
 	var Cfg Config
 
 	// Open the configuration file.
 	file, err := os.Open("config.json")
 	if err != nil {
-		return &Config{}, fmt.Errorf("Failed to open config file: %w", err)
+		return &Config{Port: defaultPort, MediaLibrary: defaultMediaLibrary, MediaCache: defaultMediaCache}, nil
 	}
 	defer file.Close()
 
@@ -31,13 +35,13 @@ func New() (*Config, error) {
 	}
 
 	if Cfg.MediaLibrary == "" {
-		Cfg.MediaLibrary = "audio"
+		Cfg.MediaLibrary = defaultMediaLibrary
 	}
 	if Cfg.MediaCache == "" {
-		Cfg.MediaCache = "mediaCache"
+		Cfg.MediaCache = defaultMediaCache
 	}
 	if Cfg.Port == 0 {
-		Cfg.Port = 3000
+		Cfg.Port = defaultPort
 	}
 
 	return &Cfg, nil
