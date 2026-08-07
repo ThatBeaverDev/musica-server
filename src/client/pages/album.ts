@@ -1,3 +1,4 @@
+import { colourScore } from "../lib/score.js";
 import { Album } from "../musica.js";
 import { onTrackSearchAndPlay, player } from "../player.js";
 
@@ -68,12 +69,23 @@ export default async function album(
 		albumTitle.classList.add("album-title");
 		albumTitle.innerText = info.title;
 
+		const artistAndScoreDiv = document.createElement("div");
+		artistAndScoreDiv.classList.add("artist-score-div");
+
 		const albumArtist = document.createElement("p");
 		albumArtist.classList.add("album-artist");
 		albumArtist.innerText = info.artist;
 
+		const trackScore = document.createElement("p");
+		trackScore.classList.add("track-score");
+		trackScore.innerText = `${Math.round(info.score)}`;
+		trackScore.style.color = colourScore(info.score);
+
+		artistAndScoreDiv.appendChild(albumArtist);
+		artistAndScoreDiv.appendChild(trackScore);
+
 		infoDiv.appendChild(albumTitle);
-		infoDiv.appendChild(albumArtist);
+		infoDiv.appendChild(artistAndScoreDiv);
 		div.appendChild(infoDiv);
 
 		div.addEventListener("click", () => {

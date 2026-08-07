@@ -1,0 +1,112 @@
+package webServer
+
+import "musica-server/src/indexer"
+
+type WebExportedTrack = struct {
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+
+	Album       string `json:"album"`
+	AlbumArtist string `json:"albumArtist"`
+
+	Modified int64 `json:"modified"`
+	Release  int   `json:"release"`
+	Number   int   `json:"number"`
+
+	ID    string  `json:"id"`
+	Score float64 `json:"score"`
+}
+
+func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
+	score := ws.scores.TrackScore(track.ID)
+
+	return WebExportedTrack{
+		Title:  track.Title,
+		Artist: track.Artist,
+
+		Album:       track.Album,
+		AlbumArtist: track.AlbumArtist,
+
+		Modified: track.Modified,
+		Release:  track.Release,
+		Number:   track.Number,
+
+		ID:    track.ID,
+		Score: score,
+	}
+}
+
+type WebExportedAlbum = struct {
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+	ID     string `json:"id"`
+
+	Modified int64               `json:"modified"`
+	Release  int                 `json:"release"`
+	Tracks   []*WebExportedTrack `json:"tracks"`
+
+	Score float64 `json:"score"`
+}
+
+func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
+	totalTrackScore := 0.0
+
+	var tracks []*WebExportedTrack
+	for _, track := range album.Tracks {
+		webExported := ws.trackToWeb(track)
+		tracks = append(tracks, &webExported)
+
+		totalTrackScore += webExported.Score
+	}
+
+	albumScore := totalTrackScore / float64(len(album.Tracks))
+
+	return WebExportedAlbum{
+		Title:  album.Title,
+		Artist: album.Artist,
+		ID:     album.ID,
+
+		Modified: album.Modified,
+		Release:  album.Release,
+		Tracks:   tracks,
+
+		Score: albumScore,
+	}
+}
+
+type WebExportedArtist struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+
+	Albums []*WebExportedAlbum `json:"albums"`
+
+	Score float64 `json:"score"`
+}
+
+func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
+	totalTrackScore := 0.0
+	totalTracks := 0
+
+	var albums []*WebExportedAlbum
+	for _, album := range artist.Albums {
+		webExported := ws.albumToWeb(album)
+		albums = append(albums, &webExported)
+
+		albumTracks := len(webExported.Tracks)
+
+		// calculate total score of all tracks
+		totalTrackScore += webExported.Score * float64(albumTracks)
+		totalTracks += albumTracks
+	}
+
+	artistScore := totalTrackScore / float64(totalTracks)
+
+	return WebExportedArtist{
+		Name: artist.Name,
+		ID:   artist.ID,
+
+		Albums: albums,
+
+		Score: artistScore,
+	}
+}

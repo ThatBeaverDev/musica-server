@@ -3,7 +3,6 @@ package webServer
 import (
 	"encoding/json"
 	"fmt"
-	"musica-server/src/indexer"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,7 +29,8 @@ func (ws *WebServer) trackInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(track)
+	webExported := ws.trackToWeb(track)
+	json.NewEncoder(w).Encode(webExported)
 }
 
 func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
@@ -51,11 +51,12 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []*indexer.Track
+	var result []WebExportedTrack
 
 	for _, id := range ids {
-		if t, ok := ws.indexer.Index.Tracks[id]; ok {
-			result = append(result, t)
+		if track, ok := ws.indexer.Index.Tracks[id]; ok {
+			webExported := ws.trackToWeb(track)
+			result = append(result, webExported)
 		}
 	}
 

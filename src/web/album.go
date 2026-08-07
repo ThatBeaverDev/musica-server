@@ -36,7 +36,8 @@ func (ws *WebServer) albumInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(album)
+	webExported := ws.albumToWeb(album)
+	json.NewEncoder(w).Encode(webExported)
 }
 
 func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
@@ -57,13 +58,12 @@ func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []any
+	var result []WebExportedAlbum
 
 	for _, id := range ids {
 		if album, ok := ws.indexer.Index.Albums[id]; ok {
-			result = append(result, album)
-		} else {
-			result = append(result, nil)
+			webExported := ws.albumToWeb(album)
+			result = append(result, webExported)
 		}
 	}
 

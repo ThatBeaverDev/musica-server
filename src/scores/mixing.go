@@ -1,4 +1,4 @@
-package Scores
+package scores
 
 import (
 	"errors"

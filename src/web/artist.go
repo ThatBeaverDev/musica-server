@@ -36,7 +36,9 @@ func (ws *WebServer) artistInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(artist)
+	webExported := ws.artistToWeb(artist)
+
+	json.NewEncoder(w).Encode(webExported)
 }
 
 func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
@@ -57,13 +59,13 @@ func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []any
+	var result []WebExportedArtist
 
 	for _, id := range ids {
 		if artist, ok := ws.indexer.Index.Artists[id]; ok {
-			result = append(result, artist)
-		} else {
-			result = append(result, nil)
+			webExported := ws.artistToWeb(artist)
+
+			result = append(result, webExported)
 		}
 	}
 

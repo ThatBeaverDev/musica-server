@@ -9,8 +9,9 @@ export interface Track {
 	release?: ReturnType<typeof Date.now>;
 	number?: number;
 
-	path: string;
 	id: string;
+
+	score: number;
 }
 
 export interface Album {
@@ -21,6 +22,8 @@ export interface Album {
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	tracks: Track[];
+
+	score: number;
 }
 
 export interface SearchResult {

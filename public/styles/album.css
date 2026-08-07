@@ -72,9 +72,19 @@
 	color: white;
 }
 
+.listTerm .artist-score-div {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+}
+
 .listTerm .album-artist {
 	font-size: 0.9rem;
 	color: #888;
+}
+
+.listTerm .track-score {
+	font-size: 0.9rem;
 }
 
 .track-number {

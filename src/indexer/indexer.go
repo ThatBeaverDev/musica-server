@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -22,18 +23,22 @@ import (
 )
 
 type Track struct {
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
+	Title  string
+	Artist string
 
-	Album       string `json:"album"`
-	AlbumArtist string `json:"albumArtist"`
+	Album       string
+	AlbumArtist string
 
-	Modified int64 `json:"modified"`
-	Release  int   `json:"release"`
-	Number   int   `json:"number"`
+	Modified int64
+	Release  int
+	Number   int
 
-	Path string `json:"-"`
-	ID   string `json:"id"`
+	Path string
+	ID   string
+}
+
+func (t *Track) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("Track cannot be marshalled - It should be converted to a WebExportedTrack first.")
 }
 
 type Album struct {
@@ -46,11 +51,19 @@ type Album struct {
 	Tracks   []*Track `json:"tracks"`
 }
 
+func (a *Album) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("Album cannot be marshalled - It should be converted to a WebExportedAlbum first.")
+}
+
 type Artist struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
 
 	Albums []*Album `json:"albums"`
+}
+
+func (a *Artist) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("Artist cannot be marshalled - It should be converted to a WebExportedArtist first.")
 }
 
 type trackIndex struct {
@@ -123,6 +136,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 	waitGroup.Wait()
 
 	indexer.cleanupAlbums()
+	indexer.cleanupArtists()
 
 	return &indexer, nil
 }
