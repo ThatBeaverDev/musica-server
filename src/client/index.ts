@@ -1,5 +1,6 @@
 import album from "./pages/album";
 import home from "./pages/home";
+import { player } from "./player";
 
 const url = new URL(window.location.href);
 const contentDiv = document.querySelector("div.content") as HTMLDivElement;
@@ -14,6 +15,15 @@ if (homeButton)
 	homeButton.addEventListener("click", () => {
 		home(contentDiv);
 		history.pushState({}, "", "/");
+	});
+
+const dynamicQueueButton = document.querySelector(
+	"body > div.sidebar > div > div:nth-child(4)"
+);
+if (dynamicQueueButton)
+	dynamicQueueButton.addEventListener("click", () => {
+		player.startDynamicQueue();
+		player.resume();
 	});
 
 if (url.pathname.startsWith("/album/")) {
