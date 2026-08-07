@@ -1,0 +1,10 @@
+services:
+    musica-server:
+        container_name: musica-server
+        build: "."
+        ports:
+            - 3000:3000 # host:container
+        volumes:
+            - ./audio:/app/audio # configure this to your media library
+            - ./config.json:/app/config.json # If not present, just write "{}" to it
+            - ./scores.json:/app/scores.json # If not present, just write "{}" to it
