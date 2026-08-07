@@ -386,6 +386,10 @@ func (s *Indexer) cleanupAlbums() {
 		if album.Title == "" || album.Artist == "" {
 			delete(s.Index.Albums, albumId)
 		}
+
+		sort.Slice(album.Tracks, func(i, j int) bool {
+			return album.Tracks[i].Number < album.Tracks[j].Number
+		})
 	}
 }
 
