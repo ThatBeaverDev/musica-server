@@ -3,6 +3,7 @@ package webServer
 import (
 	"encoding/json"
 	"fmt"
+	"musica-server/src/indexer"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,6 +31,35 @@ func (ws *WebServer) trackInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(track)
+}
+
+func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
+	tracksHeader := r.Header.Get("tracks")
+	if tracksHeader == "" {
+		http.Error(w, "Tracks to receive bulk properties for must be specified in the 'tracks' header.", http.StatusBadRequest)
+		return
+	}
+
+	if len(tracksHeader) > 20000 {
+		http.Error(w, "Too many characters in `tracks` header", http.StatusBadRequest)
+		return
+	}
+
+	var ids []string
+	if err := json.Unmarshal([]byte(tracksHeader), &ids); err != nil {
+		http.Error(w, "Invalid tracks header: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var result []*indexer.Track
+
+	for _, id := range ids {
+		if t, ok := ws.indexer.Index.Tracks[id]; ok {
+			result = append(result, t)
+		}
+	}
+
+	json.NewEncoder(w).Encode(result)
 }
 
 func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
@@ -80,37 +110,6 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, cover.Directory)
 }
 
-func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
-	tracksHeader := r.Header.Get("tracks")
-	if tracksHeader == "" {
-		http.Error(w, "Tracks to receive bulk properties for must be specified in the 'tracks' header.", http.StatusBadRequest)
-		return
-	}
-
-	if len(tracksHeader) > 20000 {
-		http.Error(w, "Too many characters in `tracks` header", http.StatusBadRequest)
-		return
-	}
-
-	var ids []string
-	if err := json.Unmarshal([]byte(tracksHeader), &ids); err != nil {
-		http.Error(w, "Invalid tracks header: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	var result []any
-
-	for _, id := range ids {
-		if t, ok := ws.indexer.Index.Tracks[id]; ok {
-			result = append(result, t)
-		} else {
-			result = append(result, nil)
-		}
-	}
-
-	json.NewEncoder(w).Encode(result)
-}
-
 func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -148,11 +147,13 @@ func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *WebServer) randomMixTrack(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+
 	type RandomMixTrackResponse = struct {
 		ID string `json:"id"`
 	}
 
-	track, err := ws.scores.ChooseMixTrack()
+	track, err := ws.scores.GetWeightedRandomTrack()
 	if err != nil {
 		http.Error(w, "No tracks in library.", 404)
 		return

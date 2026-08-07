@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand/v2"
 	"musica-server/src/indexer"
 	"os"
 	"sync"
@@ -23,24 +22,36 @@ type ScoreManager struct {
 	trackScores trackScoreMap // id to score
 
 	storeMutex sync.RWMutex
+
+	indexer *indexer.Indexer
 }
 
-func New() (*ScoreManager, error) {
+func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 	var trackScores trackScoreMap
 
 	jsonString, err := os.ReadFile("./scores.json")
 	if err != nil {
-		trackScores = make(trackScoreMap)
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("failed to read scores file: %w", err)
+		}
 	} else {
 		// Unmarshal the JSON string to a map
 		err = json.Unmarshal([]byte(jsonString), &trackScores)
 		if err != nil {
-			trackScores = make(trackScoreMap)
+			return &ScoreManager{}, err
+		}
+
+		for id := range trackScores {
+			if _, ok := indexer.Index.Tracks[id]; !ok {
+				delete(trackScores, id)
+				fmt.Printf("Deleting score ID %s because it doesn't match indexer!\n", id)
+			}
 		}
 	}
 
 	scoreManager := &ScoreManager{
 		trackScores: trackScores, // track to score (-50 to 50)
+		indexer:     indexer,
 	}
 
 	go scoreManager.store()
@@ -49,7 +60,9 @@ func New() (*ScoreManager, error) {
 }
 
 func (scores *ScoreManager) store() {
+	scores.storeMutex.RLock()
 	jsonData, err := json.MarshalIndent(scores.trackScores, "", "    ")
+	scores.storeMutex.RUnlock()
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return
@@ -100,10 +113,9 @@ func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
 
 const decayLambda = 0.0077
 
-func (scores *ScoreManager) trackScore(trackID string) float64 {
-	scores.storeMutex.RLock()
+func (scores *ScoreManager) trackScoreUnsafe(trackID string) float64 {
+
 	info, exists := scores.trackScores[trackID]
-	scores.storeMutex.RUnlock()
 
 	if !exists {
 		return 0
@@ -115,64 +127,11 @@ func (scores *ScoreManager) trackScore(trackID string) float64 {
 	return decayedScore
 }
 
-func (scores *ScoreManager) ScoresInRange(low float64, high float64) []string {
-	tracks := []string{}
-
+func (scores *ScoreManager) trackScore(trackID string) float64 {
 	scores.storeMutex.RLock()
-	for id := range scores.trackScores {
-		score := scores.trackScore(id)
+	defer scores.storeMutex.RUnlock()
 
-		if score >= low && score <= high {
-
-			tracks = append(tracks, id)
-		}
-	}
-	scores.storeMutex.RUnlock()
-
-	return tracks
-}
-
-func (scores *ScoreManager) GetRandomSubset() ([]string, error) {
-	point := rand.Float64() * 100
-
-	var ids []string
-
-	if point < 2.5 {
-		// 2.5% chance
-		// tracks from -25pts to -10pts
-		ids = scores.ScoresInRange(-25, -10)
-	} else if point < 10 {
-		// 7.5% chance
-		// tracks from -10pts to 10pts
-		ids = scores.ScoresInRange(-10, 10)
-	} else {
-		// 90% chance
-		// tracks from 10pts to 50pts
-		ids = scores.ScoresInRange(10, 1000)
-	}
-
-	if len(ids) > 0 {
-		return ids, nil
-	}
-
-	all := scores.ScoresInRange(-1000, 1000)
-	if len(all) > 0 {
-		return all, nil
-	}
-
-	return []string{}, errors.New("No tracks in library.")
-}
-
-func (scores *ScoreManager) ChooseMixTrack() (string, error) {
-	tracks, err := scores.GetRandomSubset()
-	if err != nil {
-		return "", err
-	}
-
-	idx := rand.IntN(len(tracks))
-	id := tracks[idx]
-
-	return id, nil
+	return scores.trackScoreUnsafe(trackID)
 }
 
 func (scores *ScoreManager) SpecificPlay(track *indexer.Track) {

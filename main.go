@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	identityStorage "musica-server/src"
 	"musica-server/src/config"
@@ -44,7 +45,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	scorer, err := scores.New()
+	fmt.Println("Tracks in Indexer:", len(indexer.Index.Tracks))
+
+	scorer, err := scores.New(indexer)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"hash/fnv"
 	"os"
-	"path"
+	"path/filepath"
 	"sync"
 )
 
 type IdentityStorage struct {
 	trackIds   sync.Map
 	trackMutex sync.RWMutex
-	
+
 	albumSpecifierToId sync.Map
 	albumIdToSpecifier sync.Map
 	nextAlbumId        int32
 	albumMutex         sync.RWMutex
-	
+
 	artistSpecifierToId sync.Map
 	artistIdToSpecifier sync.Map
 	nextArtistId        int32
@@ -50,21 +50,19 @@ func hash(s string) uint32 {
 }
 
 func (s *IdentityStorage) TrackId(dir string) (string, error) {
-	directory := path.Join(s.workingDirectory, dir)
+	cleanPath := filepath.ToSlash(filepath.Clean(dir))
 
 	s.trackMutex.Lock()
 	defer s.trackMutex.Unlock()
 
-	id, ok := s.trackIds.Load(directory)
-	if ok {
+	if id, ok := s.trackIds.Load(cleanPath); ok {
 		return fmt.Sprint(id), nil
-	} else {
-		newID := fmt.Sprint(hash(directory))
-
-		s.trackIds.Store(directory, newID)
-
-		return fmt.Sprint(newID), nil
 	}
+
+	newID := fmt.Sprint(hash(cleanPath))
+	s.trackIds.Store(cleanPath, newID)
+
+	return newID, nil
 }
 
 func (s *IdentityStorage) SpecifierToAlbumId(specifier string) string {

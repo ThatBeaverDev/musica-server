@@ -26,10 +26,29 @@ interface StandardQueue {
 interface DynamicQueue {
 	readonly isDynamic: true;
 
-	history: Track[];
+	readonly loop: LoopState;
+
+	playlist: Track[];
+	playOrder: number[];
+
+	currentPlayOrderIndex: number;
 }
 
 type Queue = StandardQueue | DynamicQueue;
+
+async function getRandomMix() {
+	const nextIdFetch = await fetch("/api/tracks/randomMixTrack", {
+		priority: "high"
+	});
+	const { id } = await nextIdFetch.json();
+
+	const trackFetch = await fetch(`/api/track/${id}/info`, {
+		priority: "high"
+	});
+	const track: Track = await trackFetch.json();
+
+	return track;
+}
 
 class AudioPlayer {
 	audio: HTMLAudioElement;
@@ -192,32 +211,32 @@ class AudioPlayer {
 	}
 
 	get currentTrack(): Track | undefined {
-		if (this.queue.isDynamic) {
-			return this.queue.history.at(-1);
-		} else {
-			return this.queue.playlist[
-				this.queue.playOrder[this.queue.currentPlayOrderIndex]
-			];
+		return this.queue.playlist[
+			this.queue.playOrder[this.queue.currentPlayOrderIndex]
+		];
+	}
+
+	async #insureDynamicQueueLength() {
+		if (!this.queue.isDynamic) return;
+
+		const targetLastIndex = this.queue.currentPlayOrderIndex + 15;
+		const targetLength = targetLastIndex + 1;
+		let added = false;
+
+		while (this.queue.playlist.length < targetLength) {
+			const randomTrack = await getRandomMix();
+
+			const index = this.queue.playlist.push(randomTrack) - 1;
+			this.queue.playOrder.push(index);
+
+			added = true;
 		}
+
+		if (added) this.#renderQueue();
 	}
 
 	async #getNextTrack(number: number): Promise<Track | undefined> {
-		if (this.queue.isDynamic) {
-			const nextIdFetch = await fetch("/api/tracks/randomMixTrack", {
-				priority: "high"
-			});
-			const { id } = await nextIdFetch.json();
-
-			const trackFetch = await fetch(`/api/track/${id}/info`, {
-				priority: "high"
-			});
-			const track = await trackFetch.json();
-
-			this.queue.history.push(track);
-			console.debug(track);
-
-			return track;
-		}
+		await this.#insureDynamicQueueLength();
 
 		switch (this.queue.loop) {
 			case LoopState.one:
@@ -269,6 +288,8 @@ class AudioPlayer {
 
 	async #playTrack(track: Track) {
 		this.currentInitiated = true;
+
+		await this.#insureDynamicQueueLength();
 
 		if (navigator.mediaSession && window.MediaMetadata) {
 			navigator.mediaSession.metadata = new MediaMetadata({
@@ -334,11 +355,9 @@ class AudioPlayer {
 			this.#queueContainer.innerHTML = "";
 			debug("rebuildQueue");
 
-			const upcomingTrackIndices = this.queue.isDynamic
-				? []
-				: this.queue.playOrder.slice(
-						this.queue.currentPlayOrderIndex + 1
-					);
+			const upcomingTrackIndices = this.queue.playOrder.slice(
+				this.queue.currentPlayOrderIndex + 1
+			);
 
 			if (upcomingTrackIndices.length === 0) {
 				const noQueue = document.createElement("p");
@@ -353,8 +372,6 @@ class AudioPlayer {
 
 				let offset = 1;
 				for (const playlistIndex of upcomingTrackIndices) {
-					if (this.queue.isDynamic) continue; // keep typescript happy
-
 					const track = this.queue.playlist[playlistIndex];
 					if (!track) continue;
 
@@ -444,7 +461,13 @@ class AudioPlayer {
 
 		this.queue = {
 			isDynamic: true,
-			history: []
+
+			loop: LoopState.none,
+
+			playlist: [],
+			playOrder: [],
+
+			currentPlayOrderIndex: 0
 		};
 
 		this.#renderQueue();
@@ -488,8 +511,6 @@ class AudioPlayer {
 	}
 
 	toggleLoop() {
-		if (this.queue.isDynamic) return;
-
 		switch (this.queue.loop) {
 			case LoopState.none:
 				debug("Toggling Loop (Setting all)");
@@ -576,10 +597,7 @@ class AudioPlayer {
 	async skipBack() {
 		debug("back");
 
-		if (
-			this.audio.currentTime > 5 ||
-			(!this.queue.isDynamic && this.queue.loop === LoopState.one)
-		) {
+		if (this.audio.currentTime > 5 || this.queue.loop === LoopState.one) {
 			this.audio.currentTime = 0;
 			return;
 		}
