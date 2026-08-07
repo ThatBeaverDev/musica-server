@@ -147,11 +147,6 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		return Track{}, fmt.Errorf("Failed to calculate relative path of file: %w", err)
 	}
 
-	id, err := s.identityStorage.TrackId(directory)
-	if err != nil {
-		return Track{}, fmt.Errorf("Failed to retrieve track ID: %w", err)
-	}
-
 	tags, err := taglib.ReadTags(directory)
 	if err != nil {
 		return Track{}, fmt.Errorf("Failed to read file tags: %w", err)
@@ -176,6 +171,11 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		artist = trackArtist[0]
 	} else {
 		artist = "Various Artists"
+	}
+
+	id, err := s.identityStorage.TrackId(title, artist)
+	if err != nil {
+		return Track{}, fmt.Errorf("Failed to retrieve track ID: %w", err)
 	}
 
 	// album

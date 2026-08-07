@@ -1,22 +1,12 @@
 package scores
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"musica-server/src/indexer"
-	"os"
 	"sync"
 	"time"
 )
-
-type trackScoreEntry struct {
-	Score float64   `json:"score"`
-	Date  time.Time `json:"date"`
-}
-
-type trackScoreMap map[string]*trackScoreEntry
 
 type ScoreManager struct {
 	trackScores trackScoreMap // id to score
@@ -27,26 +17,9 @@ type ScoreManager struct {
 }
 
 func New(indexer *indexer.Indexer) (*ScoreManager, error) {
-	var trackScores trackScoreMap
-
-	jsonString, err := os.ReadFile("./scores.json")
+	trackScores, err := readScoreMap(indexer)
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("failed to read scores file: %w", err)
-		}
-	} else {
-		// Unmarshal the JSON string to a map
-		err = json.Unmarshal([]byte(jsonString), &trackScores)
-		if err != nil {
-			return &ScoreManager{}, err
-		}
-
-		for id := range trackScores {
-			if _, ok := indexer.Index.Tracks[id]; !ok {
-				delete(trackScores, id)
-				fmt.Printf("Deleting score ID %s because it doesn't match indexer!\n", id)
-			}
-		}
+		return nil, fmt.Errorf("Failed to read score map: %w", err)
 	}
 
 	scoreManager := &ScoreManager{
@@ -57,18 +30,6 @@ func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 	go scoreManager.store()
 
 	return scoreManager, nil
-}
-
-func (scores *ScoreManager) store() {
-	scores.storeMutex.RLock()
-	jsonData, err := json.MarshalIndent(scores.trackScores, "", "    ")
-	scores.storeMutex.RUnlock()
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
-
-	os.WriteFile("./scores.json", jsonData, 0644)
 }
 
 func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
@@ -127,7 +88,7 @@ func (scores *ScoreManager) trackScoreUnsafe(trackID string) float64 {
 	return decayedScore
 }
 
-func (scores *ScoreManager) trackScore(trackID string) float64 {
+func (scores *ScoreManager) TrackScore(trackID string) float64 {
 	scores.storeMutex.RLock()
 	defer scores.storeMutex.RUnlock()
 

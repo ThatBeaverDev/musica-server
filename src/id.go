@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -43,24 +42,25 @@ func New() (*IdentityStorage, error) {
 	}, nil
 }
 
-func hash(s string) uint32 {
+func Hash(s string) uint32 {
 	h := fnv.New32a()
 	h.Write([]byte(s))
 	return h.Sum32()
 }
 
-func (s *IdentityStorage) TrackId(dir string) (string, error) {
-	cleanPath := filepath.ToSlash(filepath.Clean(dir))
+func (s *IdentityStorage) TrackId(title string, artist string) (string, error) {
+	specifier := title + "|" + artist
+	//cleanPath := filepath.ToSlash(filepath.Clean(dir))
 
 	s.trackMutex.Lock()
 	defer s.trackMutex.Unlock()
 
-	if id, ok := s.trackIds.Load(cleanPath); ok {
+	if id, ok := s.trackIds.Load(specifier); ok {
 		return fmt.Sprint(id), nil
 	}
 
-	newID := fmt.Sprint(hash(cleanPath))
-	s.trackIds.Store(cleanPath, newID)
+	newID := fmt.Sprint(Hash(specifier))
+	s.trackIds.Store(specifier, newID)
 
 	return newID, nil
 }
@@ -74,7 +74,7 @@ func (s *IdentityStorage) SpecifierToAlbumId(specifier string) string {
 	if ok {
 		return fmt.Sprint(id)
 	} else {
-		newId := fmt.Sprint(hash(specifier))
+		newId := fmt.Sprint(Hash(specifier))
 
 		s.albumSpecifierToId.Store(specifier, newId)
 		s.albumIdToSpecifier.Store(newId, specifier)
@@ -105,7 +105,7 @@ func (s *IdentityStorage) ASpecifierToArtistId(specifier string) string {
 	if ok {
 		return fmt.Sprint(id)
 	} else {
-		newId := fmt.Sprint(hash(specifier))
+		newId := fmt.Sprint(Hash(specifier))
 
 		s.artistSpecifierToId.Store(specifier, newId)
 		s.artistIdToSpecifier.Store(newId, specifier)
