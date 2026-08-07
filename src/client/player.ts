@@ -49,7 +49,7 @@ class AudioPlayer {
 	currentInitiated: boolean = false;
 
 	// Callbacks
-	// 80% of current track played
+	// current track played fully
 	onTrackPlayed?: (track: Track) => void;
 	// user skipped this track when it was playing
 	onTrackSkipped?: (
@@ -57,8 +57,6 @@ class AudioPlayer {
 		secondsPlayed: number,
 		duration: number
 	) => void;
-
-	#hasTriggeredPlayedEvent: boolean = false;
 
 	#skipBackButton: HTMLImageElement = document.getElementById(
 		"player-back"
@@ -86,27 +84,19 @@ class AudioPlayer {
 			audio ??
 			(document.querySelector("audio#player") as HTMLAudioElement);
 
-		// detect for playback to 80%
-		this.audio.addEventListener("timeupdate", () => {
-			if (!this.currentTrack || this.#hasTriggeredPlayedEvent) return;
-
-			if (this.audio.duration > 0) {
-				const progression =
-					this.audio.currentTime / this.audio.duration;
-				if (progression >= 0.8) {
-					this.#hasTriggeredPlayedEvent = true;
-					debug("Event: Track played to 80%", this.currentTrack);
-					this.onTrackPlayed?.(this.currentTrack);
-				}
-			}
-		});
-
 		/* ----- Audio rollover when finished ----- */
 
 		this.audio.addEventListener("ended", () => {
+			// broadcast finish
+			if (this.currentTrack) {
+				debug("Event: Track played to 100%", this.currentTrack);
+				this.onTrackPlayed?.(this.currentTrack);
+			}
+
 			if (navigator.mediaSession) {
 				navigator.mediaSession.metadata = null;
 			}
+
 			this.rollover();
 		});
 
@@ -275,7 +265,6 @@ class AudioPlayer {
 
 	async #playTrack(track: Track) {
 		this.currentInitiated = true;
-		this.#hasTriggeredPlayedEvent = false;
 
 		if (navigator.mediaSession && window.MediaMetadata) {
 			navigator.mediaSession.metadata = new MediaMetadata({
@@ -441,6 +430,17 @@ class AudioPlayer {
 
 		this.currentInitiated = false;
 		if (shuffle) this.toggleShuffle();
+
+		this.#renderQueue();
+	}
+
+	startDynamicQueue() {
+		this.resetQueue();
+
+		this.queue = {
+			isDynamic: true,
+			history: []
+		};
 
 		this.#renderQueue();
 	}
@@ -637,6 +637,6 @@ player.onTrackSkipped = (track) => {
 	fetch(`/api/track/${track.id}/skipped`);
 };
 
-export function onTrackPlay(id: string) {
+export function onTrackSearchAndPlay(id: string) {
 	fetch(`/api/track/${id}/explicitPlay`);
 }
