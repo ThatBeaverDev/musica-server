@@ -9,6 +9,8 @@ require (
 )
 
 require (
+	github.com/go-chi/chi v1.5.5 // indirect
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/tetratelabs/wazero v1.11.1-0.20260428013916-2bbd517b7633 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.9.0 // indirect

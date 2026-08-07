@@ -203,10 +203,14 @@ class AudioPlayer {
 
 	async #getNextTrack(number: number): Promise<Track | undefined> {
 		if (this.queue.isDynamic) {
-			const nextIdFetch = await fetch("/api/tracks/randomMixTrack");
+			const nextIdFetch = await fetch("/api/tracks/randomMixTrack", {
+				priority: "high"
+			});
 			const { id } = await nextIdFetch.json();
 
-			const trackFetch = await fetch(`/api/track/${id}/info`);
+			const trackFetch = await fetch(`/api/track/${id}/info`, {
+				priority: "high"
+			});
 			const track = await trackFetch.json();
 
 			this.queue.history.push(track);
@@ -361,6 +365,7 @@ class AudioPlayer {
 					const image = document.createElement("img");
 					image.classList.add("queue-item-art");
 					image.src = `/api/track/${track.id}/art`;
+					image.fetchPriority = "low";
 					image.loading = "lazy";
 
 					const info = document.createElement("div");

@@ -1,7 +1,14 @@
 import { Album } from "../musica.js";
 import { onTrackSearchAndPlay, player } from "../player.js";
 
-export default async function album(div: HTMLDivElement) {
+export default async function album(
+	div: HTMLDivElement,
+	aborteeFunction: {
+		abort: () => void;
+	}
+) {
+	aborteeFunction.abort();
+
 	div.innerHTML = `
         <div class="hero">
             <img id="art" class="cover" />
@@ -21,7 +28,9 @@ export default async function album(div: HTMLDivElement) {
 	document.title = `Album - Musica`;
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
-	const album: Album = await (await fetch(`/api/album/${id}/info`)).json();
+	const album: Album = await (
+		await fetch(`/api/album/${id}/info`, { priority: "high" })
+	).json();
 
 	document.title = `${album.title} by ${album.artist} - Musica`;
 

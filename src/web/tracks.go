@@ -3,12 +3,9 @@ package webServer
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -55,49 +52,11 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	stat, _ := file.Stat()
-	size := stat.Size()
-
-	rangeHeader := r.Header.Get("Range")
 
 	w.Header().Set("Accept-Ranges", "bytes")
 	w.Header().Set("Content-Type", "audio/mpeg")
 
-	if rangeHeader == "" {
-		w.Header().Set("Content-Length", fmt.Sprint(size))
-		io.Copy(w, file)
-		return
-	}
-
-	// parse range: bytes=start-end
-	parts := strings.Split(strings.Replace(rangeHeader, "bytes=", "", 1), "-")
-
-	start, err := strconv.ParseInt(parts[0], 10, 64)
-	if err != nil || start < 0 {
-		start = 0
-	}
-
-	end := size - 1
-	if len(parts) > 1 && parts[1] != "" {
-		e, err := strconv.ParseInt(parts[1], 10, 64)
-		if err == nil {
-			end = e
-		}
-	}
-
-	if start >= size || end >= size || start > end {
-		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
-		http.Error(w, "Range not satisfiable", http.StatusRequestedRangeNotSatisfiable)
-		return
-	}
-
-	chunkSize := end - start + 1
-
-	w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, size))
-	w.Header().Set("Content-Length", fmt.Sprint(chunkSize))
-	w.WriteHeader(206)
-
-	file.Seek(start, 0)
-	io.CopyN(w, file, chunkSize)
+	http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
 }
 
 func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
@@ -115,16 +74,10 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := os.Open(cover.Directory)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Loaded cover could not be found", 500)
-		return
-	}
-	defer file.Close()
+	// don't re-request for a day
+	w.Header().Set("Cache-Control", "public, max-age=86400, immutable")
 
-	w.Header().Set("Content-Type", cover.Mime)
-	io.Copy(w, file)
+	http.ServeFile(w, r, cover.Directory)
 }
 
 func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {

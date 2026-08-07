@@ -1,7 +1,10 @@
 package indexer
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"mime"
 	identityStorage "musica-server/src"
 	"musica-server/src/config"
@@ -14,6 +17,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/nfnt/resize"
 	taglib "go.senan.xyz/taglib"
 )
 
@@ -271,7 +275,6 @@ func (s *Indexer) indexTrack(directory string) error {
 	defer s.Index.mutex.Unlock()
 
 	// add to album
-
 	albumSpecifier := GetTrackAlbumSpecifier(track)
 	// insure the ID is prepared so things are consistent
 	id := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
@@ -411,6 +414,32 @@ type CoverResult struct {
 	Directory string
 }
 
+func processAndSaveImage(rawBytes []byte, destPath string, maxDimension uint) error {
+	// decode into image.Image
+	img, _, err := image.Decode(bytes.NewReader(rawBytes))
+	if err != nil {
+		return fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	// resize
+	resizedImg := resize.Thumbnail(maxDimension, maxDimension, img, resize.Lanczos3)
+
+	// create cache file
+	outFile, err := os.Create(destPath)
+	if err != nil {
+		return fmt.Errorf("failed to create cache file: %w", err)
+	}
+	defer outFile.Close()
+
+	// compress as JPEG
+	opts := jpeg.Options{Quality: 80}
+	if err := jpeg.Encode(outFile, resizedImg, &opts); err != nil {
+		return fmt.Errorf("failed to encode image as JPEG: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	artPath := path.Join(
 		s.WorkingDirectory,
@@ -448,10 +477,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 		s.trackToPictureStoreMap[track.ID] = "image/png"
 		s.mutex.Unlock()
 
-		err = os.WriteFile(artPath, imgBytes, 0644)
-		if err != nil {
-			return CoverResult{}, fmt.Errorf("Failed to write track art cache file (of fallback): %w", err)
-		}
+		processAndSaveImage(imgBytes, artPath, 350)
 
 		return CoverResult{
 			Mime:      "image/png",
@@ -459,11 +485,8 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 		}, nil
 	}
 
-	// write raw image bytes directly (fast path)
-	err = os.WriteFile(artPath, imgBytes, 0644)
-	if err != nil {
-		return CoverResult{}, fmt.Errorf("Failed to write track art cache file (of embedded): %w", err)
-	}
+	// resize and write to disk
+	processAndSaveImage(imgBytes, artPath, 350)
 
 	// store mime (best-effort detection via file header)
 	mime := http.DetectContentType(imgBytes)

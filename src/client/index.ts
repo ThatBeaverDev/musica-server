@@ -5,6 +5,7 @@ import { player } from "./player";
 const url = new URL(window.location.href);
 const contentDiv = document.querySelector("div.content") as HTMLDivElement;
 if (!contentDiv) throw new Error("Content div not returned");
+let aborteeFunction = { abort: () => {} };
 
 // make sidebar dynamic
 const homeButton = document.querySelector(
@@ -13,7 +14,7 @@ const homeButton = document.querySelector(
 
 if (homeButton)
 	homeButton.addEventListener("click", () => {
-		home(contentDiv);
+		home(contentDiv, aborteeFunction);
 		history.pushState({}, "", "/");
 	});
 
@@ -27,9 +28,9 @@ if (dynamicQueueButton)
 	});
 
 if (url.pathname.startsWith("/album/")) {
-	album(contentDiv);
+	album(contentDiv, aborteeFunction);
 } else if (url.pathname.startsWith("/artist/")) {
 	throw new Error("Artist not handled");
 } else {
-	home(contentDiv);
+	home(contentDiv, aborteeFunction);
 }

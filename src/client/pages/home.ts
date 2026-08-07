@@ -2,7 +2,14 @@ import { Album } from "../musica";
 import { player } from "../player";
 import albumPage from "./album";
 
-export default async function home(div: HTMLDivElement) {
+export default async function home(
+	div: HTMLDivElement,
+	aborteeFunction: {
+		abort: () => void;
+	}
+) {
+	aborteeFunction.abort();
+
 	div.innerHTML = `
     <h1>Welcome</h1>
 
@@ -24,7 +31,8 @@ export default async function home(div: HTMLDivElement) {
 	const albumIDs = await albumIdsRequest.json();
 
 	const albumStatsRequest = await fetch(`/api/bulk/albums/info`, {
-		headers: { albums: JSON.stringify(albumIDs) }
+		headers: { albums: JSON.stringify(albumIDs) },
+		priority: "high"
 	});
 
 	if (!albumStatsRequest.ok) {
@@ -40,6 +48,8 @@ export default async function home(div: HTMLDivElement) {
 
 	const albumContainer = document.getElementById("albumsGrid");
 	if (!albumContainer) return;
+
+	const images: HTMLImageElement[] = [];
 
 	for (const album of albums) {
 		const tileDiv = document.createElement("div");
@@ -93,6 +103,8 @@ export default async function home(div: HTMLDivElement) {
 		albumImage.classList.add("albumArt");
 		albumImage.src = `/api/track/${album.tracks?.[0].id}/art`;
 		albumImage.loading = "lazy";
+		albumImage.fetchPriority = "low";
+		images.push(albumImage);
 		tileDiv.appendChild(albumImage);
 
 		const albumTitle = document.createElement("p");
@@ -108,9 +120,16 @@ export default async function home(div: HTMLDivElement) {
 		tileDiv.addEventListener("click", () => {
 			history.pushState({}, "", `/album/${album.id}`);
 
-			albumPage(div);
+			albumPage(div, aborteeFunction);
 		});
 
 		albumContainer.appendChild(tileDiv);
 	}
+
+	aborteeFunction.abort = () => {
+		for (const image of images) {
+			image.src = "";
+			image.remove();
+		}
+	};
 }
