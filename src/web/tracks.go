@@ -103,6 +103,7 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 	cover, err := ws.indexer.GetCover(*track)
 	if err != nil {
 		http.Error(w, "No art", 404)
+		fmt.Println("Error retrieving cover: ", err)
 		return
 	}
 

@@ -467,6 +467,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	// cache hit
 	if mime, ok := s.trackToPictureStoreMap[track.ID]; ok {
 		s.mutex.RUnlock()
+		fmt.Println("Art by cache")
 		return CoverResult{
 			Mime:      mime,
 			Directory: artPath,
@@ -482,8 +483,8 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 
 	// fallback if no image exists
 	if imgBytes == nil {
-		imgBytes, err = os.ReadFile("./public/img/no-art.png")
-		if err != nil {
+		const noArtPath = "./public/img/no-art.png"
+		if _, err := os.Stat(noArtPath); errors.Is(err, os.ErrNotExist) {
 			return CoverResult{}, fmt.Errorf("Failed to read fallback track art: %w", err)
 		}
 
@@ -492,11 +493,10 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 		s.trackToPictureStoreMap[track.ID] = "image/png"
 		s.mutex.Unlock()
 
-		processAndSaveImage(imgBytes, artPath, 350)
-
+		fmt.Println("Art by fallback")
 		return CoverResult{
 			Mime:      "image/png",
-			Directory: artPath,
+			Directory: noArtPath,
 		}, nil
 	}
 
