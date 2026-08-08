@@ -24,9 +24,9 @@
 		flex-direction: row;
 	}
 
-	img#track-art {
+	.track-art-container {
 		width: 15dvh;
-		height: auto;
+		height: 15dvh;
 		padding-right: 10px;
 	}
 }

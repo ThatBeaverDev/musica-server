@@ -11,7 +11,13 @@
 
 	img#track-art {
 		width: 100%;
-		height: auto;
+		height: 100%;
+	}
+
+	.track-art-container {
+		width: 100%;
+		aspect-ratio: 1 / 1;
+		min-height: 0;
 		padding-right: 10px;
 	}
 }
