@@ -3,6 +3,7 @@ package webServer
 import (
 	"encoding/json"
 	"fmt"
+	"musica-server/src/indexer"
 	"musica-server/src/scores"
 	"net/http"
 	"os"
@@ -96,20 +97,29 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 
 	track, ok := ws.indexer.Index.Tracks[id]
 	if !ok {
-		http.Error(w, "Track not found", 404)
+		http.Error(w, "Track not found", http.StatusNotFound)
 		return
 	}
 
 	cover, err := ws.indexer.GetCover(*track)
 	if err != nil {
-		http.Error(w, "No art", 404)
-		return
+		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	bytes, err := os.ReadFile(cover.Directory)
+	if err != nil {
+		fmt.Println("Error retrieving cover file for ID '"+id+"'': ", err)
+		cover = indexer.FallbackCover
 	}
 
 	// don't re-request for a day
 	w.Header().Set("Cache-Control", "public, max-age=86400, immutable")
 
-	http.ServeFile(w, r, cover.Directory)
+	w.Header().Set("Content-Type", cover.Mime)
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(bytes)
 }
 
 func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {

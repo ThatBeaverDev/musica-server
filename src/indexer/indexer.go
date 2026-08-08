@@ -455,6 +455,10 @@ func processAndSaveImage(rawBytes []byte, destPath string, maxDimension uint) er
 	return nil
 }
 
+const fallbackArt = "./public/img/no-art.png"
+
+var FallbackCover = CoverResult{Mime: "image/png", Directory: fallbackArt}
+
 func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	artPath := path.Join(
 		s.WorkingDirectory,
@@ -477,31 +481,22 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	// read image from audio file
 	imgBytes, err := taglib.ReadImage(track.Path)
 	if err != nil {
-		return CoverResult{}, fmt.Errorf("Failed to load cover image: %w", err)
+		fmt.Println("failed to laod cover image for ID '"+track.ID+"': %w", err)
+		return FallbackCover, nil
 	}
 
 	// fallback if no image exists
 	if imgBytes == nil {
-		imgBytes, err = os.ReadFile("./public/img/no-art.png")
-		if err != nil {
-			return CoverResult{}, fmt.Errorf("Failed to read fallback track art: %w", err)
-		}
-
-		// PNG fallback
-		s.mutex.Lock()
-		s.trackToPictureStoreMap[track.ID] = "image/png"
-		s.mutex.Unlock()
-
-		processAndSaveImage(imgBytes, artPath, 350)
-
-		return CoverResult{
-			Mime:      "image/png",
-			Directory: artPath,
-		}, nil
+		return FallbackCover, nil
 	}
 
 	// resize and write to disk
-	processAndSaveImage(imgBytes, artPath, 350)
+	err = processAndSaveImage(imgBytes, artPath, 350)
+	if err != nil {
+		fmt.Println("could not process/save image for ID '"+track.ID+"', using fallback: %w", err)
+
+		return FallbackCover, nil
+	}
 
 	// store mime (best-effort detection via file header)
 	mime := http.DetectContentType(imgBytes)
