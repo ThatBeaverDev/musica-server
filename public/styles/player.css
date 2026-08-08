@@ -33,6 +33,10 @@ p.album-title {
 	text-align: center;
 }
 
+.player-info p.album-title {
+	font-size: 1.5rem;
+}
+
 p.album-artist {
 	font-size: 0.9rem;
 	color: #888;
