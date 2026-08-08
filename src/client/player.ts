@@ -225,10 +225,9 @@ class AudioPlayer {
 		let added = false;
 
 		while (this.queue.playlist.length < targetLength) {
-			const { track: randomTrack, subset } = await getRandomMix();
+			const { track: randomTrack } = await getRandomMix();
 
-			const index =
-				this.queue.playlist.push({ ...randomTrack, subset }) - 1;
+			const index = this.queue.playlist.push(randomTrack) - 1;
 			this.queue.playOrder.push(index);
 
 			added = true;
@@ -320,23 +319,17 @@ class AudioPlayer {
 		if (playerArtist) playerArtist.textContent = track.artist;
 		if (playerArt) playerArt.src = `/api/track/${track.id}/art`;
 		if (playerSubset) {
-			if (track.subset) {
-				const text = getSubsetName(track.subset);
-				const icon = getSubsetIcon(track.subset);
+			const text = getSubsetName(track.subset);
+			const icon = getSubsetIcon(track.subset);
 
-				const response = await fetch(icon, { priority: "high" });
-				const svg = await response.text();
+			const response = await fetch(icon, { priority: "high" });
+			const svg = await response.text();
 
-				const colour = getSubsetColour(track.subset);
+			const colour = getSubsetColour(track.subset);
 
-				playerSubset.innerHTML = `<svg class="subset-icon" viewBox="0 0 24 24">${svg}</svg>
+			playerSubset.innerHTML = `<svg class="subset-icon" viewBox="0 0 24 24">${svg}</svg>
 				                          <span>${text}</span>`;
-				playerSubset.style.color = colour;
-
-				playerSubset.style.display = "";
-			} else {
-				playerSubset.style.display = "none";
-			}
+			playerSubset.style.color = colour;
 		}
 
 		if (this.#playButton) this.#playButton.src = "/img/pause.svg";

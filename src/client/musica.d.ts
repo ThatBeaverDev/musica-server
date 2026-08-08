@@ -13,7 +13,7 @@ export interface Track {
 
 	score: number;
 
-	subset?: Subset;
+	subset: Subset;
 }
 
 export interface Album {
@@ -33,7 +33,8 @@ export interface SearchResult {
 	albums: Album[];
 }
 
-export type Subset = "standard" | "exploration" | "wildcard";
+export type Subset =
+	"standard" | "exploration" | "wildcard" | "dislike" | "other";
 
 export interface RandomMixTrackResult {
 	id: string;

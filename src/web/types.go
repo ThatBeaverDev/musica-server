@@ -1,6 +1,9 @@
 package webServer
 
-import "musica-server/src/indexer"
+import (
+	"musica-server/src/indexer"
+	"musica-server/src/scores"
+)
 
 type WebExportedTrack = struct {
 	Title  string `json:"title"`
@@ -13,8 +16,10 @@ type WebExportedTrack = struct {
 	Release  int   `json:"release"`
 	Number   int   `json:"number"`
 
-	ID    string  `json:"id"`
-	Score float64 `json:"score"`
+	ID string `json:"id"`
+
+	Score  float64       `json:"score"`
+	Subset scores.Subset `json:"subset"`
 }
 
 func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
@@ -31,8 +36,10 @@ func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
 		Release:  track.Release,
 		Number:   track.Number,
 
-		ID:    track.ID,
-		Score: score,
+		ID: track.ID,
+
+		Score:  score,
+		Subset: scores.GetScoreSubset(score),
 	}
 }
 
@@ -59,7 +66,8 @@ func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
 		totalTrackScore += webExported.Score
 	}
 
-	albumScore := totalTrackScore / float64(len(album.Tracks))
+	totalTracks := float64(len(album.Tracks))
+	albumScore := totalTrackScore / totalTracks
 
 	return WebExportedAlbum{
 		Title:  album.Title,

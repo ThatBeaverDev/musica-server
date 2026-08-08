@@ -11,8 +11,11 @@ export function getSubsetName(subset: Subset) {
 		case "wildcard":
 			return "Wildcard";
 
-		default:
-			return "Unknown";
+		case "dislike":
+			return "Disliked";
+
+		case "other":
+			return "Others";
 	}
 }
 
@@ -27,8 +30,11 @@ export function getSubsetColour(subset: Subset) {
 		case "wildcard":
 			return "#DE2323";
 
-		default:
-			return "#888";
+		case "dislike":
+			return "#523232";
+
+		case "other":
+			return "#fff";
 	}
 }
 
@@ -42,5 +48,11 @@ export function getSubsetIcon(subset: Subset) {
 
 		case "wildcard":
 			return "/img/wildcard.svg";
+
+		case "dislike":
+			return "/img/dislike.svg";
+
+		case "other":
+			return "/img/other.svg";
 	}
 }

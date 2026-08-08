@@ -13,6 +13,23 @@ type Categories struct {
 	Bottom []string
 }
 
+func GetScoreSubset(score float64) Subset {
+	if score <= -25 {
+		// none will match
+		return SubsetDislike
+	}
+
+	if -25 < score && score <= -10 {
+		return SubsetWildcard
+	} else if -10 < score && score <= 10 {
+		return SubsetExploration
+	} else if 10 < score && score <= 50 {
+		return SubsetStandard
+	}
+
+	return SubsetOther
+}
+
 func (scores *ScoreManager) categoriseTracks() *Categories {
 	var topSet []string
 	var middleSet []string
@@ -20,22 +37,28 @@ func (scores *ScoreManager) categoriseTracks() *Categories {
 	var all []string
 
 	for id, track := range scores.indexer.Index.Tracks {
-		all = append(all, id)
-
 		score := scores.TrackScore(track.ID)
 
-		if score <= -25 {
-			// none will match
-			continue
-		}
+		subset := GetScoreSubset(score)
 
-		if -25 < score && score <= -10 {
+		switch subset {
+		case SubsetDislike:
+			continue // never serve
+
+		case SubsetOther:
+		// action, will add to `all`
+
+		case SubsetWildcard:
 			bottomSet = append(bottomSet, id)
-		} else if -10 < score && score <= 10 {
+
+		case SubsetExploration:
 			middleSet = append(middleSet, id)
-		} else if 10 < score && score <= 50 {
+
+		case SubsetStandard:
 			topSet = append(topSet, id)
 		}
+
+		all = append(all, id)
 	}
 
 	categories := &Categories{
@@ -55,9 +78,10 @@ const (
 	SubsetStandard    Subset = "standard"
 	SubsetExploration Subset = "exploration"
 	SubsetWildcard    Subset = "wildcard"
+	SubsetDislike     Subset = "dislike"
 
 	// fallback
-	SubsetAny Subset = "any"
+	SubsetOther Subset = "other"
 )
 
 type RandomSubset struct {
@@ -70,7 +94,7 @@ func (scores *ScoreManager) ChooseRandomSubset() (RandomSubset, error) {
 
 	categories := scores.categoriseTracks()
 	var ids []string
-	subset := SubsetAny
+	subset := SubsetOther
 
 	if point < 2.5 {
 		// 2.5% chance
@@ -94,7 +118,7 @@ func (scores *ScoreManager) ChooseRandomSubset() (RandomSubset, error) {
 	}
 
 	if len(categories.All) > 0 {
-		return RandomSubset{IDs: categories.All, Subset: SubsetAny}, nil
+		return RandomSubset{IDs: categories.All, Subset: SubsetOther}, nil
 	}
 
 	return RandomSubset{}, errors.New("No tracks in library.")
