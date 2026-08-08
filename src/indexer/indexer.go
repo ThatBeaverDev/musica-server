@@ -251,8 +251,6 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 	}
 	modified := stats.ModTime().UnixMilli()
 
-	fmt.Println("Indexed file at", directory, "(id:", id, ")")
-
 	track := Track{
 		Title:  title,
 		Artist: artist,
@@ -281,12 +279,15 @@ func (s *Indexer) indexTrack(directory string) error {
 
 	// lock mutex
 	s.Index.mutex.Lock()
+	defer s.Index.mutex.Unlock()
+
+	if _, ok := s.Index.Tracks[t.ID]; ok {
+		// already exists
+		return errors.New("Two tracks of the same ID are present (both are titled '" + t.Title + "' by '" + t.Artist + "')")
+	}
 
 	// write data
 	s.Index.Tracks[t.ID] = &t
-
-	// free mutex (wait for index.mutex since we work with albums below)
-	defer s.Index.mutex.Unlock()
 
 	// add to album
 	albumSpecifier := GetTrackAlbumSpecifier(track)
