@@ -36,8 +36,6 @@ func BuildLegacyToV1TranslationMap(indexer *indexer.Indexer) (map[string]string,
 		oldID := fmt.Sprint(id.Hash(cleanPath))
 		newID := fmt.Sprint(id.Hash(track.Title + "|" + track.Artist))
 
-		fmt.Println(oldID + ":" + newID)
-
 		translationMap[oldID] = newID
 	}
 

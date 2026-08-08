@@ -12,6 +12,8 @@ export interface Track {
 	id: string;
 
 	score: number;
+
+	subset?: Subset;
 }
 
 export interface Album {
@@ -29,4 +31,11 @@ export interface Album {
 export interface SearchResult {
 	tracks: Track[];
 	albums: Album[];
+}
+
+export type Subset = "standard" | "exploration" | "wildcard";
+
+export interface RandomMixTrackResult {
+	id: string;
+	subset: Subset;
 }

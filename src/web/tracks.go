@@ -3,6 +3,7 @@ package webServer
 import (
 	"encoding/json"
 	"fmt"
+	"musica-server/src/scores"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -151,16 +152,20 @@ func (ws *WebServer) randomMixTrack(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 
 	type RandomMixTrackResponse = struct {
-		ID string `json:"id"`
+		ID     string        `json:"id"`
+		Subset scores.Subset `json:"subset"`
 	}
 
-	track, err := ws.scores.GetWeightedRandomTrack()
+	randomMixChoice, err := ws.scores.ChooseMixTrack()
 	if err != nil {
 		http.Error(w, "No tracks in library.", 404)
 		return
 	}
 
-	result := RandomMixTrackResponse{ID: track}
+	track := randomMixChoice.ID
+	subset := randomMixChoice.Subset
+
+	result := RandomMixTrackResponse{ID: track, Subset: subset}
 
 	json.NewEncoder(w).Encode(result)
 }

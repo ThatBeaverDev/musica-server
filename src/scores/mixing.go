@@ -2,132 +2,120 @@ package scores
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
 )
 
-func scoreToWeight(score float64) float64 {
-	// weights must be positive and over zero
-	// Score +50 -> Weight 101.0
-	// Score 0   -> Weight 51.0
-	// Score -50 -> Weight 1.0
-	weight := score + 51.0
+type Categories struct {
+	All []string
 
-	if weight < 1.0 {
-		return 1.0
-	}
-	if weight > 101.0 {
-		return 101.0
-	}
-
-	return weight
+	Top    []string
+	Middle []string
+	Bottom []string
 }
 
-func (scores *ScoreManager) GetWeightedRandomTrack() (string, error) {
-	scores.storeMutex.RLock()
-	defer scores.storeMutex.RUnlock()
+func (scores *ScoreManager) categoriseTracks() *Categories {
+	var topSet []string
+	var middleSet []string
+	var bottomSet []string
+	var all []string
 
-	if len(scores.indexer.Index.Tracks) == 0 {
-		return "", errors.New("No tracks in library.")
-	}
+	for id, track := range scores.indexer.Index.Tracks {
+		all = append(all, id)
 
-	// get total weight
-	var totalWeight float64
-	type trackWeight struct {
-		id     string
-		weight float64
-	}
+		score := scores.TrackScore(track.ID)
 
-	trackList := make([]trackWeight, 0, len(scores.indexer.Index.Tracks))
+		if score <= -25 {
+			// none will match
+			continue
+		}
 
-	for id := range scores.indexer.Index.Tracks {
-		// get score
-		score := scores.trackScoreUnsafe(id)
-		w := scoreToWeight(score)
-
-		trackList = append(trackList, trackWeight{id: id, weight: w})
-		totalWeight += w
-	}
-
-	if totalWeight <= 0 {
-		return "", errors.New("invalid total weight")
-	}
-
-	// random number between 0 and total weight
-	rnd := rand.Float64() * totalWeight
-
-	// find track that random number fell on
-	for _, tw := range trackList {
-		rnd -= tw.weight
-		if rnd <= 0 {
-			return tw.id, nil
+		if -25 < score && score <= -10 {
+			bottomSet = append(bottomSet, id)
+		} else if -10 < score && score <= 10 {
+			middleSet = append(middleSet, id)
+		} else if 10 < score && score <= 50 {
+			topSet = append(topSet, id)
 		}
 	}
 
-	// fallback for floating point issues
-	return trackList[len(trackList)-1].id, nil
-}
-
-// old
-
-func (scores *ScoreManager) ScoresInRange(low float64, high float64) []string {
-	tracks := []string{}
-
-	scores.storeMutex.RLock()
-	for id := range scores.indexer.Index.Tracks {
-		score := scores.trackScoreUnsafe(id)
-
-		if score >= low && score <= high {
-
-			tracks = append(tracks, id)
-		}
+	categories := &Categories{
+		All:    all,
+		Top:    topSet,
+		Middle: middleSet,
+		Bottom: bottomSet,
 	}
-	scores.storeMutex.RUnlock()
 
-	return tracks
+	return categories
 }
 
-func (scores *ScoreManager) GetRandomSubset() ([]string, error) {
+type Subset string
+
+// allowed subset values
+const (
+	SubsetStandard    Subset = "standard"
+	SubsetExploration Subset = "exploration"
+	SubsetWildcard    Subset = "wildcard"
+
+	// fallback
+	SubsetAny Subset = "any"
+)
+
+type RandomSubset struct {
+	IDs    []string
+	Subset Subset
+}
+
+func (scores *ScoreManager) ChooseRandomSubset() (RandomSubset, error) {
 	point := rand.Float64() * 100
 
+	categories := scores.categoriseTracks()
 	var ids []string
+	subset := SubsetAny
 
 	if point < 2.5 {
 		// 2.5% chance
 		// tracks from -25pts to -10pts
-		ids = scores.ScoresInRange(-25, -10)
+		ids = categories.Bottom
+		subset = SubsetWildcard
 	} else if point < 10 {
 		// 7.5% chance
-		// tracks from -10pts to 10pts
-		ids = scores.ScoresInRange(-10, 10)
+		// tracks from -10pts to 20pts
+		ids = categories.Middle
+		subset = SubsetExploration
 	} else {
 		// 90% chance
-		// tracks from 10pts to 50pts
-		ids = scores.ScoresInRange(10, 1000)
+		// tracks from 20pts to 50pts
+		ids = categories.Top
+		subset = SubsetStandard
 	}
 
 	if len(ids) > 0 {
-		return ids, nil
+		return RandomSubset{IDs: ids, Subset: subset}, nil
 	}
 
-	all := scores.ScoresInRange(-1000, 1000)
-	if len(all) > 0 {
-		return all, nil
+	if len(categories.All) > 0 {
+		return RandomSubset{IDs: categories.All, Subset: SubsetAny}, nil
 	}
 
-	return []string{}, errors.New("No tracks in library.")
+	return RandomSubset{}, errors.New("No tracks in library.")
 }
 
-func (scores *ScoreManager) ChooseMixTrack() (string, error) {
-	tracks, err := scores.GetRandomSubset()
+type MixTrackChoice struct {
+	ID     string
+	Subset Subset
+}
+
+func (scores *ScoreManager) ChooseMixTrack() (MixTrackChoice, error) {
+	randomSubset, err := scores.ChooseRandomSubset()
 	if err != nil {
-		return "", err
+		return MixTrackChoice{}, err
 	}
+
+	tracks := randomSubset.IDs
+	subset := randomSubset.Subset
 
 	idx := rand.IntN(len(tracks))
 	id := tracks[idx]
 
-	fmt.Println(tracks, idx, id, scores.indexer.Index.Tracks[id])
-
-	return id, nil
+	return MixTrackChoice{ID: id, Subset: subset}, nil
 }

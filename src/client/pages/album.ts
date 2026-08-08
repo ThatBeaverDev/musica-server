@@ -18,6 +18,7 @@ export default async function album(
                 <p class="label">Album</p>
                 <h1 id="title">Loading Album...</h1>
                 <p id="artist-release"></p>
+                <p id="score"></p>
             </div>
         </div>
 
@@ -42,6 +43,10 @@ export default async function album(
 	artistAndRelease.innerText = album.artist;
 	if (album.release)
 		artistAndRelease.innerText += ` (${new Date(album.release).getFullYear()})`;
+
+	const score = document.getElementById("score")!;
+	score.innerText = `Score: ${Math.round(album.score)}`;
+	score.style.color = colourScore(album.score);
 
 	const art = document.getElementById("art")! as HTMLImageElement;
 	art.src = `/api/track/${album.tracks[0].id}/art`;
@@ -77,7 +82,7 @@ export default async function album(
 		albumArtist.innerText = info.artist;
 
 		const trackScore = document.createElement("p");
-		trackScore.classList.add("track-score");
+		trackScore.classList.add("score");
 		trackScore.innerText = `${Math.round(info.score)}`;
 		trackScore.style.color = colourScore(info.score);
 

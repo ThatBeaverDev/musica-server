@@ -186,3 +186,19 @@ body {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+
+.album-subset {
+	display: flex;
+	flex-direction: row;
+	gap: 5px;
+}
+
+.subset-icon {
+	width: auto;
+	height: 15px;
+
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+}

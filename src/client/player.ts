@@ -1,4 +1,5 @@
-import { Track } from "./musica";
+import { getSubsetColour, getSubsetIcon, getSubsetName } from "./lib/subset";
+import { RandomMixTrackResult, Track } from "./musica";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -40,14 +41,14 @@ async function getRandomMix() {
 	const nextIdFetch = await fetch("/api/tracks/randomMixTrack", {
 		priority: "high"
 	});
-	const { id } = await nextIdFetch.json();
+	const { id, subset }: RandomMixTrackResult = await nextIdFetch.json();
 
 	const trackFetch = await fetch(`/api/track/${id}/info`, {
 		priority: "high"
 	});
 	const track: Track = await trackFetch.json();
 
-	return track;
+	return { track, subset };
 }
 
 class AudioPlayer {
@@ -224,9 +225,10 @@ class AudioPlayer {
 		let added = false;
 
 		while (this.queue.playlist.length < targetLength) {
-			const randomTrack = await getRandomMix();
+			const { track: randomTrack, subset } = await getRandomMix();
 
-			const index = this.queue.playlist.push(randomTrack) - 1;
+			const index =
+				this.queue.playlist.push({ ...randomTrack, subset }) - 1;
 			this.queue.playOrder.push(index);
 
 			added = true;
@@ -312,10 +314,30 @@ class AudioPlayer {
 		const playerArt = document.getElementById(
 			"track-art"
 		) as HTMLImageElement;
+		const playerSubset = document.getElementById("player-subset");
 
 		if (playerTitle) playerTitle.textContent = track.title;
 		if (playerArtist) playerArtist.textContent = track.artist;
 		if (playerArt) playerArt.src = `/api/track/${track.id}/art`;
+		if (playerSubset) {
+			if (track.subset) {
+				const text = getSubsetName(track.subset);
+				const icon = getSubsetIcon(track.subset);
+
+				const response = await fetch(icon, { priority: "high" });
+				const svg = await response.text();
+
+				const colour = getSubsetColour(track.subset);
+
+				playerSubset.innerHTML = `<svg class="subset-icon" viewBox="0 0 24 24">${svg}</svg>
+				                          <span>${text}</span>`;
+				playerSubset.style.color = colour;
+
+				playerSubset.style.display = "";
+			} else {
+				playerSubset.style.display = "none";
+			}
+		}
 
 		if (this.#playButton) this.#playButton.src = "/img/pause.svg";
 
@@ -397,6 +419,7 @@ class AudioPlayer {
 					artist.textContent = track.artist;
 
 					info.append(title, artist);
+
 					container.append(image, info);
 
 					container.addEventListener("click", async () => {

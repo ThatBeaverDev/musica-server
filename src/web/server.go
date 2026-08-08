@@ -123,6 +123,21 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 		"./public/img/skip-back.svg",
 		"image/svg+xml",
 	)
+	ws.static(
+		"/img/standard.svg",
+		"./public/img/standard.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/explore.svg",
+		"./public/img/explore.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/wildcard.svg",
+		"./public/img/wildcard.svg",
+		"image/svg+xml",
+	)
 
 	// CSS
 	ws.static("/styles/styles.css", "./public/styles/home.css", "text/css")
