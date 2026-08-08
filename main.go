@@ -45,7 +45,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	fmt.Println("Tracks in Indexer:", len(indexer.Index.Tracks))
+	fmt.Println("")
+	fmt.Println("Indexed:")
+	fmt.Println("-", len(indexer.Index.Tracks), "Tracks,")
+	fmt.Println("-", len(indexer.Index.Albums), "Albums and")
+	fmt.Println("-", len(indexer.Index.Artists), "Artists!")
+	fmt.Println("")
 
 	scorer, err := scores.New(indexer)
 	if err != nil {
