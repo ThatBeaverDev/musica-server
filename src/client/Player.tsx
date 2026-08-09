@@ -1,5 +1,8 @@
-import { getSubsetColour, getSubsetIcon, getSubsetName } from "./lib/subset";
+import { useState } from "react";
 import { RandomMixTrackResult, Track } from "./musica";
+import SubsetDisplay from "./components/Subset";
+import QueueItem from "./components/QueueItem";
+import ProgressBar from "./components/ProgressBar";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -78,26 +81,11 @@ class AudioPlayer {
 		duration: number
 	) => void;
 
-	#skipBackButton: HTMLImageElement = document.getElementById(
-		"player-back"
-	) as HTMLImageElement;
-	#playButton: HTMLImageElement = document.getElementById(
-		"player-play"
-	) as HTMLImageElement;
-	#skipForwardButton: HTMLImageElement = document.getElementById(
-		"player-forward"
-	) as HTMLImageElement;
-
-	#queueContainer: HTMLDivElement = document.getElementById(
-		"player-queue"
-	)! as HTMLDivElement;
-
-	#progressBarInner: HTMLDivElement = document.getElementById(
-		"player-progress-inner"
-	)! as HTMLDivElement;
-	#progressBarOuter: HTMLDivElement = document.getElementById(
-		"player-progress-outer"
-	)! as HTMLDivElement;
+	// for updating the UI
+	onTrackUpdate?: (track: Track) => void;
+	onQueueUpdate?: (queue: Queue) => void;
+	onProgressBarUpdate?: (current: number, duration: number) => void;
+	onPlaybackStateChange?: (isPlaying: boolean) => void;
 
 	constructor(audio?: HTMLAudioElement) {
 		this.audio =
@@ -120,17 +108,6 @@ class AudioPlayer {
 			this.rollover();
 		});
 
-		/* ----- Media control buttons ----- */
-		this.#skipBackButton.addEventListener("mouseup", () => {
-			this.skipBack();
-		});
-		this.#playButton.addEventListener("mouseup", () => {
-			this.toggle();
-		});
-		this.#skipForwardButton.addEventListener("mouseup", () => {
-			this.skipForward();
-		});
-
 		/* ----- Keyboard controls ----- */
 		window.addEventListener("keydown", (event) => {
 			switch (event.key) {
@@ -140,56 +117,6 @@ class AudioPlayer {
 					break;
 			}
 		});
-
-		/* ----- Progress bar logic ----- */
-
-		let active = false;
-		let wasPlaying = false;
-
-		const adjustTime = (event: MouseEvent) => {
-			const rect = this.#progressBarOuter.getBoundingClientRect();
-			const x = event.clientX - rect.left; // x position within the element
-
-			this.#progressBarInner.style.width = `${x}px`;
-
-			const decimalProgression = x / rect.width;
-			this.seek(this.audio.duration * decimalProgression);
-		};
-
-		this.#progressBarOuter.addEventListener("mousedown", (event) => {
-			active = true;
-			wasPlaying = this.isPlaying;
-			this.pause();
-
-			adjustTime(event);
-		});
-		window.addEventListener("mouseup", () => {
-			active = false;
-
-			if (wasPlaying) this.resume();
-			// prevent unrelated clicks causing it to start playing
-			wasPlaying = false;
-		});
-		window.addEventListener("mousemove", (event) => {
-			if (!active) return;
-
-			adjustTime(event);
-		});
-
-		const refreshProgressbar = () => {
-			if (!this.#progressBarOuter || !this.#progressBarInner) return;
-			const rect = this.#progressBarOuter.getBoundingClientRect();
-
-			const decimalProgression =
-				this.audio.currentTime / this.audio.duration;
-
-			const progress = `${rect.width * decimalProgression}px`;
-
-			if (this.#progressBarInner.style.width !== progress)
-				this.#progressBarInner.style.width = progress;
-		};
-
-		setInterval(refreshProgressbar, 500);
 
 		this.#renderQueue();
 
@@ -291,6 +218,7 @@ class AudioPlayer {
 		this.currentInitiated = true;
 
 		await this.#insureDynamicQueueLength();
+		this.onTrackUpdate?.(track);
 
 		if (navigator.mediaSession && window.MediaMetadata) {
 			navigator.mediaSession.metadata = new MediaMetadata({
@@ -308,31 +236,7 @@ class AudioPlayer {
 
 		this.audio.src = `/api/track/${track.id}/get`;
 
-		const playerTitle = document.getElementById("player-title");
-		const playerArtist = document.getElementById("player-artist");
-		const playerArt = document.getElementById(
-			"track-art"
-		) as HTMLImageElement;
-		const playerSubset = document.getElementById("player-subset");
-
-		if (playerTitle) playerTitle.textContent = track.title;
-		if (playerArtist) playerArtist.textContent = track.artist;
-		if (playerArt) playerArt.src = `/api/track/${track.id}/art`;
-		if (playerSubset) {
-			const text = getSubsetName(track.subset);
-			const icon = getSubsetIcon(track.subset);
-
-			const response = await fetch(icon, { priority: "high" });
-			const svg = await response.text();
-
-			const colour = getSubsetColour(track.subset);
-
-			playerSubset.innerHTML = `<svg class="subset-icon" viewBox="0 0 24 24">${svg}</svg>
-				                          <span>${text}</span>`;
-			playerSubset.style.color = colour;
-		}
-
-		if (this.#playButton) this.#playButton.src = "/img/pause.svg";
+		this.onPlaybackStateChange?.(true);
 
 		try {
 			await this.audio.play();
@@ -361,74 +265,8 @@ class AudioPlayer {
 		this.#renderQueue();
 	}
 
-	rerenderScheduled: boolean = false;
 	#renderQueue() {
-		if (this.rerenderScheduled || !this.#queueContainer) return;
-
-		this.rerenderScheduled = true;
-		requestAnimationFrame(() => {
-			this.#queueContainer.innerHTML = "";
-			debug("rebuildQueue");
-
-			const upcomingTrackIndices = this.queue.playOrder.slice(
-				this.queue.currentPlayOrderIndex + 1
-			);
-
-			if (upcomingTrackIndices.length === 0) {
-				const noQueue = document.createElement("p");
-				noQueue.innerText = this.queue.isDynamic
-					? "Just go with the dynamic queue's flow!"
-					: "Nothing queued at the moment";
-				noQueue.classList.add("queue-empty-text");
-
-				this.#queueContainer.appendChild(noQueue);
-			} else {
-				const frag = document.createDocumentFragment();
-
-				let offset = 1;
-				for (const playlistIndex of upcomingTrackIndices) {
-					const track = this.queue.playlist[playlistIndex];
-					if (!track) continue;
-
-					const jumpAmount = offset;
-					const container = document.createElement("div");
-					container.classList.add("player-queue-item");
-
-					const image = document.createElement("img");
-					image.classList.add("queue-item-art");
-					image.src = `/api/track/${track.id}/art`;
-					image.fetchPriority = "low";
-					image.loading = "lazy";
-
-					const info = document.createElement("div");
-					info.classList.add("track-info");
-
-					const title = document.createElement("p");
-					title.classList.add("album-title");
-					title.textContent = track.title;
-
-					const artist = document.createElement("p");
-					artist.classList.add("album-artist");
-					artist.textContent = track.artist;
-
-					info.append(title, artist);
-
-					container.append(image, info);
-
-					container.addEventListener("click", async () => {
-						debug("skipTo", jumpAmount);
-						await this.skipForward(jumpAmount);
-					});
-
-					frag.appendChild(container);
-					offset++;
-				}
-
-				this.#queueContainer.appendChild(frag);
-			}
-
-			this.rerenderScheduled = false;
-		});
+		this.onQueueUpdate?.(this.queue);
 	}
 
 	addToQueue(track: Track) {
@@ -492,7 +330,7 @@ class AudioPlayer {
 	pause() {
 		debug("pause");
 
-		if (this.#playButton) this.#playButton.src = "/img/play.svg";
+		this.onPlaybackStateChange?.(false);
 		this.audio.pause();
 	}
 
@@ -504,7 +342,7 @@ class AudioPlayer {
 		if (!this.currentInitiated) {
 			await this.rollover(1);
 		} else {
-			if (this.#playButton) this.#playButton.src = "/img/pause.svg";
+			this.onPlaybackStateChange?.(true);
 			await this.audio.play();
 		}
 
@@ -613,6 +451,8 @@ class AudioPlayer {
 	async skipBack() {
 		debug("back");
 
+		console.debug(this.audio.currentTime);
+
 		if (this.audio.currentTime > 5 || this.queue.loop === LoopState.one) {
 			this.audio.currentTime = 0;
 			return;
@@ -644,7 +484,7 @@ class AudioPlayer {
 
 		this.audio.pause();
 		this.audio.currentTime = 0;
-		if (this.#playButton) this.#playButton.src = "/img/play.svg";
+		this.onPlaybackStateChange?.(false);
 	}
 
 	seek(seconds: number) {
@@ -679,3 +519,122 @@ player.onTrackSkipped = (track) => {
 export function onTrackSearchAndPlay(id: string) {
 	fetch(`/api/track/${id}/explicitPlay`);
 }
+
+export default function Player() {
+	const [track, setTrack] = useState(player.currentTrack);
+	player.onTrackUpdate = setTrack;
+
+	const [queue, setQueue] = useState(player.queue);
+	player.onQueueUpdate = setQueue;
+
+	const [isPlaying, setIsPlaying] = useState(player.isPlaying);
+	player.onPlaybackStateChange = setIsPlaying;
+
+	const playlist = queue.playOrder
+		.slice(queue.currentPlayOrderIndex + 1)
+		.map((index) => queue.playlist[index]);
+
+	return (
+		<div className="queue">
+			<div style={styles.player}>
+				<div className="track-art-container">
+					<img id="track-art" src={`/api/track/${track?.id}/art`} />
+				</div>
+
+				<div style={styles.playerInfo}>
+					<p style={styles.trackTitle} id="player-title">
+						{track?.title ?? "Nothing is playing."}
+					</p>
+					<p style={styles.trackArtist} id="player-artist">
+						{track?.artist ?? ""}
+					</p>
+					{track?.subset ? (
+						<SubsetDisplay subset={track.subset}></SubsetDisplay>
+					) : undefined}
+
+					<ProgressBar />
+
+					<div className="player-controls">
+						<img
+							className="player-control"
+							id="player-back"
+							src="/img/skip-back.svg"
+							draggable="false"
+							onClick={() => player.skipBack()}
+						/>
+						<img
+							className="player-control control-play"
+							id="player-play"
+							src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
+							draggable="false"
+							onClick={() => player.toggle()}
+						/>
+						<img
+							className="player-control"
+							id="player-forward"
+							src="/img/skip-forward.svg"
+							draggable="false"
+							onClick={() => player.skipForward()}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div className="player-queue" id="player-queue">
+				{playlist.length == 0 ? (
+					<p>
+						{queue.isDynamic
+							? "Just go with the dynamic queue's flow!"
+							: "Nothing queued at the moment."}
+					</p>
+				) : (
+					playlist.map((entry, index) => (
+						<QueueItem
+							key={index}
+							track={entry}
+							offset={index + 1}
+						/>
+					))
+				)}
+			</div>
+		</div>
+	);
+}
+
+const styles = {
+	player: {
+		width: "100%",
+
+		display: "flex",
+		flexDirection: "column" as "column",
+
+		alignItems: "center",
+		margin: "20px 0px"
+	},
+
+	trackArtContainer: {},
+	trackArt: {},
+
+	playerInfo: {
+		display: "flex",
+		flexDirection: "column" as "column",
+		alignItems: "center",
+
+		margin: "5px",
+
+		gap: "2px",
+		flex: 1
+	},
+
+	trackTitle: {
+		fontSize: "1.5rem",
+		fontWeight: 500,
+		color: "white",
+		textAlign: "center" as "center"
+	},
+	trackArtist: {
+		fontSize: "0.9rem",
+		color: "#888",
+		textAlign: "center" as "center"
+	}
+};

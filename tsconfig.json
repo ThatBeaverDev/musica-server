@@ -4,6 +4,7 @@
 		"outDir": "./build",
 
 		"strict": true,
+		"jsx": "react-jsx",
 
 		"target": "esnext",
 		"lib": ["esnext", "dom"],
