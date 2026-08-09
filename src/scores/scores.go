@@ -3,17 +3,20 @@ package scores
 import (
 	"fmt"
 	"math"
+	"musica-server/src/history"
 	"musica-server/src/indexer"
+	shared "musica-server/src/sharedScores"
 	"sync"
 	"time"
 )
 
 type ScoreManager struct {
-	trackScores trackScoreMap // id to score
+	history *history.HistoryManager
+
+	trackScores shared.TrackScoreMap // id to score
 
 	storeMutex sync.RWMutex
-
-	indexer *indexer.Indexer
+	indexer    *indexer.Indexer
 }
 
 func New(indexer *indexer.Indexer) (*ScoreManager, error) {
@@ -22,7 +25,13 @@ func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 		return nil, fmt.Errorf("Failed to read score map: %w", err)
 	}
 
+	history, err := history.New()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create history manager: %w", err)
+	}
+
 	scoreManager := &ScoreManager{
+		history:     history,
 		trackScores: trackScores, // track to score (-50 to 50)
 		indexer:     indexer,
 	}
@@ -42,7 +51,7 @@ func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
 	now := time.Now()
 
 	if !exists {
-		scores.trackScores[track.ID] = &trackScoreEntry{
+		scores.trackScores[track.ID] = &shared.TrackScoreEntry{
 			Score: delta,
 			Date:  now,
 		}
@@ -51,6 +60,8 @@ func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
 
 		return
 	}
+
+	scores.history.OnUpdateScore(track, data.Score, data.Date)
 
 	// calculate decay
 	daysElapsed := now.Sub(data.Date).Hours() / 24.0
@@ -97,11 +108,11 @@ func (scores *ScoreManager) TrackScore(trackID string) float64 {
 
 func (scores *ScoreManager) SpecificPlay(track *indexer.Track) {
 	scores.DeltaScore(track, 5)
-
 }
 
 func (scores *ScoreManager) Played(track *indexer.Track) {
 	scores.DeltaScore(track, 4)
+	scores.history.OnTrackPlay(track)
 }
 
 func (scores *ScoreManager) Skipped(track *indexer.Track) {

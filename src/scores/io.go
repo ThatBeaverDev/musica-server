@@ -6,21 +6,14 @@ import (
 	"fmt"
 	id "musica-server/src"
 	"musica-server/src/indexer"
+	shared "musica-server/src/sharedScores"
 	"os"
 	"path/filepath"
-	"time"
 )
 
-type trackScoreEntry struct {
-	Score float64   `json:"score"`
-	Date  time.Time `json:"date"`
-}
-
-type trackScoreMap map[string]*trackScoreEntry
-
-type StorageV1 struct {
-	Version int           `json:"version"`
-	Scores  trackScoreMap `json:"scores"`
+type scoreStorageV1 struct {
+	Version int                  `json:"version"`
+	Scores  shared.TrackScoreMap `json:"scores"`
 }
 
 // Map of oldHash -> newHash
@@ -43,18 +36,18 @@ func BuildLegacyToV1TranslationMap(indexer *indexer.Indexer) (map[string]string,
 }
 
 // load legacy data
-func parseLegacy(indexer *indexer.Indexer, jsonData []byte) (trackScoreMap, error) {
+func parseLegacy(indexer *indexer.Indexer, jsonData []byte) (shared.TrackScoreMap, error) {
 	idTranslationMap, err := BuildLegacyToV1TranslationMap(indexer)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to build ID translation map: %w", err)
 	}
 
-	var scoresLegacyMap trackScoreMap
+	var scoresLegacyMap shared.TrackScoreMap
 	if err := json.Unmarshal(jsonData, &scoresLegacyMap); err != nil {
 		return nil, err
 	}
 
-	trackScores := make(trackScoreMap)
+	trackScores := make(shared.TrackScoreMap)
 	for oldID, data := range scoresLegacyMap {
 		newID, ok := idTranslationMap[oldID]
 		if !ok {
@@ -69,8 +62,8 @@ func parseLegacy(indexer *indexer.Indexer, jsonData []byte) (trackScoreMap, erro
 }
 
 // load v1 data
-func parseV1(jsonData []byte) (trackScoreMap, error) {
-	var payload StorageV1
+func parseV1(jsonData []byte) (shared.TrackScoreMap, error) {
+	var payload scoreStorageV1
 	if err := json.Unmarshal(jsonData, &payload); err != nil {
 		return nil, err
 	}
@@ -95,12 +88,12 @@ func backup(newFile string) error {
 }
 
 // load data from appropriate version
-func readScoreMap(indexer *indexer.Indexer) (trackScoreMap, error) {
+func readScoreMap(indexer *indexer.Indexer) (shared.TrackScoreMap, error) {
 	jsonData, err := os.ReadFile("./scores.json")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
-			return make(trackScoreMap), nil
+			return make(shared.TrackScoreMap), nil
 		}
 		return nil, fmt.Errorf("failed to read scores file: %w", err)
 	}
@@ -126,8 +119,8 @@ func readScoreMap(indexer *indexer.Indexer) (trackScoreMap, error) {
 func (scores *ScoreManager) store() {
 	scores.storeMutex.RLock()
 
-	storageData := StorageV1{Version: 1, Scores: scores.trackScores}
-	jsonData, err := json.MarshalIndent(storageData, "", "    ")
+	storageData := scoreStorageV1{Version: 1, Scores: scores.trackScores}
+	jsonData, err := json.Marshal(storageData)
 
 	scores.storeMutex.RUnlock()
 

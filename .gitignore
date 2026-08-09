@@ -7,6 +7,7 @@ musica-server
 
 config.json
 scores.json
+history.json
 
 # python
 __pycache__
