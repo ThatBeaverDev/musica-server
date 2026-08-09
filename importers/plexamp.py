@@ -31,9 +31,9 @@ for track in rated_tracks:
 
     plexRating = track.userRating
     rating_negative_1_to_1 = (track.userRating / 5.0) - 1
-    rating = round(
-        rating_negative_1_to_1 * 25
-    )  # -25 to +25 (so it's not too polarised)
+    rating = (
+        round(rating_negative_1_to_1 * 40) - 10
+    )  # -50 to +30 (so it's not too polarised)
 
     scores_file["scores"][trackId] = {"score": rating, "date": now}
 
