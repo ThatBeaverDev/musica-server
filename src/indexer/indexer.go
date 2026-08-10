@@ -2,15 +2,20 @@ package indexer
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
+	"io"
+	"log"
 	"mime"
 	identityStorage "musica-server/src"
+	ids "musica-server/src"
 	"musica-server/src/config"
 	"musica-server/util"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,6 +23,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cenkalti/dominantcolor"
 	"github.com/nfnt/resize"
 	taglib "go.senan.xyz/taglib"
 )
@@ -63,6 +69,8 @@ type Artist struct {
 	ID   string
 
 	Albums []*Album
+
+	Extra *ExtraArtistMetadata
 }
 
 func (a *Artist) MarshalJSON() ([]byte, error) {
@@ -97,6 +105,7 @@ type Indexer struct {
 	mutex                  sync.RWMutex
 
 	WorkingDirectory string
+	cacheDirectory   string
 
 	identityStorage *identityStorage.IdentityStorage
 	config          *config.Config
@@ -106,6 +115,11 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return &Indexer{}, fmt.Errorf("Failed to retrieve working directory: %w", err)
+	}
+
+	libraryCache, err := config.GetCacheDirectory()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cache directory: %w", err)
 	}
 
 	indexer := Indexer{
@@ -121,19 +135,11 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 		trackToPictureStoreMap: make(map[string]string), // ID to MIME
 
 		WorkingDirectory: workingDirectory,
+		cacheDirectory:   libraryCache,
 
 		identityStorage: idStorage,
 		config:          config,
 	}
-
-	fmt.Println("Deleting media cache.")
-	util.DeleteDirectory(config.MediaCache)
-
-	err = os.Mkdir(config.MediaCache, 0700)
-	if err != nil {
-		return &Indexer{}, fmt.Errorf(fmt.Sprint("Failed to create '", config.MediaCache, "': %w"), err)
-	}
-	fmt.Println("Media cache deleted.")
 
 	waitGroup := sync.WaitGroup{}
 	err = indexer.walk(indexer.Index.Root, &waitGroup)
@@ -146,6 +152,112 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 	indexer.cleanupArtists()
 
 	return &indexer, nil
+}
+
+func FindDominantColour(fileInput string) (string, error) {
+	f, err := os.Open(fileInput)
+	if err != nil {
+		fmt.Println("File not found:", fileInput)
+		return "", err
+	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return "", err
+	}
+
+	return dominantcolor.Hex(dominantcolor.Find(img)), nil
+}
+
+type ExtraArtistMetadata struct {
+	Name string `json:"strArtist,omitempty"`
+
+	Label string `json:"label,omitempty"`
+
+	Formed string `json:"intFormedYear,omitempty"`
+	Born   string `json:"intBornYear,omitempty"`
+	Died   string `json:"intDiedYear,omitempty"`
+
+	Style string `json:"strStyle,omitempty"`
+	Genre string `json:"strGenre,omitempty"`
+	Mood  string `json:"strMood,omitempty"`
+
+	Bio string `json:"strBiography,omitempty"`
+
+	Country     string `json:"strCountry,omitempty"`
+	CountryCode string `json:"strCountryCode,omitempty"`
+
+	Thumbnail string `json:"strArtistThumb,omitempty"`
+	Logo      string `json:"strArtistLogo,omitempty"`
+}
+
+func (s *Indexer) GetArtistExtraMetadata(name string) (*ExtraArtistMetadata, error) {
+	dir := path.Join(s.cacheDirectory, fmt.Sprint(ids.Hash(name), "_extraMetadata.json"))
+
+	var extra *ExtraArtistMetadata
+
+	bytes, err := os.ReadFile(dir)
+	existed := true
+	if err == nil {
+		// make it not nil
+		extra = &ExtraArtistMetadata{}
+
+		if err := json.Unmarshal(bytes, extra); err != nil {
+			return nil, fmt.Errorf("Failed to unmarshal JSON from file: %w", err)
+		}
+	} else {
+		if errors.Is(err, os.ErrNotExist) {
+			existed = false
+			// doesn't exist, request from 'the net'
+			Url := "https://www.theaudiodb.com/api/v1/json/123/search.php?s=" + url.QueryEscape(name)
+
+			resp, err := http.Get(Url)
+			if err != nil {
+				log.Fatalf("Failed to make request: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("Unexpected status code: %d", resp.StatusCode)
+			}
+
+			responseBody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read response body: %v", err)
+			}
+
+			type AudioDbResponse struct {
+				Artists []*ExtraArtistMetadata `json:"artists"`
+			}
+
+			var fullResponse AudioDbResponse
+			if err := json.Unmarshal(responseBody, &fullResponse); err != nil {
+				return nil, err
+			}
+
+			if len(fullResponse.Artists) == 0 {
+				// no data.
+				extra = &ExtraArtistMetadata{}
+			} else {
+				extra = fullResponse.Artists[0]
+			}
+
+		} else {
+			return nil, fmt.Errorf("Failed to read artist extra metadata file: %w", err)
+		}
+	}
+
+	if !existed {
+		jsonData, err := json.Marshal(extra)
+
+		if err != nil {
+			fmt.Println("Error marshaling JSON:", err)
+		}
+
+		err = os.WriteFile(dir, jsonData, 0644)
+	}
+
+	return extra, nil
 }
 
 func (s *Indexer) fileMetaData(directory string) (Track, error) {
@@ -321,11 +433,17 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		if ok {
 			artist.Albums = append(artist.Albums, album)
 		} else {
+			extra, err := s.GetArtistExtraMetadata(album.Artist)
+			if err != nil {
+				fmt.Println("failure to retrieve artist extra metadata, bypassing:", err)
+			}
+
 			artist := &Artist{
 				Name: album.Artist,
 
 				ID:     artistID,
 				Albums: []*Album{album},
+				Extra:  extra,
 			}
 
 			s.Index.Artists[artistID] = artist
@@ -476,9 +594,8 @@ var FallbackCover = CoverResult{Mime: "image/png", Directory: fallbackArt}
 
 func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	artPath := path.Join(
-		s.WorkingDirectory,
-		s.config.MediaCache,
-		fmt.Sprint(track.ID, "_art"),
+		s.cacheDirectory,
+		fmt.Sprint("track_", track.ID, "_art"),
 	)
 
 	s.mutex.RLock()
@@ -496,7 +613,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	// read image from audio file
 	imgBytes, err := taglib.ReadImage(track.Path)
 	if err != nil {
-		fmt.Println("failed to laod cover image for ID '"+track.ID+"': %w", err)
+		fmt.Println("failed to load cover image for ID '"+track.ID+"':", err)
 		return FallbackCover, nil
 	}
 
@@ -508,7 +625,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	// resize and write to disk
 	err = processAndSaveImage(imgBytes, artPath, 350)
 	if err != nil {
-		fmt.Println("could not process/save image for ID '"+track.ID+"', using fallback: %w", err)
+		fmt.Println("could not process/save image for ID '"+track.ID+"', using fallback:", err)
 
 		return FallbackCover, nil
 	}

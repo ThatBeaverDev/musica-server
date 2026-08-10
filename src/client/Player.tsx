@@ -452,8 +452,6 @@ class AudioPlayer {
 	async skipBack() {
 		debug("back");
 
-		console.debug(this.audio.currentTime);
-
 		if (this.audio.currentTime > 5 || this.queue.loop === LoopState.one) {
 			this.audio.currentTime = 0;
 			return;

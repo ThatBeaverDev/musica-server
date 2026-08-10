@@ -2,17 +2,26 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Album from "./pages/Album";
+import Artist from "./pages/Artist";
 //import Search from "./pages/Search";
 
 import Navbar from "./Navbar.js";
 import Player from "./Player.js";
 import { useState } from "react";
 
+declare global {
+	interface Window {
+		setBackground(background: string): void;
+	}
+}
+
 export default function App() {
 	const [size, setWindowSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight
 	});
+	const [background, setBackground] = useState("transparent");
+	window.setBackground = setBackground;
 
 	window.addEventListener(
 		"resize",
@@ -38,7 +47,9 @@ export default function App() {
 			width: mobile ? "100%" : `calc(100% - 260px)`,
 			height: mobile ? "calc(100dvh - (40dvh + 50px))" : undefined,
 
-			flexGrow: 1
+			flexGrow: 1,
+
+			background: background
 		}
 	};
 
@@ -60,8 +71,8 @@ export default function App() {
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/album/:id" element={<Album />} />
-					{/*<Route path="/artist/:id" element={<Artist />} />
-					<Route path="/search" element={<Search />} />*/}
+					<Route path="/artist/:id" element={<Artist />} />
+					{/*<Route path="/search" element={<Search />} />*/}
 				</Routes>
 			</div>
 

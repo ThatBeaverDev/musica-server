@@ -28,36 +28,13 @@ export default function LargeAlbum({
 				loading="lazy"
 				fetchPriority="low"
 				src={`/api/track/${album.tracks?.[0].id}/art`}
+				style={styles.albumArt}
 			/>
 
 			<p style={styles.albumTitle}>{album.title}</p>
 			<p style={styles.albumArtist}>{album.artist}</p>
 		</div>
 	);
-
-	//	const albumImage = document.createElement("img");
-	//	albumImage.classList.add("albumArt");
-	//	albumImage.src = `/api/track/${album.tracks?.[0].id}/art`;
-	//	albumImage.loading = "lazy";
-	//	albumImage.fetchPriority = "low";
-	//	images.push(albumImage);
-	//	tileDiv.appendChild(albumImage);
-	//
-	//	const albumTitle = document.createElement("p");
-	//	albumTitle.classList.add("album-title");
-	//	albumTitle.innerText = album.title;
-	//	tileDiv.appendChild(albumTitle);
-	//
-	//	const albumArtist = document.createElement("p");
-	//	albumArtist.classList.add("album-artist");
-	//	albumArtist.innerText = album.artist;
-	//	tileDiv.appendChild(albumArtist);
-	//
-	//	tileDiv.addEventListener("click", () => {
-	//		history.pushState({}, "", `/album/${album.id}`);
-	//
-	//		albumPage(div, aborteeFunction);
-	//	});
 }
 
 const artistTitleBase = {
@@ -86,7 +63,7 @@ const styles = {
 	albumArt: {
 		width: "100%",
 		aspectRatio: 1,
-		objectFit: "cover",
+		objectFit: "cover" as "cover",
 		borderRadius: "6%"
 	},
 

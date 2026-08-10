@@ -122,6 +122,35 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+func (ws *WebServer) trackColour(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	track, ok := ws.indexer.Index.Tracks[id]
+	if !ok {
+		http.Error(w, "Track not found", http.StatusNotFound)
+		return
+	}
+
+	cover, err := ws.indexer.GetCover(*track)
+	if err != nil {
+		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	dominantColour, err := indexer.FindDominantColour(cover.Directory)
+	if err != nil {
+		http.Error(w, "Failed to extract dominant colour.", 500)
+	}
+
+	type DominantColourResponse struct {
+		DominantColour string `json:"dominantColour"`
+	}
+
+	json.NewEncoder(w).Encode(DominantColourResponse{
+		DominantColour: dominantColour,
+	})
+}
+
 func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 

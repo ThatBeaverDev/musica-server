@@ -5,9 +5,12 @@ import AlbumTrack from "../components/AlbumTrack.js";
 import { onTrackSearchAndPlay, player } from "../Player.js";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
 import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
+import { useNavigate } from "react-router-dom";
+import { hexToRgb } from "../lib/colour.js";
 
 export default function Album() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
+	const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
 
@@ -31,10 +34,11 @@ export default function Album() {
 	};
 
 	const [album, setAlbum] = useState<Album | undefined>();
+	const [colours, setColours] = useState<[string, string] | undefined>();
 	useEffect(() => {
 		let isMounted = true;
 
-		const fetchAlbums = async () => {
+		const fetchAlbum = async () => {
 			try {
 				const album: Album = await (
 					await fetch(`/api/album/${id}/info`, { priority: "high" })
@@ -44,18 +48,50 @@ export default function Album() {
 
 				if (isMounted) {
 					setAlbum(album);
+
+					const response: { dominantColour: string } = await (
+						await fetch(`/api/track/${album.tracks[0].id}/colour`, {
+							priority: "high"
+						})
+					).json();
+
+					const rgbMain = hexToRgb(response.dominantColour);
+
+					const largestMagnitude = Math.max(...rgbMain);
+					const divisor = largestMagnitude / 30;
+
+					const rgbDarker = rgbMain.map((value) =>
+						Math.round(value / divisor)
+					);
+					const darker = `rgb(${rgbDarker.join(", ")})`;
+
+					if (isMounted) {
+						setColours([response.dominantColour, darker]);
+					}
 				}
 			} catch (error) {
 				console.error("Error loading albums:", error);
 			}
 		};
 
-		fetchAlbums();
+		fetchAlbum();
 
 		return () => {
 			isMounted = false;
 		};
 	}, []);
+
+	const [artistLinkHover, setArtistLinkHover] = useState(false);
+
+	useEffect(() => {
+		if (colours) {
+			window.setBackground(
+				`linear-gradient(to bottom, ${colours[0]}, ${colours[1]} 330px`
+			);
+		}
+
+		return () => window.setBackground("transparent");
+	});
 
 	return (
 		<>
@@ -83,9 +119,36 @@ export default function Album() {
 					</h1>
 
 					<p>
-						{album
-							? `${album.artist}${album.release ? ` (${new Date(album.release).getFullYear()})` : ""}`
-							: ""}
+						{album ? (
+							<>
+								<span
+									onMouseEnter={() =>
+										setArtistLinkHover(true)
+									}
+									onMouseLeave={() =>
+										setArtistLinkHover(false)
+									}
+
+									onClick={() =>
+										navigate(`/artist/${album.artistId}`)
+									}
+
+									style={{
+										textDecoration: artistLinkHover
+											? "underline"
+											: "",
+										cursor: "pointer"
+									}}
+								>
+									{album.artist}
+								</span>
+								<span>
+									{album.release
+										? ` (${new Date(album.release).getFullYear()})`
+										: ""}
+								</span>
+							</>
+						) : undefined}
 					</p>
 					<p style={{ color: album ? colourScore(album.score) : "" }}>
 						{album ? `Score: ${Math.round(album.score)}` : ""}
@@ -115,6 +178,13 @@ export default function Album() {
 							))
 						: undefined}
 				</div>
+
+				<br />
+				<p style={styles.albumMetadata}>
+					{album
+						? `${album.tracks.length} track${album.tracks.length == 1 ? "" : "s"}`
+						: ""}
+				</p>
 			</div>
 
 			{contextMenu && (
@@ -158,5 +228,10 @@ const styles = {
 		display: "flex",
 		flexDirection: "column" as "column",
 		gap: "4px"
+	},
+
+	albumMetadata: {
+		fontSize: "0.9rem",
+		color: "#888"
 	}
 };

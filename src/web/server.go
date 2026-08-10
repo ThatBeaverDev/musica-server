@@ -45,6 +45,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	api.Get("/track/{id}/info", ws.trackInfo)
 	api.Get("/track/{id}/get", ws.trackFile)
 	api.Get("/track/{id}/art", ws.trackArt)
+	api.Get("/track/{id}/colour", ws.trackColour)
 	api.Get("/track/{id}/explicitPlay", ws.userSpecificPlay)
 	api.Get("/track/{id}/played", ws.trackPlayed)
 	api.Get("/track/{id}/skipped", ws.trackSkipped)
