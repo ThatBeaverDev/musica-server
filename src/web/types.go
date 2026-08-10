@@ -3,6 +3,7 @@ package webServer
 import (
 	"musica-server/src/indexer"
 	"musica-server/src/scores"
+	"strconv"
 )
 
 type WebExportedTrack = struct {
@@ -95,6 +96,24 @@ type WebExportedArtist struct {
 	Albums []*WebExportedAlbum `json:"albums"`
 
 	Score float64 `json:"score"`
+
+	Label string `json:"label,omitempty"`
+
+	Formed int `json:"formed,omitempty"`
+	Born   int `json:"born,omitempty"`
+	Died   int `json:"died,omitempty"`
+
+	Style string `json:"style,omitempty"`
+	Genre string `json:"genre,omitempty"`
+	Mood  string `json:"mood,omitempty"`
+
+	Biography string `json:"biography,omitempty"`
+
+	Country     string `json:"country,omitempty"`
+	CountryCode string `json:"countryCode,omitempty"`
+
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Logo      string `json:"logo,omitempty"`
 }
 
 func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
@@ -115,6 +134,16 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 	artistScore := totalTrackScore / float64(totalTracks)
 
+	formed, err := strconv.Atoi(artist.Extra.Formed)
+	if err != nil {
+	} // it's fine, just use zero-value
+	born, err := strconv.Atoi(artist.Extra.Born)
+	if err != nil {
+	} // it's fine, just use zero-value
+	died, err := strconv.Atoi(artist.Extra.Died)
+	if err != nil {
+	} // it's fine, just use zero-value
+
 	return WebExportedArtist{
 		Name: artist.Name,
 		ID:   artist.ID,
@@ -122,5 +151,23 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 		Albums: albums,
 
 		Score: artistScore,
+
+		Label: artist.Extra.Label,
+
+		Formed: formed,
+		Born:   born,
+		Died:   died,
+
+		Style: artist.Extra.Style,
+		Genre: artist.Extra.Genre,
+		Mood:  artist.Extra.Mood,
+
+		Biography: artist.Extra.Biography,
+
+		Country:     artist.Extra.Country,
+		CountryCode: artist.Extra.CountryCode,
+
+		Thumbnail: artist.Extra.Thumbnail,
+		Logo:      artist.Extra.Logo,
 	}
 }

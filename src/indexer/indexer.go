@@ -182,7 +182,7 @@ type ExtraArtistMetadata struct {
 	Genre string `json:"strGenre,omitempty"`
 	Mood  string `json:"strMood,omitempty"`
 
-	Bio string `json:"strBiography,omitempty"`
+	Biography string `json:"strBiography,omitempty"`
 
 	Country     string `json:"strCountry,omitempty"`
 	CountryCode string `json:"strCountryCode,omitempty"`
