@@ -36,8 +36,7 @@
 //}
 
 // src/client/index.tsx
-import ReactDOM from "react-dom/client";
+import { render } from "preact";
 import App from "./App";
 
-const root = ReactDOM.createRoot(document.getElementById("root")!);
-root.render(<App />);
+render(<App />, document.getElementById("root")!);

@@ -1,6 +1,7 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+import alias from "@rollup/plugin-alias";
 
 export default [
 	{
@@ -16,6 +17,20 @@ export default [
 				"process.env.NODE_ENV": JSON.stringify("development"),
 				__buildDate__: () => JSON.stringify(new Date()),
 				__buildVersion: 15
+			}),
+			alias({
+				entries: [
+					{ find: "react", replacement: "preact/compat" },
+					{
+						find: "react-dom/test-utils",
+						replacement: "preact/test-utils"
+					},
+					{ find: "react-dom", replacement: "preact/compat" },
+					{
+						find: "react/jsx-runtime",
+						replacement: "preact/jsx-runtime"
+					}
+				]
 			})
 		]
 	}
