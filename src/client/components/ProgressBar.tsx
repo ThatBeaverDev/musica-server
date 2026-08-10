@@ -66,8 +66,6 @@ export default function ProgressBar() {
 
 		let interval = setInterval(refreshProgressbar, 250);
 
-		console.debug(interval);
-
 		return () => {
 			clearInterval(interval);
 
