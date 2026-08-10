@@ -1,4 +1,50 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "react";
+
+export type ContextItems = { label: string; action: () => void }[];
+
+export type ContextMenuRequiredEvent = {
+	clientX: number;
+	clientY: number;
+	preventDefault(): void;
+};
+
+export function contextMenuHelper<T>() {
+	// context menu, close on any mouse press
+	const [contextMenu, setContextMenu] = useState<{
+		x: number;
+		y: number;
+		data: T;
+	} | null>(null);
+	useEffect(() => {
+		if (!contextMenu) return;
+
+		const handleClose = () => {
+			setContextMenu(null);
+
+			window.removeEventListener("pointerdown", handleClose);
+			window.removeEventListener("keydown", keydown);
+		};
+
+		window.addEventListener("pointerdown", handleClose);
+
+		const keydown = (e: KeyboardEvent) => {
+			if (e.key.toLowerCase() == "escape") {
+				handleClose();
+			}
+		};
+		window.addEventListener("keydown", keydown);
+	}, [contextMenu]);
+	const activateContextMenu = (e: ContextMenuRequiredEvent, data: T) => {
+		e.preventDefault();
+		setContextMenu({
+			x: e.clientX,
+			y: e.clientY,
+			data
+		});
+	};
+
+	return { contextMenu, activateContextMenu };
+}
 
 function ContextEntry({
 	label,
@@ -13,10 +59,10 @@ function ContextEntry({
 		<p
 			style={styles.item(hover)}
 
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
+			onPointerEnter={() => setIsHovered(true)}
+			onPointerLeave={() => setIsHovered(false)}
 
-			onClick={() => {
+			onPointerDown={() => {
 				onClick();
 			}}
 		>
@@ -36,7 +82,7 @@ export default function ContextMenu({
 	y: number;
 
 	title: string;
-	items: { label: string; action: Function }[];
+	items: ContextItems;
 }) {
 	return (
 		<div

@@ -1,15 +1,16 @@
 import { useState } from "preact/compat";
 import { colourScore } from "../lib/score";
 import { Track } from "../musica";
+import { ContextMenuRequiredEvent } from "./contextMenus/ContextMenu";
 
 export default function AlbumTrack({
 	track,
-	number,
-	onClick
+	onClick,
+	onContextMenu
 }: {
 	track: Track;
-	number?: number;
 	onClick: () => void;
+	onContextMenu: (e: ContextMenuRequiredEvent) => void;
 }) {
 	const [hover, setIsHovered] = useState(false);
 
@@ -20,8 +21,11 @@ export default function AlbumTrack({
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 			onClick={() => onClick()}
+			onContextMenu={(e) => onContextMenu(e)}
 		>
-			<span style={styles.trackNumber}>{number ? number : ""}</span>
+			<span style={styles.trackNumber}>
+				{track.number ? track.number : ""}
+			</span>
 
 			<div style={styles.trackInfo}>
 				<p style={styles.title}>{track.title}</p>

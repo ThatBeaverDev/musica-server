@@ -1,11 +1,34 @@
 import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
-import { Album } from "../musica.js";
+import { Album, Track } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
 import { onTrackSearchAndPlay, player } from "../Player.js";
+import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
+import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
 
 export default function Album() {
+	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
+
 	const id = new URL(window.location.href).pathname.split("/")[2];
+
+	function playByIndex(index: number) {
+		if (!album) return;
+
+		player.setQueue(
+			album.tracks.slice(0, index - 1),
+			album.tracks[index],
+			album.tracks.slice(index + 1)
+		);
+
+		player.resume();
+	}
+	const playTrack = (track: Track) => {
+		if (!album) return;
+
+		const index = album.tracks.map((track) => track.id).indexOf(track.id);
+
+		playByIndex(index);
+	};
 
 	const [album, setAlbum] = useState<Album | undefined>();
 	useEffect(() => {
@@ -78,23 +101,30 @@ export default function Album() {
 								<AlbumTrack
 									key={index}
 									track={track}
-									number={index + 1}
 									onClick={() => {
 										onTrackSearchAndPlay(track.id);
 
-										player.setQueue(
-											album.tracks.slice(0, index - 1),
-											album.tracks[index],
-											album.tracks.slice(index + 1)
-										);
+										playByIndex(index);
+									}}
+									onContextMenu={(e) => {
+										onTrackSearchAndPlay(track.id);
 
-										player.resume();
+										activateContextMenu(e, track);
 									}}
 								/>
 							))
 						: undefined}
 				</div>
 			</div>
+
+			{contextMenu && (
+				<TrackContextMenu
+					x={contextMenu.x}
+					y={contextMenu.y}
+					track={contextMenu.data}
+					onPlay={() => playTrack(contextMenu.data)}
+				/>
+			)}
 		</>
 	);
 }

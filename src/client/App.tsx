@@ -1,10 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Pages
 import Home from "./pages/Home";
-import "./Player.js";
 import Album from "./pages/Album";
 //import Search from "./pages/Search";
+
 import Navbar from "./Navbar.js";
 import Player from "./Player.js";
 import { useState } from "react";

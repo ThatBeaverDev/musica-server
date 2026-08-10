@@ -3,21 +3,11 @@ import { Album } from "../musica";
 import { player } from "../Player";
 //import albumPage from "./album";
 import LargeAlbum from "../components/LargeAlbum";
-import AlbumContextMenu from "../components/AlbumContextMenu";
+import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu";
+import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
 
 export default function Home() {
-	// context menu, close on any mouse press
-	const [contextMenu, setContextMenu] = useState<{
-		x: number;
-		y: number;
-		album: Album;
-	} | null>(null);
-	useEffect(() => {
-		if (!contextMenu) return;
-
-		const handleClose = () => setContextMenu(null);
-		window.addEventListener("pointerdown", handleClose, { once: true });
-	}, [contextMenu]);
+	const { contextMenu, activateContextMenu } = contextMenuHelper<Album>();
 
 	// fetch albums
 	const [albums, setAlbums] = useState<Album[]>([]);
@@ -65,18 +55,6 @@ export default function Home() {
 		};
 	}, []);
 
-	const handleContextMenu = (
-		e: { clientX: number; clientY: number; preventDefault(): void },
-		album: Album
-	) => {
-		e.preventDefault();
-		setContextMenu({
-			x: e.clientX,
-			y: e.clientY,
-			album
-		});
-	};
-
 	const playAlbum = (album: Album, shuffle: boolean = false) => {
 		if (!album.tracks?.length) return;
 
@@ -89,25 +67,24 @@ export default function Home() {
 			<title>Home - Musica</title>
 
 			<h1>Welcome</h1>
-			<h3 style={styles.heading}>Albums</h3>
+			<h3 style={styles.heading}>Recently Added</h3>
 
 			<div style={styles.grid}>
 				{albums.map((album) => (
 					<LargeAlbum
 						key={album.id}
 						album={album}
-						onContextMenu={(e) => handleContextMenu(e, album)}
+						onContextMenu={(e) => activateContextMenu(e, album)}
 					/>
 				))}
 			</div>
 
-			{/* context menu if applicable */}
 			{contextMenu && (
 				<AlbumContextMenu
 					x={contextMenu.x}
 					y={contextMenu.y}
-					album={contextMenu.album}
-					onPlay={(shuffle) => playAlbum(contextMenu.album, shuffle)}
+					album={contextMenu.data}
+					onPlay={(shuffle) => playAlbum(contextMenu.data, shuffle)}
 				/>
 			)}
 		</>
@@ -117,7 +94,7 @@ export default function Home() {
 const styles = {
 	grid: {
 		display: "grid",
-		gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+		gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
 		gap: "15px",
 		overflow: "hidden"
 	},

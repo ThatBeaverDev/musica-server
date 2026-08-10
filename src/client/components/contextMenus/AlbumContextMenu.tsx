@@ -1,4 +1,5 @@
-import { Album } from "../musica";
+import { useNavigate } from "react-router-dom";
+import { Album } from "../../musica";
 import ContextMenu from "./ContextMenu";
 
 export default function AlbumContextMenu({
@@ -14,9 +15,17 @@ export default function AlbumContextMenu({
 	album: Album;
 	onPlay: (shuffle?: boolean) => void;
 }) {
+	const navigation = useNavigate();
+
 	const items = [
 		{ label: "Play", action: () => onPlay(false) },
-		{ label: "Shuffle", action: () => onPlay(true) }
+		{ label: "Shuffle", action: () => onPlay(true) },
+		{
+			label: "Show Artist",
+			action: () => {
+				navigation(`/artist/${album.artistId}`);
+			}
+		}
 	];
 
 	return (
