@@ -510,6 +510,8 @@ class AudioPlayer {
 }
 
 export const player = new AudioPlayer();
+// @ts-expect-error
+globalThis.player = player;
 player.onTrackPlayed = (track) => {
 	fetch(`/api/track/${track.id}/played`);
 };
@@ -573,7 +575,7 @@ export default function Player({ mobile }: { mobile: boolean }) {
 						/>
 						<PlayerControl
 							src="/img/skip-forward.svg"
-							onClick={() => player.skipBack()}
+							onClick={() => player.skipForward()}
 						/>
 					</div>
 				</div>
