@@ -16,7 +16,8 @@ export default [
 			replace({
 				"process.env.NODE_ENV": JSON.stringify("development"),
 				__buildDate__: () => JSON.stringify(new Date()),
-				__buildVersion: 15
+				__buildVersion: 15,
+				preventAssignment: true
 			}),
 			alias({
 				entries: [
