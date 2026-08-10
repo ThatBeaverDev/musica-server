@@ -9,8 +9,10 @@ type WebExportedTrack = struct {
 	Title  string `json:"title"`
 	Artist string `json:"artist"`
 
-	Album       string `json:"album"`
-	AlbumArtist string `json:"albumArtist"`
+	Album         string `json:"album"`
+	AlbumId       string `json:"albumId"`
+	AlbumArtist   string `json:"albumArtist"`
+	AlbumArtistId string `json:"albumArtistId"`
 
 	Modified int64 `json:"modified"`
 	Release  int   `json:"release"`
@@ -29,8 +31,10 @@ func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
 		Title:  track.Title,
 		Artist: track.Artist,
 
-		Album:       track.Album,
-		AlbumArtist: track.AlbumArtist,
+		Album:         track.Album,
+		AlbumId:       track.AlbumId,
+		AlbumArtist:   track.AlbumArtist,
+		AlbumArtistId: track.AlbumArtistId,
 
 		Modified: track.Modified,
 		Release:  track.Release,
@@ -44,9 +48,10 @@ func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
 }
 
 type WebExportedAlbum = struct {
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
-	ID     string `json:"id"`
+	Title    string `json:"title"`
+	Artist   string `json:"artist"`
+	ArtistId string `json:"artistId"`
+	ID       string `json:"id"`
 
 	Modified int64               `json:"modified"`
 	Release  int                 `json:"release"`
@@ -70,9 +75,10 @@ func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
 	albumScore := totalTrackScore / totalTracks
 
 	return WebExportedAlbum{
-		Title:  album.Title,
-		Artist: album.Artist,
-		ID:     album.ID,
+		Title:    album.Title,
+		Artist:   album.Artist,
+		ArtistId: album.ArtistId,
+		ID:       album.ID,
 
 		Modified: album.Modified,
 		Release:  album.Release,

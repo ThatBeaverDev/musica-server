@@ -3,7 +3,9 @@ export interface Track {
 	artist: string;
 
 	album: string;
+	albumId: string;
 	albumArtist: string;
+	albumArtistId: string;
 
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
@@ -19,11 +21,21 @@ export interface Track {
 export interface Album {
 	title: string;
 	artist: string;
+	artistId: string;
 	id: string;
 
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	tracks: Track[];
+
+	score: number;
+}
+
+export interface Artist {
+	name: string;
+	id: string;
+
+	albums: Album[];
 
 	score: number;
 }

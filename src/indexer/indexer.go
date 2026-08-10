@@ -26,8 +26,10 @@ type Track struct {
 	Title  string
 	Artist string
 
-	Album       string
-	AlbumArtist string
+	Album         string
+	AlbumId       string
+	AlbumArtist   string
+	AlbumArtistId string
 
 	Modified int64
 	Release  int
@@ -42,13 +44,14 @@ func (t *Track) MarshalJSON() ([]byte, error) {
 }
 
 type Album struct {
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
-	ID     string `json:"id"`
+	Title    string
+	Artist   string
+	ArtistId string
+	ID       string
 
-	Modified int64    `json:"modified"`
-	Release  int      `json:"release"`
-	Tracks   []*Track `json:"tracks"`
+	Modified int64
+	Release  int
+	Tracks   []*Track
 }
 
 func (a *Album) MarshalJSON() ([]byte, error) {
@@ -56,10 +59,10 @@ func (a *Album) MarshalJSON() ([]byte, error) {
 }
 
 type Artist struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
+	Name string
+	ID   string
 
-	Albums []*Album `json:"albums"`
+	Albums []*Album
 }
 
 func (a *Artist) MarshalJSON() ([]byte, error) {
@@ -77,6 +80,10 @@ type trackIndex struct {
 
 func GetTrackAlbumSpecifier(track Track) string {
 	return fmt.Sprint(track.AlbumArtist, ":", track.Album)
+}
+
+func GetAlbumSpecifierDirect(albumArtist string, album string) string {
+	return fmt.Sprint(albumArtist, ":", album)
 }
 
 func GetAlbumArtistSpecifier(album *Album) string {
@@ -180,12 +187,12 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 
 	// album
 	trackAlbum := tags[taglib.Album]
-	var album string
+	var albumName string
 
 	if len(trackAlbum) > 0 {
-		album = trackAlbum[0]
+		albumName = trackAlbum[0]
 	} else {
-		album = title
+		albumName = title
 	}
 
 	// album artist
@@ -255,8 +262,10 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		Title:  title,
 		Artist: artist,
 
-		Album:       album,
-		AlbumArtist: albumArtist,
+		Album:         albumName,
+		AlbumId:       "",
+		AlbumArtist:   albumArtist,
+		AlbumArtistId: "",
 
 		Modified: modified,
 		Release:  release,
@@ -266,35 +275,16 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		Number: number,
 	}
 
-	return track, nil
-}
-
-func (s *Indexer) indexTrack(directory string) error {
-	t, err := s.fileMetaData(directory)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve File Metadata: %w", err)
-	}
-
-	track := t
-
-	// lock mutex
 	s.Index.mutex.Lock()
 	defer s.Index.mutex.Unlock()
 
-	if _, ok := s.Index.Tracks[t.ID]; ok {
-		// already exists
-		return errors.New("Two tracks of the same ID are present (both are titled '" + t.Title + "' by '" + t.Artist + "')")
-	}
-
-	// write data
-	s.Index.Tracks[t.ID] = &t
-
 	// add to album
-	albumSpecifier := GetTrackAlbumSpecifier(track)
+	albumSpecifier := GetAlbumSpecifierDirect(albumArtist, albumName)
 	// insure the ID is prepared so things are consistent
-	id := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
+	albumID := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
+	track.AlbumId = albumID
 
-	album, ok := s.Index.Albums[id]
+	album, ok := s.Index.Albums[albumID]
 	if ok {
 		if album.Release == 0 && track.Release != 0 {
 			album.Release = track.Release
@@ -305,38 +295,63 @@ func (s *Indexer) indexTrack(directory string) error {
 		}
 
 		album.Tracks = append(album.Tracks, &track)
+		track.AlbumArtistId = album.ArtistId
 	} else {
 		album := &Album{
-			Title:  track.Album,
-			Artist: track.AlbumArtist,
+			Title:    track.Album,
+			Artist:   track.AlbumArtist,
+			ArtistId: "",
 
 			Modified: track.Modified,
 			Release:  track.Release,
 			Tracks:   []*Track{&track},
-			ID:       id,
+			ID:       albumID,
 		}
 
-		s.Index.Albums[id] = album
+		s.Index.Albums[albumID] = album
 
 		// add the new album to artist too
 		artistSpecifier := GetAlbumArtistSpecifier(album)
 		// insure the ID is prepared so things are consistent
-		id := s.identityStorage.ASpecifierToArtistId(artistSpecifier)
+		artistID := s.identityStorage.ASpecifierToArtistId(artistSpecifier)
+		album.ArtistId = artistID
+		track.AlbumArtistId = album.ArtistId
 
-		artist, ok := s.Index.Artists[id]
+		artist, ok := s.Index.Artists[artistID]
 		if ok {
 			artist.Albums = append(artist.Albums, album)
 		} else {
 			artist := &Artist{
 				Name: album.Artist,
 
-				ID:     id,
+				ID:     artistID,
 				Albums: []*Album{album},
 			}
 
-			s.Index.Artists[id] = artist
+			s.Index.Artists[artistID] = artist
 		}
 	}
+
+	return track, nil
+}
+
+func (s *Indexer) indexTrack(directory string) error {
+	track, err := s.fileMetaData(directory)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve File Metadata: %w", err)
+	}
+
+	// lock mutex
+	s.Index.mutex.Lock()
+	defer s.Index.mutex.Unlock()
+
+	if _, ok := s.Index.Tracks[track.ID]; ok {
+		// already exists
+		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "')")
+	}
+
+	// write data
+	s.Index.Tracks[track.ID] = &track
 
 	return nil
 }
