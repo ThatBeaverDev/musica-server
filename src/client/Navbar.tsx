@@ -33,7 +33,7 @@ export default function Topbar() {
 
 	return (
 		<div style={styles.navbar}>
-			<h2 className="app-title">Musica</h2>
+			<h2>Musica</h2>
 
 			<div style={styles.nav}>
 				<NavItem onClick={() => navigate("/")}>Home</NavItem>

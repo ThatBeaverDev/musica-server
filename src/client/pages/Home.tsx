@@ -89,10 +89,9 @@ export default function Home() {
 			<title>Home - Musica</title>
 
 			<h1>Welcome</h1>
+			<h3 style={styles.heading}>Albums</h3>
 
-			<div className="section"></div>
-			<h3>Albums</h3>
-			<div style={styles.grid} id="albumsGrid">
+			<div style={styles.grid}>
 				{albums.map((album) => (
 					<LargeAlbum
 						key={album.id}
@@ -102,7 +101,7 @@ export default function Home() {
 				))}
 			</div>
 
-			{/* Context menu if applicable */}
+			{/* context menu if applicable */}
 			{contextMenu && (
 				<AlbumContextMenu
 					x={contextMenu.x}
@@ -113,89 +112,17 @@ export default function Home() {
 			)}
 		</>
 	);
-
-	//	const albumContainer = document.getElementById("albumsGrid");
-	//	if (!albumContainer) return;
-	//
-	//	for (const album of albums) {
-	//		const tileDiv = document.createElement("div");
-	//		tileDiv.classList.add("card");
-	//		tileDiv.addEventListener("contextmenu", (e) => {
-	//			e.preventDefault();
-	//
-	//			const container = document.createElement("div");
-	//			container.classList.add("album-context-menu");
-	//			container.style.left = `${e.clientX}px`;
-	//			container.style.top = `${e.clientY}px`;
-	//
-	//			document.body.appendChild(container);
-	//
-	//			const play = (shuffle: boolean) => {
-	//				player.setQueue(
-	//					[],
-	//					album.tracks[0],
-	//					album.tracks.slice(1),
-	//					shuffle
-	//				);
-	//				player.resume();
-	//			};
-	//
-	//			const items: [string, () => Promise<void> | void][] = [
-	//				["Play", () => play(false)],
-	//				["Shuffle", () => [play(true)]]
-	//			];
-	//
-	//			const holder = document.createElement("p");
-	//			holder.classList.add("album-context-menu-title");
-	//			holder.innerText = `${album.artist} - ${album.title}`;
-	//			container.appendChild(holder);
-	//
-	//			for (const item of items) {
-	//				const holder = document.createElement("p");
-	//				holder.classList.add("album-context-menu-item");
-	//				holder.innerText = item[0];
-	//
-	//				holder.addEventListener("pointerdown", () => item[1]());
-	//
-	//				container.appendChild(holder);
-	//			}
-	//
-	//			window.addEventListener("pointerdown", () => container.remove(), {
-	//				once: true
-	//			});
-	//		});
-	//
-	//		const albumImage = document.createElement("img");
-	//		albumImage.classList.add("albumArt");
-	//		albumImage.src = `/api/track/${album.tracks?.[0].id}/art`;
-	//		albumImage.loading = "lazy";
-	//		albumImage.fetchPriority = "low";
-	//		tileDiv.appendChild(albumImage);
-	//
-	//		const albumTitle = document.createElement("p");
-	//		albumTitle.classList.add("album-title");
-	//		albumTitle.innerText = album.title;
-	//		tileDiv.appendChild(albumTitle);
-	//
-	//		const albumArtist = document.createElement("p");
-	//		albumArtist.classList.add("album-artist");
-	//		albumArtist.innerText = album.artist;
-	//		tileDiv.appendChild(albumArtist);
-	//
-	//		tileDiv.addEventListener("click", () => {
-	//			history.pushState({}, "", `/album/${album.id}`);
-	//
-	//			albumPage(div, aborteeFunction);
-	//		});
-	//
-	//		albumContainer.appendChild(tileDiv);
-	//	}
 }
 
 const styles = {
 	grid: {
 		display: "grid",
 		gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-		gap: "15px"
+		gap: "15px",
+		overflow: "hidden"
+	},
+
+	heading: {
+		padding: "20px 0px"
 	}
 };

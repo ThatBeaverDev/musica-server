@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Track } from "../musica";
-import { panelColour } from "../constants";
 import { player } from "../Player";
+import { panelColour } from "../constants";
 
 export default function QueueItem({
 	track,
@@ -52,8 +52,9 @@ const styles = {
 			width: "100%",
 
 			borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+			transition: "ease 0.2s",
 
-			backgroundColour: hover ? panelColour : ""
+			backgroundColor: hover ? panelColour : ""
 		};
 	},
 

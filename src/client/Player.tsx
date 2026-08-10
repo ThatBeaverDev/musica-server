@@ -3,6 +3,7 @@ import { RandomMixTrackResult, Track } from "./musica";
 import SubsetDisplay from "./components/Subset";
 import QueueItem from "./components/QueueItem";
 import ProgressBar from "./components/ProgressBar";
+import PlayerControl from "./components/PlayerControl";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -520,7 +521,7 @@ export function onTrackSearchAndPlay(id: string) {
 	fetch(`/api/track/${id}/explicitPlay`);
 }
 
-export default function Player() {
+export default function Player({ mobile }: { mobile: boolean }) {
 	const [track, setTrack] = useState(player.currentTrack);
 	player.onTrackUpdate = setTrack;
 
@@ -535,11 +536,16 @@ export default function Player() {
 		.map((index) => queue.playlist[index]);
 
 	return (
-		<div className="queue">
-			<div style={styles.player}>
-				<div className="track-art-container">
-					<img id="track-art" src={`/api/track/${track?.id}/art`} />
-				</div>
+		<div style={styles.queue(mobile)}>
+			<div style={styles.player(mobile)}>
+				{track ? (
+					<div style={styles.trackArtContainer(mobile)}>
+						<img
+							style={styles.trackArt}
+							src={`/api/track/${track?.id}/art`}
+						/>
+					</div>
+				) : undefined}
 
 				<div style={styles.playerInfo}>
 					<p style={styles.trackTitle} id="player-title">
@@ -554,35 +560,28 @@ export default function Player() {
 
 					<ProgressBar />
 
-					<div className="player-controls">
-						<img
-							className="player-control"
-							id="player-back"
+					<div style={styles.playerControls}>
+						<PlayerControl
 							src="/img/skip-back.svg"
-							draggable="false"
 							onClick={() => player.skipBack()}
 						/>
-						<img
-							className="player-control control-play"
-							id="player-play"
+						<PlayerControl
 							src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
-							draggable="false"
 							onClick={() => player.toggle()}
+							width="40px"
+							height="40px"
 						/>
-						<img
-							className="player-control"
-							id="player-forward"
+						<PlayerControl
 							src="/img/skip-forward.svg"
-							draggable="false"
-							onClick={() => player.skipForward()}
+							onClick={() => player.skipBack()}
 						/>
 					</div>
 				</div>
 			</div>
 
-			<div className="player-queue" id="player-queue">
+			<div>
 				{playlist.length == 0 ? (
-					<p>
+					<p style={styles.queueEmptyText}>
 						{queue.isDynamic
 							? "Just go with the dynamic queue's flow!"
 							: "Nothing queued at the moment."}
@@ -602,18 +601,60 @@ export default function Player() {
 }
 
 const styles = {
-	player: {
-		width: "100%",
+	queue(mobile: boolean) {
+		if (mobile) {
+			return {
+				width: "100dvw",
+				height: "40dvw",
 
-		display: "flex",
-		flexDirection: "column" as "column",
+				padding: "24px",
+				background: "#181818",
+				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
 
-		alignItems: "center",
-		margin: "20px 0px"
+				overflowX: "hidden" as "hidden",
+				overflowY: "scroll" as "scroll"
+			};
+		} else {
+			return {
+				width: "260px",
+				height: "100%",
+
+				padding: "24px",
+				paddingTop: "0px",
+				background: "#181818",
+				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+
+				overflowX: "hidden" as "hidden",
+				overflowY: "scroll" as "scroll"
+			};
+		}
 	},
 
-	trackArtContainer: {},
-	trackArt: {},
+	player(mobile: boolean) {
+		return {
+			width: "100%",
+
+			display: "flex",
+			flexDirection: mobile ? ("row" as "row") : ("column" as "column"),
+
+			alignItems: "center",
+			margin: "20px 0px"
+		};
+	},
+
+	trackArtContainer(mobile: boolean) {
+		if (mobile) {
+			return { width: "15dvh", height: "15dvh", paddingRight: "10px" };
+		} else {
+			return {
+				width: "100%",
+				aspectRatio: "1/1",
+				minHeight: 0,
+				paddingRight: "10px"
+			};
+		}
+	},
+	trackArt: { width: "100%", height: "100%", borderRadiud: "6%" },
 
 	playerInfo: {
 		display: "flex",
@@ -625,6 +666,14 @@ const styles = {
 		gap: "2px",
 		flex: 1
 	},
+	playerControls: {
+		display: "flex",
+		flexDirection: "row" as "row",
+		justifyContent: "center" as "center",
+		alignItems: "center" as "center",
+
+		width: "100%"
+	},
 
 	trackTitle: {
 		fontSize: "1.5rem",
@@ -635,6 +684,12 @@ const styles = {
 	trackArtist: {
 		fontSize: "0.9rem",
 		color: "#888",
+		textAlign: "center" as "center"
+	},
+
+	queueEmptyText: {
+		userSelect: "none" as "none",
+		width: "100%",
 		textAlign: "center" as "center"
 	}
 };

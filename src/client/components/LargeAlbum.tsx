@@ -1,6 +1,7 @@
 import { MouseEventHandler, useState } from "react";
 import { Album } from "../musica";
 import { useNavigate } from "react-router-dom";
+import { cardColour } from "../constants";
 
 export default function LargeAlbum({
 	album,
@@ -24,7 +25,6 @@ export default function LargeAlbum({
 			onClick={showAlbum}
 		>
 			<img
-				className="albumArt"
 				loading="lazy"
 				fetchPriority="low"
 				src={`/api/track/${album.tracks?.[0].id}/art`}
@@ -70,7 +70,7 @@ const artistTitleBase = {
 const styles = {
 	card(hovered: boolean) {
 		return {
-			background: hovered ? "rgb(45 45 45)" : "var(--card)",
+			background: hovered ? "rgb(45, 45, 45)" : cardColour,
 			border: "1px solid rgba(255, 255, 255, 0.06)",
 
 			borderRadius: "14px",
