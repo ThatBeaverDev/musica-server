@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/tetratelabs/wazero v1.11.1-0.20260428013916-2bbd517b7633 // indirect
-	golang.org/x/image v0.18.0 // indirect
+	golang.org/x/image v0.41.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 )
