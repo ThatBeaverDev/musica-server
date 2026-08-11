@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/cenkalti/dominantcolor v1.0.3
-	github.com/go-chi/chi v1.5.5
+	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
