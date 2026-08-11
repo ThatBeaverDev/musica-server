@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	ids "musica-server/src"
 	"musica-server/util"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	taglib "go.senan.xyz/taglib"
 )
@@ -197,17 +197,14 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		if ok {
 			artist.Albums = append(artist.Albums, album)
 		} else {
-			extra, err := s.GetArtistExtraMetadata(album.Artist)
-			if err != nil {
-				fmt.Println("failure to retrieve artist extra metadata, bypassing:", err)
-			}
+			// extra metadata fetched in a loop
 
 			artist := &Artist{
 				Name: album.Artist,
 
 				ID:     artistID,
 				Albums: []*Album{album},
-				Extra:  extra,
+				Extra:  nil, // using zero-value. this field is filled in in an asyncronous loop.
 			}
 
 			s.Index.Artists[artistID] = artist
@@ -239,6 +236,53 @@ type ExtraArtistMetadata struct {
 	Logo      string `json:"strArtistLogo,omitempty"`
 }
 
+func SetInterval(fn func(), interval time.Duration) chan struct{} {
+	done := make(chan struct{})
+
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				fn()
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	return done
+}
+
+func (s *Indexer) SetupSlowArtistExtraMetadataLoop() {
+	SetInterval(func() {
+		s.mutex.RLock()
+
+		for _, artist := range s.Index.Artists {
+			if artist.Extra == nil {
+				fmt.Println("Loading metadata for " + artist.Name)
+
+				extra, err := s.GetArtistExtraMetadata(artist.Name)
+				if err != nil {
+					fmt.Println("failure to retrieve artist extra metadata, bypassing:", err)
+				}
+
+				s.mutex.RUnlock()
+
+				s.mutex.Lock()
+				artist.Extra = extra
+				s.mutex.Unlock()
+
+				return
+			}
+		}
+
+		s.mutex.RUnlock()
+	}, 1*time.Second)
+}
+
 func (s *Indexer) GetArtistExtraMetadata(name string) (*ExtraArtistMetadata, error) {
 	dir := path.Join(s.cacheDirectory, fmt.Sprint(ids.Hash(name), "_extraMetadata.json"))
 
@@ -261,7 +305,7 @@ func (s *Indexer) GetArtistExtraMetadata(name string) (*ExtraArtistMetadata, err
 
 			resp, err := http.Get(Url)
 			if err != nil {
-				log.Fatalf("Failed to make request: %v", err)
+				return nil, fmt.Errorf("Failed to make request: %w", err)
 			}
 			defer resp.Body.Close()
 
@@ -289,7 +333,6 @@ func (s *Indexer) GetArtistExtraMetadata(name string) (*ExtraArtistMetadata, err
 			} else {
 				extra = fullResponse.Artists[0]
 			}
-
 		} else {
 			return nil, fmt.Errorf("Failed to read artist extra metadata file: %w", err)
 		}

@@ -138,6 +138,8 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 	indexer.cleanupAlbums()
 	indexer.cleanupArtists()
 
+	indexer.SetupSlowArtistExtraMetadataLoop()
+
 	return &indexer, nil
 }
 

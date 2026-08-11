@@ -136,15 +136,51 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 	artistScore := totalTrackScore / float64(totalTracks)
 
-	formed, err := strconv.Atoi(artist.Extra.Formed)
-	if err != nil {
-	} // it's fine, just use zero-value
-	born, err := strconv.Atoi(artist.Extra.Born)
-	if err != nil {
-	} // it's fine, just use zero-value
-	died, err := strconv.Atoi(artist.Extra.Died)
-	if err != nil {
-	} // it's fine, just use zero-value
+	var err error = nil
+
+	var label string
+
+	var formed int
+	var born int
+	var died int
+
+	var style string
+	var genre string
+	var mood string
+
+	var biography string
+
+	var country string
+	var countryCode string
+
+	var thumbnail string
+	var logo string
+
+	if artist.Extra != nil {
+		label = artist.Extra.Label
+
+		formed, err = strconv.Atoi(artist.Extra.Formed)
+		if err != nil {
+		} // it's fine, just use zero-value
+		born, err = strconv.Atoi(artist.Extra.Born)
+		if err != nil {
+		} // it's fine, just use zero-value
+		died, err = strconv.Atoi(artist.Extra.Died)
+		if err != nil {
+		} // it's fine, just use zero-value
+
+		style = artist.Extra.Style
+		genre = artist.Extra.Genre
+		mood = artist.Extra.Mood
+
+		biography = artist.Extra.Biography
+
+		country = artist.Extra.Country
+		countryCode = artist.Extra.CountryCode
+
+		thumbnail = artist.Extra.Thumbnail
+		logo = artist.Extra.Logo
+	}
 
 	return WebExportedArtist{
 		Name: artist.Name,
@@ -154,22 +190,22 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 		Score: artistScore,
 
-		Label: artist.Extra.Label,
+		Label: label,
 
 		Formed: formed,
 		Born:   born,
 		Died:   died,
 
-		Style: artist.Extra.Style,
-		Genre: artist.Extra.Genre,
-		Mood:  artist.Extra.Mood,
+		Style: style,
+		Genre: genre,
+		Mood:  mood,
 
-		Biography: artist.Extra.Biography,
+		Biography: biography,
 
-		Country:     artist.Extra.Country,
-		CountryCode: artist.Extra.CountryCode,
+		Country:     country,
+		CountryCode: countryCode,
 
-		Thumbnail: artist.Extra.Thumbnail,
-		Logo:      artist.Extra.Logo,
+		Thumbnail: thumbnail,
+		Logo:      logo,
 	}
 }
