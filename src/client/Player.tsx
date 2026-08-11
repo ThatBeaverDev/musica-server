@@ -111,6 +111,8 @@ class AudioPlayer {
 
 		/* ----- Keyboard controls ----- */
 		window.addEventListener("keydown", (event) => {
+			if (document.activeElement instanceof HTMLInputElement) return; // don't catch spaces there
+
 			switch (event.key) {
 				case " ":
 					this.toggle();

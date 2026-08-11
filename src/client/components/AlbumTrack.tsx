@@ -6,11 +6,13 @@ import { ContextMenuRequiredEvent } from "./contextMenus/ContextMenu";
 export default function AlbumTrack({
 	track,
 	onClick,
-	onContextMenu
+	onContextMenu,
+	art: showArt = false
 }: {
 	track: Track;
 	onClick: () => void;
 	onContextMenu: (e: ContextMenuRequiredEvent) => void;
+	art?: boolean;
 }) {
 	const [hover, setIsHovered] = useState(false);
 
@@ -29,9 +31,16 @@ export default function AlbumTrack({
 			onClick={() => onClick()}
 			onContextMenu={(e) => onContextMenu(e)}
 		>
-			<span style={styles.trackNumber}>
-				{track.number ? track.number : ""}
-			</span>
+			{showArt ? (
+				<img
+					style={styles.art}
+					src={`/api/track/${track.id}/art`}
+				></img>
+			) : (
+				<span style={styles.trackNumber}>
+					{track.number ? track.number : ""}
+				</span>
+			)}
 
 			<div style={styles.trackInfo}>
 				<p style={styles.title}>{track.title}</p>
@@ -83,6 +92,13 @@ const styles = {
 		width: "32px",
 		color: "#777",
 		fontSize: "0.9rem"
+	},
+
+	art: {
+		width: "3rem",
+		height: "3rem",
+		marginRight: "1rem",
+		borderRadius: "6%"
 	},
 
 	trackInfo: {

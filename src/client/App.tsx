@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Album from "./pages/Album";
 import Artist from "./pages/Artist";
-//import Search from "./pages/Search";
+import Search from "./pages/Search";
 
 import Navbar from "./Navbar.js";
 import Player from "./Player.js";
@@ -72,7 +72,7 @@ export default function App() {
 					<Route path="/" element={<Home />} />
 					<Route path="/album/:id" element={<Album />} />
 					<Route path="/artist/:id" element={<Artist />} />
-					{/*<Route path="/search" element={<Search />} />*/}
+					<Route path="/search" element={<Search />} />
 				</Routes>
 			</div>
 

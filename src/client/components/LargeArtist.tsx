@@ -1,19 +1,19 @@
 import { MouseEventHandler, useState } from "react";
-import { Album } from "../musica";
+import { Artist } from "../musica";
 import { useNavigate } from "react-router-dom";
 import { cardColour } from "../constants";
 
-export default function LargeAlbum({
-	album,
+export default function LargeArtist({
+	artist,
 	onContextMenu
 }: {
-	album: Album;
+	artist: Artist;
 	onContextMenu: MouseEventHandler<HTMLDivElement>;
 }) {
 	const [isHovered, setIsHovered] = useState(false);
 	const navigate = useNavigate();
 
-	const showAlbum = () => navigate(`/album/${album.id}`);
+	const showArtist = () => navigate(`/album/${artist.id}`);
 
 	return (
 		<div
@@ -22,22 +22,27 @@ export default function LargeAlbum({
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 
-			onClick={showAlbum}
+			onClick={showArtist}
 		>
 			<img
 				loading="lazy"
 				fetchPriority="low"
-				src={`/api/track/${album.tracks?.[0].id}/art`}
-				style={styles.albumArt}
+				src={
+					artist?.thumbnail ??
+					`/api/track/${artist.albums?.[0].tracks[0].id}/art`
+				}
+				style={styles.artistPicture}
 			/>
 
-			<p style={styles.albumTitle}>{album.title}</p>
-			<p style={styles.albumArtist}>{album.artist}</p>
+			<p style={styles.artistName}>{artist.name}</p>
+			<p
+				style={styles.albumCount}
+			>{`${artist.albums.length} Album${artist.albums.length == 0 ? "" : "s"}`}</p>
 		</div>
 	);
 }
 
-const albumTitleBase = {
+const artistTitleBase = {
 	textAlign: "center" as "center",
 	overflow: "hidden",
 	whiteSpace: "nowrap",
@@ -60,21 +65,21 @@ const styles = {
 		};
 	},
 
-	albumArt: {
+	artistPicture: {
 		width: "100%",
 		aspectRatio: 1,
 		objectFit: "cover" as "cover",
-		borderRadius: "6%"
+		borderRadius: "100%"
 	},
 
-	albumTitle: {
-		...albumTitleBase,
+	artistName: {
+		...artistTitleBase,
 		marginTop: "0.5rem",
 		fontSize: "0.95rem",
 		fontWeight: 600
 	},
-	albumArtist: {
-		...albumTitleBase,
+	albumCount: {
+		...artistTitleBase,
 		marginTop: "0.25rem",
 		fontSize: "0.85rem",
 		color: "#9a9a9a"

@@ -62,6 +62,7 @@ export interface Artist {
 export interface SearchResult {
 	tracks: Track[];
 	albums: Album[];
+	artists: Artist[];
 }
 
 export type Subset =
