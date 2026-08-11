@@ -112,14 +112,12 @@ export default function Album() {
 		? `${hoursFormatted} and ${minutesFormatted}`
 		: "";
 
+	document.title = album
+		? `${album.title} by ${album.artist} - Musica`
+		: "Album - Musica";
+
 	return (
 		<>
-			<title>
-				{album
-					? `${album.title} by ${album.artist} - Musica`
-					: "Album - Musica"}
-			</title>
-
 			<div style={styles.hero}>
 				<img
 					style={styles.art}

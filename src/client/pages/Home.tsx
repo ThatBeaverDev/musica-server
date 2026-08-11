@@ -62,10 +62,10 @@ export default function Home() {
 		player.resume();
 	};
 
+	document.title = "Home - Musica";
+
 	return (
 		<>
-			<title>Home - Musica</title>
-
 			<h1>Welcome</h1>
 			<h3 style={styles.heading}>Recently Added</h3>
 

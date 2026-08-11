@@ -74,12 +74,10 @@ export default function Artist() {
 		return () => window.setBackground("transparent");
 	});
 
+	document.title = artist ? `${artist.name} - Musica` : "Artist - Musica";
+
 	return (
 		<>
-			<title>
-				{artist ? `${artist.name} - Musica` : "Artist - Musica"}
-			</title>
-
 			<div style={styles.hero}>
 				<img
 					style={styles.art}
