@@ -45,20 +45,34 @@ func readHistory() (History, error) {
 
 func (history *HistoryManager) store() {
 	history.mutex.RLock()
+	defer history.mutex.RUnlock()
 
 	storageData := historyStorageV1{Version: 1, History: history.History.Tracks}
 	jsonData, err := json.Marshal(storageData)
-
-	history.mutex.RUnlock()
 
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
 
-	err = os.WriteFile("./history.json", jsonData, 0644)
+	tmpFile, err := os.CreateTemp(".", "history-*.tmp")
 	if err != nil {
-		fmt.Println("Error writing history.json:", err)
+		fmt.Println("Error creating temp file:", err)
+		return
+	}
+	tmpName := tmpFile.Name()
+
+	if _, err := tmpFile.Write(jsonData); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpName)
+		fmt.Println("Error writing to temp file:", err)
+		return
+	}
+	tmpFile.Close()
+
+	if err := os.Rename(tmpName, "./history.json"); err != nil {
+		os.Remove(tmpName)
+		fmt.Println("Error replacing history.json:", err)
 		return
 	}
 

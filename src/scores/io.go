@@ -129,9 +129,24 @@ func (scores *ScoreManager) store() {
 		return
 	}
 
-	err = os.WriteFile("./scores.json", jsonData, 0644)
+	tmpFile, err := os.CreateTemp(".", "scores-*.tmp")
 	if err != nil {
-		fmt.Println("Error writing scores.json:", err)
+		fmt.Println("Error creating temp file:", err)
+		return
+	}
+	tmpName := tmpFile.Name()
+
+	if _, err := tmpFile.Write(jsonData); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpName)
+		fmt.Println("Error writing to temp file:", err)
+		return
+	}
+	tmpFile.Close()
+
+	if err := os.Rename(tmpName, "./scores.json"); err != nil {
+		os.Remove(tmpName)
+		fmt.Println("Error replacing scores.json:", err)
 		return
 	}
 
