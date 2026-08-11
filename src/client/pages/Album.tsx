@@ -93,6 +93,25 @@ export default function Album() {
 		return () => window.setBackground("transparent");
 	});
 
+	const trackCountInfo = album
+		? `${album.tracks.length} track${album.tracks.length == 1 ? "" : "s"}`
+		: "";
+
+	let totalAlbumDurationMinutes = 0;
+	album?.tracks.forEach(
+		(track) => (totalAlbumDurationMinutes += track.duration / 60)
+	);
+
+	const hours = Math.floor(totalAlbumDurationMinutes / 60);
+	const minutes = Math.floor(totalAlbumDurationMinutes % 60);
+
+	const hoursFormatted = hours == 0 ? "" : `${hours} hours`;
+	const minutesFormatted = minutes == 0 ? "" : `${minutes} minutes`;
+
+	const albumDurationInfo = album
+		? `${hoursFormatted} and ${minutesFormatted}`
+		: "";
+
 	return (
 		<>
 			<title>
@@ -180,11 +199,9 @@ export default function Album() {
 				</div>
 
 				<br />
-				<p style={styles.albumMetadata}>
-					{album
-						? `${album.tracks.length} track${album.tracks.length == 1 ? "" : "s"}`
-						: ""}
-				</p>
+				<p
+					style={styles.albumMetadata}
+				>{`${trackCountInfo} - ${albumDurationInfo}`}</p>
 			</div>
 
 			{contextMenu && (

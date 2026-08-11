@@ -1,0 +1,33 @@
+package indexer
+
+import "sort"
+
+// deletes empty albums
+func (s *Indexer) cleanupAlbums() {
+	for albumId, album := range s.Index.Albums {
+		if len(album.Tracks) == 0 {
+			delete(s.Index.Albums, albumId)
+		}
+
+		if album.Title == "" || album.Artist == "" {
+			delete(s.Index.Albums, albumId)
+		}
+
+		sort.Slice(album.Tracks, func(i, j int) bool {
+			return album.Tracks[i].Number < album.Tracks[j].Number
+		})
+	}
+}
+
+// deletes empty artists
+func (s *Indexer) cleanupArtists() {
+	for artistId, artist := range s.Index.Artists {
+		if len(artist.Albums) == 0 {
+			delete(s.Index.Albums, artistId)
+		}
+
+		if artist.Name == "" {
+			delete(s.Index.Artists, artistId)
+		}
+	}
+}

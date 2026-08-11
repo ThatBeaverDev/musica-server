@@ -14,8 +14,8 @@ export interface Track {
 	id: string;
 
 	score: number;
-
 	subset: Subset;
+	duration: number;
 }
 
 export interface Album {

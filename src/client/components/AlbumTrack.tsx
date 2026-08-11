@@ -14,6 +14,12 @@ export default function AlbumTrack({
 }) {
 	const [hover, setIsHovered] = useState(false);
 
+	const durationMinutesComponent = Math.floor(track.duration / 60);
+	const durationSecondsComponent = Math.floor(track.duration % 60);
+
+	const minutesFormatted = `${durationMinutesComponent}`.padStart(2, "0");
+	const secondsFormatted = `${durationSecondsComponent}`.padStart(2, "0");
+
 	return (
 		<div
 			style={styles.track(hover)}
@@ -42,6 +48,10 @@ export default function AlbumTrack({
 					</p>
 				</div>
 			</div>
+
+			<p
+				style={styles.duration}
+			>{`${minutesFormatted}:${secondsFormatted}`}</p>
 		</div>
 	);
 }
@@ -98,5 +108,9 @@ const styles = {
 
 	score: {
 		fontSize: "0.9rem"
+	},
+
+	duration: {
+		color: "#888"
 	}
 };

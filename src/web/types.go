@@ -21,8 +21,9 @@ type WebExportedTrack = struct {
 
 	ID string `json:"id"`
 
-	Score  float64       `json:"score"`
-	Subset scores.Subset `json:"subset"`
+	Score    float64       `json:"score"`
+	Subset   scores.Subset `json:"subset"`
+	Duration float64       `json:"duration"`
 }
 
 func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
@@ -43,8 +44,9 @@ func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
 
 		ID: track.ID,
 
-		Score:  score,
-		Subset: scores.GetScoreSubset(score),
+		Score:    score,
+		Subset:   scores.GetScoreSubset(score),
+		Duration: track.Duration.Seconds(),
 	}
 }
 
