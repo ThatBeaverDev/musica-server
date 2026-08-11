@@ -22,17 +22,17 @@ type SearchResult struct {
 }
 
 type rankedTrack struct {
-	Track *indexer.Track
+	Track *webTypes.WebExportedTrack
 	Rank  int
 }
 
 type rankedAlbum struct {
-	Album *indexer.Album
+	Album *webTypes.WebExportedAlbum
 	Rank  int
 }
 
 type rankedArtist struct {
-	Artist *indexer.Artist
+	Artist *webTypes.WebExportedArtist
 	Rank   int
 }
 
@@ -175,7 +175,7 @@ func (s *SearchManager) Query(query string) SearchResult {
 	for _, track := range s.indexer.Index.Tracks {
 		if rank := scoreTrack(query, track); rank != -1 {
 			rankedTracks = append(rankedTracks, rankedTrack{
-				Track: track,
+				Track: webTypes.TrackToWeb(track, s.scores),
 				Rank:  rank,
 			})
 		}
@@ -184,7 +184,7 @@ func (s *SearchManager) Query(query string) SearchResult {
 	for _, album := range s.indexer.Index.Albums {
 		if rank := scoreAlbum(query, album); rank != -1 {
 			rankedAlbums = append(rankedAlbums, rankedAlbum{
-				Album: album,
+				Album: webTypes.AlbumToWeb(album, s.scores),
 				Rank:  rank,
 			})
 		}
@@ -193,28 +193,28 @@ func (s *SearchManager) Query(query string) SearchResult {
 	for _, artist := range s.indexer.Index.Artists {
 		if rank := scoreArtist(query, artist); rank != -1 {
 			rankedArtists = append(rankedArtists, rankedArtist{
-				Artist: artist,
+				Artist: webTypes.ArtistToWeb(artist, s.scores),
 				Rank:   rank,
 			})
 		}
 	}
 
 	sort.Slice(rankedTracks, func(i, j int) bool {
-		return rankedTracks[i].Track.Title < rankedTracks[j].Track.Title
+		return rankedTracks[i].Track.Score < rankedTracks[j].Track.Score
 	})
 	sort.Slice(rankedTracks, func(i, j int) bool {
 		return rankedTracks[i].Rank < rankedTracks[j].Rank
 	})
 
 	sort.Slice(rankedAlbums, func(i, j int) bool {
-		return rankedAlbums[i].Album.Title < rankedAlbums[j].Album.Title
+		return rankedAlbums[i].Album.Score < rankedAlbums[j].Album.Score
 	})
 	sort.Slice(rankedAlbums, func(i, j int) bool {
 		return rankedAlbums[i].Rank < rankedAlbums[j].Rank
 	})
 
 	sort.Slice(rankedArtists, func(i, j int) bool {
-		return rankedArtists[i].Artist.Name < rankedArtists[j].Artist.Name
+		return rankedArtists[i].Artist.Score < rankedArtists[j].Artist.Score
 	})
 	sort.Slice(rankedArtists, func(i, j int) bool {
 		return rankedArtists[i].Rank < rankedArtists[j].Rank
@@ -227,15 +227,15 @@ func (s *SearchManager) Query(query string) SearchResult {
 	}
 
 	for i, track := range rankedTracks {
-		result.Tracks[i] = webTypes.TrackToWeb(track.Track, s.scores)
+		result.Tracks[i] = track.Track
 	}
 
 	for i, album := range rankedAlbums {
-		result.Albums[i] = webTypes.AlbumToWeb(album.Album, s.scores)
+		result.Albums[i] = album.Album
 	}
 
 	for i, artist := range rankedArtists {
-		result.Artists[i] = webTypes.ArtistToWeb(artist.Artist, s.scores)
+		result.Artists[i] = artist.Artist
 	}
 
 	return result
