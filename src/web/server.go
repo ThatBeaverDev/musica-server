@@ -5,6 +5,7 @@ import (
 	identityStorage "musica-server/src"
 	"musica-server/src/indexer"
 	scores "musica-server/src/scores"
+	search "musica-server/src/search"
 	"net/http"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 type WebServer struct {
 	indexer *indexer.Indexer
-	search  *indexer.SearchManager
+	search  *search.SearchManager
 	scores  *scores.ScoreManager
 
 	router *chi.Mux
@@ -28,7 +29,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 
 	ws := &WebServer{
 		indexer: idx,
-		search:  indexer.NewSearcher(idx),
+		search:  search.NewSearcher(idx, scores),
 		scores:  scores,
 
 		router: r,
@@ -71,6 +72,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	ws.static("/", "./public/index.html", "text/html")
 	ws.static("/album/*", "./public/index.html", "text/html")
 	ws.static("/artist/*", "./public/index.html", "text/html")
+	ws.static("/search", "./public/index.html", "text/html")
 
 	ws.static(
 		"/apple-touch-icon.png",

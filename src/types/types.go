@@ -1,8 +1,9 @@
-package webServer
+package webTypes
 
 import (
 	"musica-server/src/indexer"
 	"musica-server/src/scores"
+	"sort"
 	"strconv"
 )
 
@@ -26,10 +27,10 @@ type WebExportedTrack = struct {
 	Duration float64       `json:"duration"`
 }
 
-func (ws *WebServer) trackToWeb(track *indexer.Track) WebExportedTrack {
-	score := ws.scores.TrackScore(track.ID)
+func TrackToWeb(track *indexer.Track, scoresManager *scores.ScoreManager) *WebExportedTrack {
+	score := scoresManager.TrackScore(track.ID)
 
-	return WebExportedTrack{
+	return &WebExportedTrack{
 		Title:  track.Title,
 		Artist: track.Artist,
 
@@ -63,13 +64,13 @@ type WebExportedAlbum = struct {
 	Score float64 `json:"score"`
 }
 
-func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
+func AlbumToWeb(album *indexer.Album, scoresManager *scores.ScoreManager) *WebExportedAlbum {
 	totalTrackScore := 0.0
 
 	var tracks []*WebExportedTrack
 	for _, track := range album.Tracks {
-		webExported := ws.trackToWeb(track)
-		tracks = append(tracks, &webExported)
+		webExported := TrackToWeb(track, scoresManager)
+		tracks = append(tracks, webExported)
 
 		totalTrackScore += webExported.Score
 	}
@@ -77,7 +78,7 @@ func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
 	totalTracks := float64(len(album.Tracks))
 	albumScore := totalTrackScore / totalTracks
 
-	return WebExportedAlbum{
+	exported := &WebExportedAlbum{
 		Title:    album.Title,
 		Artist:   album.Artist,
 		ArtistId: album.ArtistId,
@@ -89,6 +90,12 @@ func (ws *WebServer) albumToWeb(album *indexer.Album) WebExportedAlbum {
 
 		Score: albumScore,
 	}
+
+	sort.Slice(exported.Tracks, func(i, j int) bool {
+		return exported.Tracks[i].Title < exported.Tracks[j].Title
+	})
+
+	return exported
 }
 
 type WebExportedArtist struct {
@@ -119,14 +126,14 @@ type WebExportedArtist struct {
 	Banner    string `json:"banner,omitempty"`
 }
 
-func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
+func ArtistToWeb(artist *indexer.Artist, scoresManager *scores.ScoreManager) *WebExportedArtist {
 	totalTrackScore := 0.0
 	totalTracks := 0
 
 	var albums []*WebExportedAlbum
 	for _, album := range artist.Albums {
-		webExported := ws.albumToWeb(album)
-		albums = append(albums, &webExported)
+		webExported := AlbumToWeb(album, scoresManager)
+		albums = append(albums, webExported)
 
 		albumTracks := len(webExported.Tracks)
 
@@ -185,7 +192,7 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 		banner = artist.Extra.Banner
 	}
 
-	return WebExportedArtist{
+	exported := &WebExportedArtist{
 		Name: artist.Name,
 		ID:   artist.ID,
 
@@ -212,4 +219,10 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 		Logo:      logo,
 		Banner:    banner,
 	}
+
+	sort.Slice(exported.Albums, func(i, j int) bool {
+		return exported.Albums[i].Title < exported.Albums[j].Title
+	})
+
+	return exported
 }

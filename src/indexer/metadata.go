@@ -151,8 +151,8 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		Number: number,
 	}
 
-	s.Index.mutex.Lock()
-	defer s.Index.mutex.Unlock()
+	s.Index.Mutex.Lock()
+	defer s.Index.Mutex.Unlock()
 
 	// add to album
 	albumSpecifier := GetAlbumSpecifierDirect(albumArtist, albumName)

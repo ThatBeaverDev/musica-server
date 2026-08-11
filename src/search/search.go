@@ -1,6 +1,9 @@
 package indexer
 
 import (
+	"musica-server/src/indexer"
+	"musica-server/src/scores"
+	webTypes "musica-server/src/types"
 	"sort"
 	"strings"
 
@@ -8,35 +11,37 @@ import (
 )
 
 type SearchManager struct {
-	indexer *Indexer
+	indexer *indexer.Indexer
+	scores  *scores.ScoreManager
 }
 
 type SearchResult struct {
-	Tracks []*Track `json:"tracks"`
-	Albums []*Album `json:"albums"`
-	Artists []*Artist `json:"artists"`
+	Tracks  []*webTypes.WebExportedTrack  `json:"tracks"`
+	Albums  []*webTypes.WebExportedAlbum  `json:"albums"`
+	Artists []*webTypes.WebExportedArtist `json:"artists"`
 }
 
 type rankedTrack struct {
-	Track *Track
+	Track *indexer.Track
 	Rank  int
 }
 
 type rankedAlbum struct {
-	Album *Album
+	Album *indexer.Album
 	Rank  int
 }
 
 type rankedArtist struct {
-	Artist *Artist
-	Rank  int
+	Artist *indexer.Artist
+	Rank   int
 }
 
-func NewSearcher(indexer *Indexer) *SearchManager {
-	return &SearchManager{indexer: indexer}
+func NewSearcher(indexer *indexer.Indexer, scores *scores.ScoreManager) *SearchManager {
+	return &SearchManager{indexer: indexer, scores: scores}
+
 }
 
-func scoreTrack(query string, t *Track) int {
+func scoreTrack(query string, t *indexer.Track) int {
 	best := -1
 
 	fields := []struct {
@@ -69,11 +74,11 @@ func scoreTrack(query string, t *Track) int {
 	return best
 }
 
-func scoreAlbum(query string, a *Album) int {
+func scoreAlbum(query string, a *indexer.Album) int {
 	best := -1
 
 	type Field struct {
-		value string
+		value  string
 		weight int
 	}
 
@@ -107,11 +112,11 @@ func scoreAlbum(query string, a *Album) int {
 	return best
 }
 
-func scoreArtist(query string, a *Artist) int {
+func scoreArtist(query string, a *indexer.Artist) int {
 	best := -1
 
 	type Field struct {
-		value string
+		value  string
 		weight int
 	}
 
@@ -154,14 +159,14 @@ func (s *SearchManager) Query(query string) SearchResult {
 	if len(query) > maxQueryLen {
 		query = query[:maxQueryLen]
 	}
-	
+
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return SearchResult{}
 	}
 
-	s.indexer.Index.mutex.RLock()
-	defer s.indexer.Index.mutex.RUnlock()
+	s.indexer.Index.Mutex.RLock()
+	defer s.indexer.Index.Mutex.RUnlock()
 
 	var rankedTracks []rankedTrack
 	var rankedAlbums []rankedAlbum
@@ -184,44 +189,53 @@ func (s *SearchManager) Query(query string) SearchResult {
 			})
 		}
 	}
-	
+
 	for _, artist := range s.indexer.Index.Artists {
 		if rank := scoreArtist(query, artist); rank != -1 {
 			rankedArtists = append(rankedArtists, rankedArtist{
 				Artist: artist,
-				Rank:  rank,
+				Rank:   rank,
 			})
 		}
 	}
 
 	sort.Slice(rankedTracks, func(i, j int) bool {
+		return rankedTracks[i].Track.Title < rankedTracks[j].Track.Title
+	})
+	sort.Slice(rankedTracks, func(i, j int) bool {
 		return rankedTracks[i].Rank < rankedTracks[j].Rank
 	})
 
+	sort.Slice(rankedAlbums, func(i, j int) bool {
+		return rankedAlbums[i].Album.Title < rankedAlbums[j].Album.Title
+	})
 	sort.Slice(rankedAlbums, func(i, j int) bool {
 		return rankedAlbums[i].Rank < rankedAlbums[j].Rank
 	})
 
 	sort.Slice(rankedArtists, func(i, j int) bool {
+		return rankedArtists[i].Artist.Name < rankedArtists[j].Artist.Name
+	})
+	sort.Slice(rankedArtists, func(i, j int) bool {
 		return rankedArtists[i].Rank < rankedArtists[j].Rank
 	})
 
 	result := SearchResult{
-		Tracks: make([]*Track, len(rankedTracks)),
-		Albums: make([]*Album, len(rankedAlbums)),
-		Artists: make([]*Artist, len(rankedArtists)),
+		Tracks:  make([]*webTypes.WebExportedTrack, len(rankedTracks)),
+		Albums:  make([]*webTypes.WebExportedAlbum, len(rankedAlbums)),
+		Artists: make([]*webTypes.WebExportedArtist, len(rankedArtists)),
 	}
 
-	for i, t := range rankedTracks {
-		result.Tracks[i] = t.Track
+	for i, track := range rankedTracks {
+		result.Tracks[i] = webTypes.TrackToWeb(track.Track, s.scores)
 	}
 
-	for i, a := range rankedAlbums {
-		result.Albums[i] = a.Album
+	for i, album := range rankedAlbums {
+		result.Albums[i] = webTypes.AlbumToWeb(album.Album, s.scores)
 	}
 
-	for i, a := range rankedArtists {
-		result.Artists[i] = a.Artist
+	for i, artist := range rankedArtists {
+		result.Artists[i] = webTypes.ArtistToWeb(artist.Artist, s.scores)
 	}
 
 	return result

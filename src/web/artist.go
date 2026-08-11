@@ -3,6 +3,7 @@ package webServer
 import (
 	"bytes"
 	"encoding/json"
+	webTypes "musica-server/src/types"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -36,7 +37,7 @@ func (ws *WebServer) artistInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webExported := ws.artistToWeb(artist)
+	webExported := webTypes.ArtistToWeb(artist, ws.scores)
 
 	json.NewEncoder(w).Encode(webExported)
 }
@@ -59,11 +60,11 @@ func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []WebExportedArtist
+	var result []*webTypes.WebExportedArtist
 
 	for _, id := range ids {
 		if artist, ok := ws.indexer.Index.Artists[id]; ok {
-			webExported := ws.artistToWeb(artist)
+			webExported := webTypes.ArtistToWeb(artist, ws.scores)
 
 			result = append(result, webExported)
 		}

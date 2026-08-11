@@ -70,7 +70,7 @@ type trackIndex struct {
 	Albums  map[string]*Album
 	Artists map[string]*Artist
 
-	mutex sync.RWMutex
+	Mutex sync.RWMutex
 }
 
 func GetTrackAlbumSpecifier(track Track) string {
@@ -116,7 +116,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 			Albums:  make(map[string]*Album),
 			Artists: make(map[string]*Artist),
 
-			mutex: sync.RWMutex{},
+			Mutex: sync.RWMutex{},
 		},
 
 		trackToPictureStoreMap: make(map[string]string), // ID to MIME
@@ -150,8 +150,8 @@ func (s *Indexer) indexTrack(directory string) error {
 	}
 
 	// lock mutex
-	s.Index.mutex.Lock()
-	defer s.Index.mutex.Unlock()
+	s.Index.Mutex.Lock()
+	defer s.Index.Mutex.Unlock()
 
 	if _, ok := s.Index.Tracks[track.ID]; ok {
 		// already exists
