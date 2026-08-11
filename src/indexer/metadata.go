@@ -238,6 +238,7 @@ type ExtraArtistMetadata struct {
 
 	Thumbnail string `json:"strArtistThumb,omitempty"`
 	Logo      string `json:"strArtistLogo,omitempty"`
+	Banner    string `json:"strArtistBanner,omitempty"`
 }
 
 func SetInterval(fn func(), interval time.Duration) chan struct{} {

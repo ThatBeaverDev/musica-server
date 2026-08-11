@@ -38,6 +38,25 @@ export interface Artist {
 	albums: Album[];
 
 	score: number;
+
+	label?: string;
+
+	formed?: number;
+	born?: number;
+	died?: number;
+
+	style?: string;
+	genre?: string;
+	mood?: string;
+
+	biography?: string;
+
+	country?: string;
+	countryCode?: string;
+
+	thumbnail?: string;
+	logo?: string;
+	banner?: string;
 }
 
 export interface SearchResult {

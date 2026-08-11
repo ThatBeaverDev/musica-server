@@ -116,6 +116,7 @@ type WebExportedArtist struct {
 
 	Thumbnail string `json:"thumbnail,omitempty"`
 	Logo      string `json:"logo,omitempty"`
+	Banner    string `json:"banner,omitempty"`
 }
 
 func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
@@ -155,6 +156,7 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 	var thumbnail string
 	var logo string
+	var banner string
 
 	if artist.Extra != nil {
 		label = artist.Extra.Label
@@ -180,6 +182,7 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 		thumbnail = artist.Extra.Thumbnail
 		logo = artist.Extra.Logo
+		banner = artist.Extra.Banner
 	}
 
 	return WebExportedArtist{
@@ -207,5 +210,6 @@ func (ws *WebServer) artistToWeb(artist *indexer.Artist) WebExportedArtist {
 
 		Thumbnail: thumbnail,
 		Logo:      logo,
+		Banner:    banner,
 	}
 }
