@@ -241,8 +241,7 @@ const styles = {
 
 	trackList: {
 		display: "flex",
-		flexDirection: "column" as "column",
-		gap: "4px"
+		flexDirection: "column" as "column"
 	},
 
 	albumMetadata: {
