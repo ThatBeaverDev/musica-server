@@ -200,21 +200,21 @@ func (s *SearchManager) Query(query string) SearchResult {
 	}
 
 	sort.Slice(rankedTracks, func(i, j int) bool {
-		return rankedTracks[i].Track.Score < rankedTracks[j].Track.Score
+		return rankedTracks[i].Track.Score > rankedTracks[j].Track.Score
 	})
 	sort.Slice(rankedTracks, func(i, j int) bool {
 		return rankedTracks[i].Rank < rankedTracks[j].Rank
 	})
 
 	sort.Slice(rankedAlbums, func(i, j int) bool {
-		return rankedAlbums[i].Album.Score < rankedAlbums[j].Album.Score
+		return rankedAlbums[i].Album.Score > rankedAlbums[j].Album.Score
 	})
 	sort.Slice(rankedAlbums, func(i, j int) bool {
 		return rankedAlbums[i].Rank < rankedAlbums[j].Rank
 	})
 
 	sort.Slice(rankedArtists, func(i, j int) bool {
-		return rankedArtists[i].Artist.Score < rankedArtists[j].Artist.Score
+		return rankedArtists[i].Artist.Score > rankedArtists[j].Artist.Score
 	})
 	sort.Slice(rankedArtists, func(i, j int) bool {
 		return rankedArtists[i].Rank < rankedArtists[j].Rank
