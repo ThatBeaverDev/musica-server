@@ -14,6 +14,9 @@ func (s *Indexer) cleanupAlbums() {
 		}
 
 		sort.Slice(album.Tracks, func(i, j int) bool {
+			return album.Tracks[i].Title < album.Tracks[j].Title
+		})
+		sort.Slice(album.Tracks, func(i, j int) bool {
 			return album.Tracks[i].Number < album.Tracks[j].Number
 		})
 	}
@@ -29,5 +32,12 @@ func (s *Indexer) cleanupArtists() {
 		if artist.Name == "" {
 			delete(s.Index.Artists, artistId)
 		}
+
+		sort.Slice(artist.Albums, func(i, j int) bool {
+			return artist.Albums[i].Title < artist.Albums[j].Title
+		})
+		sort.Slice(artist.Albums, func(i, j int) bool {
+			return int64(artist.Albums[i].Release) < int64(artist.Albums[j].Release)
+		})
 	}
 }
