@@ -16,8 +16,6 @@ export default function Search() {
 	const [searchActive, setSearchActive] = useState(false);
 
 	function newTextboxState(val: string) {
-		if (!val) return;
-
 		setInputtedQuery(val);
 
 		const url = new URL(window.location.href);
@@ -40,7 +38,9 @@ export default function Search() {
 			if (isMounted) setResults(searchResults);
 		};
 
-		fetchResults();
+		if (!query) {
+			setResults({ tracks: [], albums: [], artists: [] });
+		} else fetchResults();
 
 		return () => {
 			isMounted = false;
@@ -66,7 +66,9 @@ export default function Search() {
 				onBlur={() => setSearchActive(false)}
 			/>
 
-			<h3 style={styles.resultsLabel}>{`Results for '${query}'`}</h3>
+			{query ? (
+				<h3 style={styles.resultsLabel}>{`Results for '${query}'`}</h3>
+			) : undefined}
 
 			{/* tracks */}
 			{results?.tracks && results.tracks.length !== 0 ? (
