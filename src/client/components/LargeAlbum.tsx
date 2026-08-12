@@ -27,7 +27,7 @@ export default function LargeAlbum({
 			<img
 				loading="lazy"
 				fetchPriority="low"
-				src={`/api/track/${album.tracks?.[0].id}/art`}
+				src={`/api/album/${album.id}/art`}
 				style={styles.albumArt}
 			/>
 

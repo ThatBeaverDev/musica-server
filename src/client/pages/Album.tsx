@@ -50,7 +50,7 @@ export default function Album() {
 					setAlbum(album);
 
 					const response: { dominantColour: string } = await (
-						await fetch(`/api/track/${album.tracks[0].id}/colour`, {
+						await fetch(`/api/album/${album.id}/colour`, {
 							priority: "high"
 						})
 					).json();
@@ -121,11 +121,7 @@ export default function Album() {
 			<div style={styles.hero}>
 				<img
 					style={styles.art}
-					src={
-						album
-							? `/api/track/${album.tracks[0].id}/art`
-							: undefined
-					}
+					src={album ? `/api/album/${album.id}/art` : undefined}
 				/>
 
 				<div>

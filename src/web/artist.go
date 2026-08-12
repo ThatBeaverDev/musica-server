@@ -3,8 +3,11 @@ package webServer
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"musica-server/src/indexer"
 	webTypes "musica-server/src/types"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -73,4 +76,63 @@ func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(result); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (ws *WebServer) artistArt(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	artist, ok := ws.indexer.Index.Artists[id]
+	if !ok {
+		http.Error(w, "Artist not found", http.StatusNotFound)
+		return
+	}
+
+	cover, err := ws.indexer.GetCover(*artist.Albums[0].Tracks[0])
+	if err != nil {
+		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	bytes, err := os.ReadFile(cover.Directory)
+	if err != nil {
+		fmt.Println("Error retrieving cover file for ID '"+id+"'': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	// don't re-request for a day
+	w.Header().Set("Cache-Control", "public, max-age=86400, immutable")
+
+	w.Header().Set("Content-Type", cover.Mime)
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(bytes)
+}
+
+func (ws *WebServer) artistColour(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	artist, ok := ws.indexer.Index.Artists[id]
+	if !ok {
+		http.Error(w, "Artist not found", http.StatusNotFound)
+		return
+	}
+
+	cover, err := ws.indexer.GetCover(*artist.Albums[0].Tracks[0])
+	if err != nil {
+		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	dominantColour, err := indexer.FindDominantColour(cover.Directory)
+	if err != nil {
+		http.Error(w, "Failed to extract dominant colour.", 500)
+	}
+
+	type DominantColourResponse struct {
+		DominantColour string `json:"dominantColour"`
+	}
+
+	json.NewEncoder(w).Encode(DominantColourResponse{
+		DominantColour: dominantColour,
+	})
 }

@@ -30,12 +30,9 @@ export default function Artist() {
 					setArtist(artist);
 
 					const response: { dominantColour: string } = await (
-						await fetch(
-							`/api/track/${artist.albums[0].tracks[0].id}/colour`,
-							{
-								priority: "high"
-							}
-						)
+						await fetch(`/api/artist/${artist.id}/colour`, {
+							priority: "high"
+						})
 					).json();
 
 					const rgbMain = hexToRgb(response.dominantColour);
@@ -74,19 +71,23 @@ export default function Artist() {
 		return () => window.setBackground("transparent");
 	});
 
+	const bio = artist?.biography
+		?.replaceAll?.("<br>", "\n")
+		?.replaceAll?.("<br/>", "\n")
+		?.replaceAll?.("<br />", "\n")
+		?.replaceAll("</br>", "")
+		?.replaceAll("</ br>", "");
+
+	const icon = artist
+		? (artist.thumbnail ?? `/api/artist/${artist.id}/art`)
+		: undefined;
+
 	document.title = artist ? `${artist.name} - Musica` : "Artist - Musica";
 
 	return (
 		<>
 			<div style={styles.hero}>
-				<img
-					style={styles.art}
-					src={
-						artist
-							? `/api/track/${artist.albums[0].tracks[0].id}/art`
-							: undefined
-					}
-				/>
+				<img style={styles.art} src={icon} />
 
 				<div>
 					<p>Artist</p>
@@ -121,6 +122,13 @@ export default function Artist() {
 						: undefined}
 				</div>
 			</div>
+
+			{bio ? (
+				<>
+					<h3>Artist Biography</h3>
+					<p>{bio}</p>
+				</>
+			) : undefined}
 		</>
 	);
 }
@@ -129,8 +137,8 @@ const styles = {
 	hero: {
 		display: "flex",
 		alignItems: "flex-end",
-		gap: "32px",
-		marginBottom: "40px"
+		gap: "2rem",
+		marginBottom: "2rem"
 	},
 
 	art: {
@@ -138,7 +146,7 @@ const styles = {
 		height: "240px",
 		objectFit: "cover" as "cover",
 		borderRadius: "6%",
-		boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+		boxShadow: "0 0.5rem 1.5rem rgba(0, 0, 0, 0.4)",
 		flexShrink: 0
 	},
 
@@ -152,8 +160,9 @@ const styles = {
 
 	albumList: {
 		display: "grid",
-		gridTemplateColumns: "repeat(auto-fit, minmax(160px, 200px))",
-		gap: "15px",
-		paddingTop: "10px"
+		gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 13rem))",
+		gap: "1rem",
+		paddingTop: "1rem",
+		paddingBottom: "2rem"
 	}
 };

@@ -56,11 +56,15 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	// Albums
 	api.Get("/albums/list", ws.listAlbums)
 	api.Get("/album/{id}/info", ws.albumInfo)
+	api.Get("/album/{id}/art", ws.albumArt)
+	api.Get("/album/{id}/colour", ws.albumColour)
 	api.Get("/bulk/albums/info", ws.bulkAlbums)
 
 	// Artists
 	api.Get("/artists/list", ws.listArtists)
 	api.Get("/artist/{id}/info", ws.artistInfo)
+	api.Get("/artist/{id}/art", ws.artistArt)
+	api.Get("/artist/{id}/colour", ws.artistColour)
 	api.Get("/bulk/artists/info", ws.bulkArtists)
 
 	// Search
