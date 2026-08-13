@@ -108,9 +108,9 @@ export default function Album() {
 	const hoursFormatted = hours == 0 ? "" : `${hours} hours`;
 	const minutesFormatted = minutes == 0 ? "" : `${minutes} minutes`;
 
-	const albumDurationInfo = album
-		? `${hoursFormatted} and ${minutesFormatted}`
-		: "";
+	const hoursAnd = hoursFormatted ? `${hoursFormatted} and ` : "";
+
+	const albumDurationInfo = album ? hoursAnd + minutesFormatted : "";
 
 	document.title = album
 		? `${album.title} by ${album.artist} - Musica`
