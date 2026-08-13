@@ -70,7 +70,10 @@ export default function App() {
 			<div style={styles.content}>
 				<Routes>
 					<Route path="/" element={<Home />} />
-					<Route path="/album/:id" element={<Album />} />
+					<Route
+						path="/album/:id"
+						element={<Album mobile={mobile} />}
+					/>
 					<Route path="/artist/:id" element={<Artist />} />
 					<Route path="/search" element={<Search />} />
 				</Routes>

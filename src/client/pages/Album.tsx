@@ -7,8 +7,9 @@ import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
 import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
 import { useNavigate } from "react-router-dom";
 import { hexToRgb } from "../lib/colour.js";
+import BigPlayButton from "../components/BigPlayButton.js";
 
-export default function Album() {
+export default function Album({ mobile }: { mobile: boolean }) {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
 	const navigate = useNavigate();
 
@@ -118,20 +119,20 @@ export default function Album() {
 
 	return (
 		<>
-			<div style={styles.hero}>
+			<div style={styles.hero(mobile)}>
 				<img
 					style={styles.art}
 					src={album ? `/api/album/${album.id}/art` : undefined}
 				/>
 
 				<div>
-					<p>Album</p>
+					<p style={styles.text(mobile)}>Album</p>
 
-					<h1 style={styles.title}>
+					<h1 style={styles.title(mobile)}>
 						{album?.title ?? "Loading Album..."}
 					</h1>
 
-					<p>
+					<p style={styles.text(mobile)}>
 						{album ? (
 							<>
 								<span
@@ -163,9 +164,28 @@ export default function Album() {
 							</>
 						) : undefined}
 					</p>
-					<p style={{ color: album ? colourScore(album.score) : "" }}>
+					<p
+						style={{
+							...styles.text(mobile),
+							color: album ? colourScore(album.score) : ""
+						}}
+					>
 						{album ? `Score: ${Math.round(album.score)}` : ""}
 					</p>
+
+					<BigPlayButton
+						style={styles.bigPlayButton(mobile)}
+
+						onClick={() => {
+							if (!album) return;
+							player.setQueue(
+								[],
+								album.tracks[0],
+								album.tracks.slice(1)
+							);
+							player.resume();
+						}}
+					></BigPlayButton>
 				</div>
 			</div>
 
@@ -211,11 +231,14 @@ export default function Album() {
 }
 
 const styles = {
-	hero: {
-		display: "flex",
-		alignItems: "flex-end",
-		gap: "32px",
-		marginBottom: "40px"
+	hero(mobile: boolean) {
+		return {
+			display: "flex",
+			flexDirection: mobile ? ("column" as "column") : ("row" as "row"),
+			alignItems: mobile ? "center" : "flex-end",
+			gap: "32px",
+			marginBottom: "40px"
+		};
 	},
 
 	art: {
@@ -227,12 +250,29 @@ const styles = {
 		flexShrink: 0
 	},
 
-	title: {
-		margin: 0,
-		fontSize: "3rem",
-		fontWeight: 700,
-		textAlign: "left" as "left",
-		whiteSpace: "normal" as "normal"
+	title(mobile: boolean) {
+		return {
+			margin: 0,
+			fontSize: mobile ? "2rem" : "3rem",
+			fontWeight: 700,
+			textAlign: mobile ? ("center" as "center") : ("left" as "left"),
+			whiteSpace: "normal" as "normal"
+		};
+	},
+
+	text(mobile: boolean) {
+		return {
+			textAlign: mobile ? ("center" as "center") : ("left" as "left")
+		};
+	},
+
+	bigPlayButton(mobile: boolean) {
+		return mobile
+			? {
+					marginLeft: "auto",
+					marginRight: "auto"
+				}
+			: {};
 	},
 
 	trackList: {
