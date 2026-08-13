@@ -63,7 +63,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	// Artists
 	api.Get("/artists/list", ws.listArtists)
 	api.Get("/artist/{id}/info", ws.artistInfo)
-	api.Get("/artist/{id}/art", ws.artistArt)
+	api.Get("/artist/{id}/art", ws.artistArtEndpoint)
 	api.Get("/artist/{id}/colour", ws.artistColour)
 	api.Get("/bulk/artists/info", ws.bulkArtists)
 

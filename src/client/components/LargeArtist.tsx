@@ -27,7 +27,7 @@ export default function LargeArtist({
 			<img
 				loading="lazy"
 				fetchPriority="low"
-				src={artist?.thumbnail ?? `/api/artist/${artist.id}/art`}
+				src={`/api/artist/${artist.id}/art`}
 				style={styles.artistPicture}
 			/>
 

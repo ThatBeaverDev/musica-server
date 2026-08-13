@@ -78,9 +78,7 @@ export default function Artist() {
 		?.replaceAll("</br>", "")
 		?.replaceAll("</ br>", "");
 
-	const icon = artist
-		? (artist.thumbnail ?? `/api/artist/${artist.id}/art`)
-		: undefined;
+	const icon = artist ? `/api/artist/${artist.id}/art` : undefined;
 
 	document.title = artist ? `${artist.name} - Musica` : "Artist - Musica";
 

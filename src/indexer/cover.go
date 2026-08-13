@@ -66,7 +66,7 @@ var FallbackCover = CoverResult{Mime: "image/png", Directory: fallbackArt}
 
 func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	artPath := path.Join(
-		s.cacheDirectory,
+		s.CacheDirectory,
 		fmt.Sprint("track_", track.ID, "_art"),
 	)
 

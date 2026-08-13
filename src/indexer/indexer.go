@@ -92,7 +92,7 @@ type Indexer struct {
 	mutex                  sync.RWMutex
 
 	WorkingDirectory string
-	cacheDirectory   string
+	CacheDirectory   string
 
 	identityStorage *identityStorage.IdentityStorage
 	config          *config.Config
@@ -122,7 +122,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 		trackToPictureStoreMap: make(map[string]string), // ID to MIME
 
 		WorkingDirectory: workingDirectory,
-		cacheDirectory:   libraryCache,
+		CacheDirectory:   libraryCache,
 
 		identityStorage: idStorage,
 		config:          config,

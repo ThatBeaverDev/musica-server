@@ -54,7 +54,6 @@ export interface Artist {
 	country?: string;
 	countryCode?: string;
 
-	thumbnail?: string;
 	logo?: string;
 	banner?: string;
 }

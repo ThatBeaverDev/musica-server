@@ -332,7 +332,7 @@ func requestExtraMetadata(name string) (*ExtraArtistMetadata, error) {
 }
 
 func (s *Indexer) GetArtistExtraMetadata(name string, network bool) (*ExtraArtistMetadata, error) {
-	dir := path.Join(s.cacheDirectory, fmt.Sprint(ids.Hash(name), "_extraMetadata.json"))
+	dir := path.Join(s.CacheDirectory, fmt.Sprint(ids.Hash(name), "_extraMetadata.json"))
 
 	var extra *ExtraArtistMetadata
 

@@ -121,7 +121,7 @@ type WebExportedArtist struct {
 	Country     string `json:"country,omitempty"`
 	CountryCode string `json:"countryCode,omitempty"`
 
-	Thumbnail string `json:"thumbnail,omitempty"`
+	Thumbnail string `json:"-"`
 	Logo      string `json:"logo,omitempty"`
 	Banner    string `json:"banner,omitempty"`
 }
