@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	safeFS "musica-server/src/fs"
 	"os"
 )
 
@@ -55,28 +56,9 @@ func (history *HistoryManager) store() {
 		return
 	}
 
-	tmpFile, err := os.CreateTemp(".", "history-*.tmp")
+	err = safeFS.SafeWriteFile("./history.json", jsonData)
 	if err != nil {
-		fmt.Println("Error creating temp file:", err)
-		return
-	}
-	tmpName := tmpFile.Name()
-
-	if _, err := tmpFile.Write(jsonData); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpName)
-		fmt.Println("Error writing to temp file:", err)
-		return
-	}
-	tmpFile.Close()
-
-	if err := os.Rename(tmpName, "./history.json"); err != nil {
-		if err := os.WriteFile("./history.json", jsonData, 0644); err != nil {
-			fmt.Println("Error replacing history.json (via WriteFile):", err)
-		}
-		os.Remove(tmpName)
-		return
-		return
+		fmt.Println(fmt.Errorf("failed to write to history.json: %w", err))
 	}
 
 	fmt.Println("Successfully saved to history.json.")

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	id "musica-server/src"
+	safeFS "musica-server/src/fs"
 	"musica-server/src/indexer"
 	shared "musica-server/src/sharedScores"
 	"os"
@@ -129,28 +130,9 @@ func (scores *ScoreManager) store() {
 		return
 	}
 
-	tmpFile, err := os.CreateTemp(".", "scores-*.tmp")
+	err = safeFS.SafeWriteFile("./scores.json", jsonData)
 	if err != nil {
-		fmt.Println("Error creating temp file:", err)
-		return
-	}
-	tmpName := tmpFile.Name()
-
-	if _, err := tmpFile.Write(jsonData); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpName)
-		fmt.Println("Error writing to temp file:", err)
-		return
-	}
-	tmpFile.Close()
-
-	if err := os.Rename(tmpName, "./scores.json"); err != nil {
-		if err := os.WriteFile("./scores.json", jsonData, 0644); err != nil {
-			fmt.Println("Error replacing scores.json (via WriteFile):", err)
-		}
-		os.Remove(tmpName)
-		return
-		return
+		fmt.Println(fmt.Errorf("failed to write to scores.json: %w", err))
 	}
 
 	fmt.Println("Successfully saved to scores.json.")
