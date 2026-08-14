@@ -293,7 +293,7 @@ func (s *Indexer) SetupSlowArtistExtraMetadataLoop() {
 			artist.Extra = extra
 		}
 
-	}, time.Second/4)
+	}, time.Second)
 }
 
 func requestExtraMetadata(name string) (*ExtraArtistMetadata, error) {
