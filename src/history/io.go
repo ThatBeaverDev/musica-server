@@ -71,8 +71,11 @@ func (history *HistoryManager) store() {
 	tmpFile.Close()
 
 	if err := os.Rename(tmpName, "./history.json"); err != nil {
+		if err := os.WriteFile("./history.json", jsonData, 0644); err != nil {
+			fmt.Println("Error replacing history.json (via WriteFile):", err)
+		}
 		os.Remove(tmpName)
-		fmt.Println("Error replacing history.json:", err)
+		return
 		return
 	}
 

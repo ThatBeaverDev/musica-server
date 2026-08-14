@@ -145,8 +145,11 @@ func (scores *ScoreManager) store() {
 	tmpFile.Close()
 
 	if err := os.Rename(tmpName, "./scores.json"); err != nil {
+		if err := os.WriteFile("./scores.json", jsonData, 0644); err != nil {
+			fmt.Println("Error replacing scores.json (via WriteFile):", err)
+		}
 		os.Remove(tmpName)
-		fmt.Println("Error replacing scores.json:", err)
+		return
 		return
 	}
 
