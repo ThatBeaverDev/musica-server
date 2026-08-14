@@ -94,7 +94,7 @@ export default function Home() {
 const styles = {
 	grid: {
 		display: "grid",
-		gridTemplateColumns: "repeat(auto-fill, minmax(10rem, 13rem))",
+		gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 13rem))",
 		gap: "1rem"
 	},
 
