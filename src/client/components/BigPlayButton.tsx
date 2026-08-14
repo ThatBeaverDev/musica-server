@@ -53,7 +53,9 @@ const styles = {
 			marginTop: "1rem",
 
 			transform: hovered ? (active ? "scale(0.95)" : "scale(1.1)") : "",
-			transition: "ease 0.2s"
+			transition: "ease 0.2s",
+
+			boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)"
 		};
 	},
 
