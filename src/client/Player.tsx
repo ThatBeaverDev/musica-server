@@ -656,7 +656,7 @@ const styles = {
 			};
 		}
 	},
-	trackArt: { width: "100%", height: "100%", borderRadiud: "6%" },
+	trackArt: { width: "100%", height: "100%", borderRadius: "6%" },
 
 	playerInfo: {
 		display: "flex",
