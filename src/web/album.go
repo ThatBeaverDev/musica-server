@@ -62,7 +62,7 @@ func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []*webTypes.WebExportedAlbum
+	result := []*webTypes.WebExportedAlbum{}
 
 	for _, id := range ids {
 		if album, ok := ws.indexer.Index.Albums[id]; ok {

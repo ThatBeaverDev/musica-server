@@ -66,7 +66,7 @@ func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []*webTypes.WebExportedArtist
+	result := []*webTypes.WebExportedArtist{}
 
 	for _, id := range ids {
 		if artist, ok := ws.indexer.Index.Artists[id]; ok {

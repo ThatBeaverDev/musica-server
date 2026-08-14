@@ -54,7 +54,7 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []*webTypes.WebExportedTrack
+	result := []*webTypes.WebExportedTrack{}
 
 	for _, id := range ids {
 		if track, ok := ws.indexer.Index.Tracks[id]; ok {
