@@ -8,4 +8,5 @@ services:
             - ./audio:/app/audio # configure this to your media library
             - ./config.json:/app/config.json # If not present, just write "{}" to it
             - ./scores.json:/app/scores.json # If not present, just write "{}" to it
+            - ./history.json:/app/history.json # If not present, just write "{}" to it
             - ./cache:/app/cache # make cache persist across runs
