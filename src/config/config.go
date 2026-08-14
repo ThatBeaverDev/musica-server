@@ -45,17 +45,12 @@ func New() (*Config, error) {
 }
 
 func (config *Config) GetCacheDirectory() (string, error) {
-	cacheDirectory, err := os.UserCacheDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to retrieve caching directory: %w", err)
-	}
-
-	musicaCacheDir := path.Join(cacheDirectory, "musica-server")
+	musicaCacheDir := "./cache"
 
 	libraryhash := fmt.Sprint(ids.Hash(config.MediaLibrary))
 
 	libraryCache := path.Join(musicaCacheDir, libraryhash)
-	err = os.MkdirAll(libraryCache, 0700)
+	err := os.MkdirAll(libraryCache, 0700)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create musica library cache directory: %w", err)
 	}

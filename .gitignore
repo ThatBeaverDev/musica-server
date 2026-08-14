@@ -3,6 +3,7 @@ build
 audio
 /public/app.js
 musica-server
+cache
 
 config.json
 scores.json
