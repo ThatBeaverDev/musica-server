@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { player } from "../Player";
 import { item2Colour, item3Colour, itemColour } from "../constants";
+import { formatSeconds } from "../lib/time";
 
 export default function ProgressBar() {
 	const [outerIsHovered, setOuterIsHovered] = useState(false);
@@ -79,34 +80,59 @@ export default function ProgressBar() {
 	}, []);
 
 	return (
-		<div
-			ref={outerRef}
-			style={styles.outer(outerIsHovered, outerIsActive)}
-
-			onMouseEnter={() => setOuterIsHovered(true)}
-			onMouseLeave={() => setOuterIsHovered(false)}
-
-			onMouseDown={() => setOuterIsActive(true)}
-			onMouseUp={() => setOuterIsActive(false)}
-		>
+		<div style={styles.container}>
+			<p style={styles.times}>
+				{formatSeconds(player.audio.currentTime)}
+			</p>
 			<div
-				ref={innerRef}
-				style={styles.inner(outerIsHovered, outerIsActive, innerWidth)}
-			></div>
+				ref={outerRef}
+				style={styles.outer(outerIsHovered, outerIsActive)}
+
+				onMouseEnter={() => setOuterIsHovered(true)}
+				onMouseLeave={() => setOuterIsHovered(false)}
+
+				onMouseDown={() => setOuterIsActive(true)}
+				onMouseUp={() => setOuterIsActive(false)}
+			>
+				<div
+					ref={innerRef}
+					style={styles.inner(
+						outerIsHovered,
+						outerIsActive,
+						innerWidth
+					)}
+				></div>
+			</div>
+			<p style={styles.times}>{formatSeconds(player.audio.duration)}</p>
 		</div>
 	);
 }
 
 const styles = {
+	container: {
+		display: "flex",
+		flexDirection: "row" as "row",
+
+		width: "100%",
+		height: "1rem",
+
+		gap: "1rem"
+	},
+
+	times: {
+		color: "#888",
+		fontSize: "1rem"
+	},
+
 	outer(hover: boolean, active: boolean) {
 		return {
 			width: "100%",
-			height: "6px",
+			height: "calc(100% - 4px)",
 
 			overflow: "hidden",
 			borderRadius: "1000px",
 
-			margin: "5px 0px",
+			margin: "2px 0px",
 
 			background: hover || active ? item2Colour : itemColour,
 
@@ -124,7 +150,7 @@ const styles = {
 			height: "100%",
 
 			background: outerHover || outerActive ? item3Colour : item2Colour,
-			transition: "ease 0.2s",
+			transition: outerActive ? "" : "ease 0.2s",
 
 			pointerEvents: "none" as "none"
 		};

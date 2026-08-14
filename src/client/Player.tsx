@@ -663,6 +663,8 @@ const styles = {
 		flexDirection: "column" as "column",
 		alignItems: "center",
 
+		width: "100%",
+
 		margin: "5px",
 
 		gap: "2px",
