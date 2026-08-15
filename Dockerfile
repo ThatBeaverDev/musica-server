@@ -15,9 +15,19 @@ RUN GOOS=linux go build -o musica-server .
 
 # merge it
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gosu \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY --from=backend-builder /app/musica-server /app/musica-server
 COPY --from=frontend-builder /app/public /app/public
+COPY docker_entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 3000
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/app/musica-server"]
