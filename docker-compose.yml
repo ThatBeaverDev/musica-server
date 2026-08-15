@@ -6,7 +6,5 @@ services:
             - 3000:3000 # host:container
         volumes:
             - ./audio:/app/audio # configure this to your media library
-            - ./config.json:/app/config.json # If not present, just write "{}" to it
-            - ./scores.json:/app/scores.json # If not present, just write "{}" to it
-            - ./history.json:/app/history.json # If not present, just write "{}" to it
+            - ./data:/app/data # contains history.json and scores.json.
             - ./cache:/app/cache # make cache persist across runs

@@ -24,6 +24,8 @@ WORKDIR /app
 COPY --from=backend-builder /app/musica-server /app/musica-server
 COPY --from=frontend-builder /app/public /app/public
 COPY docker_entrypoint.sh /usr/local/bin/entrypoint.sh
+# write static config file
+RUN echo '{"mediaLibrary": "/app/audio", "scores": "/app/data/scores.json", "history": "/app/data/history.json"}' > /app/config.json
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
