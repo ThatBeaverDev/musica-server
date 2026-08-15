@@ -29,6 +29,7 @@ type History struct {
 
 type HistoryManager struct {
 	History *History
+	indexer *indexer.Indexer
 
 	mutex sync.RWMutex
 }
@@ -38,14 +39,15 @@ func roundFloat(val float64, precision uint) float64 {
 	return math.Round(val*ratio) / ratio
 }
 
-func New() (*HistoryManager, error) {
-	history, err := readHistory()
+func New(indexer *indexer.Indexer) (*HistoryManager, error) {
+	history, err := readHistory(indexer)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read history from history.json: %w", err)
+		return nil, fmt.Errorf("Failed to read history from history store: %w", err)
 	}
 
 	historyManager := &HistoryManager{
 		History: &history,
+		indexer: indexer,
 
 		mutex: sync.RWMutex{},
 	}

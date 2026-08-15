@@ -74,8 +74,8 @@ func parseV1(jsonData []byte) (shared.TrackScoreMap, error) {
 	return payload.Scores, nil
 }
 
-func backup(newFile string) error {
-	oldScores, err := os.ReadFile("./scores.json")
+func backup(oldFile string, newFile string) error {
+	oldScores, err := os.ReadFile(oldFile)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func backup(newFile string) error {
 
 // load data from appropriate version
 func readScoreMap(indexer *indexer.Indexer) (shared.TrackScoreMap, error) {
-	jsonData, err := os.ReadFile("./scores.json")
+	jsonData, err := os.ReadFile(indexer.Config.ScoresFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
@@ -104,7 +104,7 @@ func readScoreMap(indexer *indexer.Indexer) (shared.TrackScoreMap, error) {
 		return scores, nil
 	}
 
-	err = backup("./scores-legacy-pre-migration.json")
+	err = backup(indexer.Config.ScoresFile, "./scores-legacy-pre-migration.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to write pre-legacy migration file: %w", err)
 	}
@@ -130,10 +130,11 @@ func (scores *ScoreManager) store() {
 		return
 	}
 
-	err = safeFS.SafeWriteFile("./scores.json", jsonData)
+	scoresFile := scores.config.ScoresFile
+	err = safeFS.SafeWriteFile(scoresFile, jsonData)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to write to scores.json: %w", err))
+		fmt.Println(fmt.Errorf("failed to write to "+scoresFile+": %w", err))
 	}
 
-	fmt.Println("Successfully saved to scores.json.")
+	fmt.Println("Successfully saved to " + scoresFile + ".")
 }

@@ -3,6 +3,7 @@ package scores
 import (
 	"fmt"
 	"math"
+	"musica-server/src/config"
 	"musica-server/src/history"
 	"musica-server/src/indexer"
 	shared "musica-server/src/sharedScores"
@@ -12,6 +13,7 @@ import (
 
 type ScoreManager struct {
 	history *history.HistoryManager
+	config  *config.Config
 
 	trackScores shared.TrackScoreMap // id to score
 
@@ -25,13 +27,14 @@ func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 		return nil, fmt.Errorf("Failed to read score map: %w", err)
 	}
 
-	history, err := history.New()
+	history, err := history.New(indexer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create history manager: %w", err)
 	}
 
 	scoreManager := &ScoreManager{
 		history:     history,
+		config:      indexer.Config,
 		trackScores: trackScores, // track to score (-50 to 50)
 		indexer:     indexer,
 	}

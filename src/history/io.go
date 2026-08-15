@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	safeFS "musica-server/src/fs"
+	"musica-server/src/indexer"
 	"os"
 )
 
@@ -26,8 +27,9 @@ func parseV1(jsonData []byte) (TrackHistoryMap, error) {
 }
 
 // load data from appropriate version
-func readHistory() (History, error) {
-	jsonData, err := os.ReadFile("./history.json")
+func readHistory(indexer *indexer.Indexer) (History, error) {
+
+	jsonData, err := os.ReadFile(indexer.Config.HistoryFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
@@ -56,10 +58,11 @@ func (history *HistoryManager) store() {
 		return
 	}
 
-	err = safeFS.SafeWriteFile("./history.json", jsonData)
+	historyFile := history.indexer.Config.HistoryFile
+	err = safeFS.SafeWriteFile(historyFile, jsonData)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to write to history.json: %w", err))
+		fmt.Println(fmt.Errorf("failed to write to "+historyFile+": %w", err))
 	}
 
-	fmt.Println("Successfully saved to history.json.")
+	fmt.Println("Successfully saved to " + historyFile + ".")
 }

@@ -95,7 +95,7 @@ type Indexer struct {
 	CacheDirectory   string
 
 	identityStorage *identityStorage.IdentityStorage
-	config          *config.Config
+	Config          *config.Config
 }
 
 func New(directory string, idStorage *identityStorage.IdentityStorage, config *config.Config) (*Indexer, error) {
@@ -125,7 +125,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 		CacheDirectory:   libraryCache,
 
 		identityStorage: idStorage,
-		config:          config,
+		Config:          config,
 	}
 
 	waitGroup := sync.WaitGroup{}

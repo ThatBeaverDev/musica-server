@@ -12,10 +12,15 @@ type Config struct {
 	Port int `json:"port"`
 
 	MediaLibrary string `json:"mediaLibrary"`
+
+	ScoresFile  string `json:"scores"`
+	HistoryFile string `json:"history"`
 }
 
 const defaultPort = 3000
 const defaultMediaLibrary = "audio"
+const defaultScoresFile = "scores.json"
+const defaultHistoryFile = "history.json"
 
 func New() (*Config, error) {
 	var Cfg Config
@@ -39,6 +44,12 @@ func New() (*Config, error) {
 	}
 	if Cfg.Port == 0 {
 		Cfg.Port = defaultPort
+	}
+	if Cfg.ScoresFile == "" {
+		Cfg.ScoresFile = defaultScoresFile
+	}
+	if Cfg.HistoryFile == "" {
+		Cfg.HistoryFile = defaultHistoryFile
 	}
 
 	return &Cfg, nil
