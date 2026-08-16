@@ -4,6 +4,7 @@ import SubsetDisplay from "./components/Subset";
 import QueueItem from "./components/QueueItem";
 import ProgressBar from "./components/ProgressBar";
 import PlayerControl from "./components/PlayerControl";
+import { getTrackMetadata } from "./lib/metadata";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -46,11 +47,7 @@ async function getRandomMix() {
 		priority: "high"
 	});
 	const { id, subset }: RandomMixTrackResult = await nextIdFetch.json();
-
-	const trackFetch = await fetch(`/api/track/${id}/info`, {
-		priority: "high"
-	});
-	const track: Track = await trackFetch.json();
+	const track = await getTrackMetadata(id);
 
 	return { track, subset };
 }

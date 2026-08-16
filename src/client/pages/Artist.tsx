@@ -3,7 +3,8 @@ import { colourScore } from "../lib/score.js";
 import { Album, Artist } from "../musica.js";
 import LargeAlbum from "../components/LargeAlbum.js";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
-import { hexToRgb } from "../lib/colour.js";
+import { getItemColours } from "../lib/colour.js";
+import { getArtistMetadata } from "../lib/metadata.js";
 
 export default function Artist() {
 	// context menu, close on any mouse press
@@ -18,35 +19,15 @@ export default function Artist() {
 
 		const fetchartists = async () => {
 			try {
-				const artist: Artist = await (
-					await fetch(`/api/artist/${id}/info`, { priority: "high" })
-				).json();
-
-				artist.albums.sort(
-					(a, b) => (a.modified ?? 0) - (b.modified ?? 0)
-				);
+				const artist = await getArtistMetadata(id);
 
 				if (isMounted) {
 					setArtist(artist);
 
-					const response: { dominantColour: string } = await (
-						await fetch(`/api/artist/${artist.id}/colour`, {
-							priority: "high"
-						})
-					).json();
-
-					const rgbMain = hexToRgb(response.dominantColour);
-
-					const largestMagnitude = Math.max(...rgbMain);
-					const divisor = largestMagnitude / 30;
-
-					const rgbDarker = rgbMain.map((value) =>
-						Math.round(value / divisor)
-					);
-					const darker = `rgb(${rgbDarker.join(", ")})`;
+					const [colour, darker] = await getItemColours("artist", id);
 
 					if (isMounted) {
-						setColours([response.dominantColour, darker]);
+						setColours([colour, darker]);
 					}
 				}
 			} catch (error) {

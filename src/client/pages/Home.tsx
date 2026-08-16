@@ -5,6 +5,7 @@ import { player } from "../Player";
 import LargeAlbum from "../components/LargeAlbum";
 import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
+import { getAlbumIds, getAlbumMetadataBulk } from "../lib/metadata";
 
 export default function Home() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Album>();
@@ -16,32 +17,13 @@ export default function Home() {
 
 		const fetchAlbums = async () => {
 			try {
-				const idURL = `/api/albums/list`;
-				const albumIdsRequest = await fetch(idURL);
+				const albumIDs = await getAlbumIds();
+				const albums = await getAlbumMetadataBulk(albumIDs);
 
-				if (!albumIdsRequest.ok) {
-					throw new Error(
-						`Failed to list albums from ${idURL}: HTTP Status ${albumIdsRequest.status}`
-					);
-				}
-				const albumIDs = await albumIdsRequest.json();
-
-				const albumStatsRequest = await fetch(`/api/bulk/albums/info`, {
-					headers: { albums: JSON.stringify(albumIDs) },
-					priority: "high"
-				});
-
-				if (!albumStatsRequest.ok) {
-					throw new Error(
-						`Failed to fetch album info: HTTP Status ${albumStatsRequest.status}`
-					);
-				}
-				const fetchedAlbums: Album[] = await albumStatsRequest.json();
-
-				fetchedAlbums.sort((a, b) => b.modified - a.modified);
+				albums.sort((a, b) => b.modified - a.modified);
 
 				if (isMounted) {
-					setAlbums(fetchedAlbums);
+					setAlbums(albums);
 				}
 			} catch (error) {
 				console.error("Error loading albums:", error);

@@ -6,8 +6,9 @@ import { onTrackSearchAndPlay, player } from "../Player.js";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
 import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
 import { useNavigate } from "react-router-dom";
-import { hexToRgb } from "../lib/colour.js";
+import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
+import { getAlbumMetadata } from "../lib/metadata.js";
 
 export default function Album({ mobile }: { mobile: boolean }) {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
@@ -41,33 +42,15 @@ export default function Album({ mobile }: { mobile: boolean }) {
 
 		const fetchAlbum = async () => {
 			try {
-				const album: Album = await (
-					await fetch(`/api/album/${id}/info`, { priority: "high" })
-				).json();
-
-				album.tracks.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+				const album = await getAlbumMetadata(id);
 
 				if (isMounted) {
 					setAlbum(album);
 
-					const response: { dominantColour: string } = await (
-						await fetch(`/api/album/${album.id}/colour`, {
-							priority: "high"
-						})
-					).json();
-
-					const rgbMain = hexToRgb(response.dominantColour);
-
-					const largestMagnitude = Math.max(...rgbMain);
-					const divisor = largestMagnitude / 30;
-
-					const rgbDarker = rgbMain.map((value) =>
-						Math.round(value / divisor)
-					);
-					const darker = `rgb(${rgbDarker.join(", ")})`;
+					const [colour, darker] = await getItemColours("album", id);
 
 					if (isMounted) {
-						setColours([response.dominantColour, darker]);
+						setColours([colour, darker]);
 					}
 				}
 			} catch (error) {
