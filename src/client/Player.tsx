@@ -5,6 +5,8 @@ import QueueItem from "./components/QueueItem";
 import ProgressBar from "./components/ProgressBar";
 import PlayerControl from "./components/PlayerControl";
 import { getTrackMetadata } from "./lib/metadata";
+import { useEffect } from "preact/hooks";
+import { getItemColours } from "./lib/colour";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -534,8 +536,43 @@ export default function Player({ mobile }: { mobile: boolean }) {
 		.slice(queue.currentPlayOrderIndex + 1)
 		.map((index) => queue.playlist[index]);
 
+	const [trackColour, setTrackColour] = useState<string | undefined>();
+	const [darkerColour, setDarkerColour] = useState<string | undefined>();
+	useEffect(() => {
+		const track = player.currentTrack;
+		if (!track) {
+			setTrackColour(undefined);
+			setDarkerColour(undefined);
+			return;
+		}
+
+		let isMounted = true;
+
+		const fetchColours = async () => {
+			try {
+				const [colour, darker] = await getItemColours(
+					"track",
+					track.id
+				);
+
+				if (isMounted) {
+					setTrackColour(colour);
+					setDarkerColour(darker);
+				}
+			} catch (error) {
+				console.error("Error loading albums:", error);
+			}
+		};
+
+		fetchColours();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [player.currentTrack]);
+
 	return (
-		<div style={styles.queue(mobile)}>
+		<div style={styles.queue(mobile, trackColour, darkerColour)}>
 			<div style={styles.player(mobile)}>
 				{track ? (
 					<div style={styles.trackArtContainer(mobile)}>
@@ -600,14 +637,14 @@ export default function Player({ mobile }: { mobile: boolean }) {
 }
 
 const styles = {
-	queue(mobile: boolean) {
+	queue(mobile: boolean, trackColour?: string, darkerColour?: string) {
 		if (mobile) {
 			return {
 				width: "100dvw",
 				height: "40dvw",
 
 				padding: "24px",
-				background: "#181818",
+				background: darkerColour ?? "#181818",
 				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
 
 				overflowX: "hidden" as "hidden",
@@ -620,7 +657,10 @@ const styles = {
 
 				padding: "24px",
 				paddingTop: "0px",
-				background: "#181818",
+				background:
+					trackColour && darkerColour
+						? `linear-gradient(to bottom, ${trackColour}, ${darkerColour} 400px`
+						: "#181818",
 				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
 
 				overflowX: "hidden" as "hidden",
