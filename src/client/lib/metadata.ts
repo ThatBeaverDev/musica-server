@@ -20,7 +20,7 @@ export async function getTrackColour(id: string): Promise<string> {
 	if (cacheEntry) return cacheEntry;
 
 	const colourFetch = await fetch(`/api/track/${id}/colour`, {
-		priority: "high"
+		priority: "low"
 	});
 	const { dominantColour: colour }: { dominantColour: string } =
 		await colourFetch.json();
@@ -95,7 +95,7 @@ export async function getAlbumColour(id: string): Promise<string> {
 	if (cacheEntry) return cacheEntry;
 
 	const colourFetch = await fetch(`/api/album/${id}/colour`, {
-		priority: "high"
+		priority: "low"
 	});
 	const { dominantColour: colour }: { dominantColour: string } =
 		await colourFetch.json();
@@ -132,7 +132,7 @@ export async function getArtistColour(id: string): Promise<string> {
 	if (cacheEntry) return cacheEntry;
 
 	const colourFetch = await fetch(`/api/artist/${id}/colour`, {
-		priority: "high"
+		priority: "low"
 	});
 	const { dominantColour: colour }: { dominantColour: string } =
 		await colourFetch.json();
