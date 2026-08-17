@@ -109,6 +109,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 		"image/png",
 	)
 
+	// player icons
 	ws.static(
 		"/img/play.svg",
 		"./public/img/play.svg",
@@ -129,6 +130,52 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 		"./public/img/skip-back.svg",
 		"image/svg+xml",
 	)
+
+	// extra controls
+	ws.static(
+		"/img/maximise.svg",
+		"./public/img/maximise.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/minimise.svg",
+		"./public/img/minimise.svg",
+		"image/svg+xml",
+	)
+	// loop
+	ws.static(
+		"/img/no-loop.svg",
+		"./public/img/no-loop.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/loop-1.svg",
+		"./public/img/loop-1.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/loop.svg",
+		"./public/img/loop.svg",
+		"image/svg+xml",
+	)
+	// shuffle
+	ws.static(
+		"/img/no-shuffle.svg",
+		"./public/img/no-shuffle.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/shuffle.svg",
+		"./public/img/shuffle.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/dynamic-queue.svg",
+		"./public/img/dynamic-queue.svg",
+		"image/svg+xml",
+	)
+
+	// subset icons
 	ws.static(
 		"/img/standard.svg",
 		"./public/img/standard.svg",

@@ -1,0 +1,16 @@
+.playerControl {
+	filter: invert(100%);
+	margin: 10px;
+
+	transition: 0.2s ease;
+
+	user-select: none;
+}
+
+.playerControl:hover {
+	transform: scale(1.1);
+}
+
+.playerControl:active {
+	transform: scale(0.75);
+}

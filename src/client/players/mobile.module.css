@@ -1,0 +1,60 @@
+.queue {
+	width: 100dvw;
+	height: 7rem;
+
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
+	background: #181818;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+	overflow: hidden;
+}
+
+.properties {
+	flex: 1;
+	min-width: 0;
+	margin-right: auto;
+	padding-right: 10px;
+
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+}
+
+.trackArt {
+	width: 7rem;
+	height: 7rem;
+	padding-right: 10px;
+}
+
+.playerControls {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+
+	padding-right: 1rem;
+}
+
+.trackTitle {
+	width: 100%;
+	font-size: 1.5rem;
+	font-weight: 500;
+	color: white;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.trackArtist {
+	width: 100%;
+	font-size: 0.9rem;
+	color: #888;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

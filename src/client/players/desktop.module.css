@@ -1,0 +1,96 @@
+.queue {
+	width: 260px;
+	height: 100%;
+
+	padding: 24px;
+	padding-top: 0px;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+	overflow-y: hidden;
+	overflow-y: scroll;
+}
+
+.player {
+	width: 100%;
+
+	display: flex;
+	flex-direction: column;
+
+	align-items: center;
+	margin: 20px 0px;
+}
+
+.toolbar {
+	width: 100%;
+
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+
+	padding: 1rem;
+}
+
+.toolItem {
+	filter: invert(100%);
+	transition: 0.2s ease;
+}
+.toolItem:hover {
+	transform: scale(1.1);
+}
+.toolItem:active {
+	transform: scale(0.75);
+}
+
+.trackArtContainer {
+	width: 100%;
+	aspect-ratio: 1/1;
+	min-height: 0;
+	padding-right: 10px;
+}
+
+.trackArt {
+	width: 100%;
+	height: 100%;
+	border-radius: 6%;
+}
+
+.playerInfo {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	width: 100%;
+
+	margin: 5px;
+
+	gap: 2px;
+	flex: 1;
+}
+
+.playerControls {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+
+	width: 100%;
+}
+
+.trackTitle {
+	font-size: 1.5rem;
+	font-weight: 500;
+	color: white;
+	text-align: center;
+}
+
+.trackArtist {
+	font-size: 0.9rem;
+	color: #888;
+	text-align: center;
+}
+
+.queueEmptyText {
+	user-select: none;
+	width: 100%;
+	text-align: center;
+}

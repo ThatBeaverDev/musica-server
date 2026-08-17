@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { RandomMixTrackResult, Track } from "./musica";
-import SubsetDisplay from "./components/Subset";
-import QueueItem from "./components/QueueItem";
-import ProgressBar from "./components/ProgressBar";
-import PlayerControl from "./components/PlayerControl";
 import { getTrackMetadata } from "./lib/metadata";
 import { useEffect } from "preact/hooks";
 import { getItemColours } from "./lib/colour";
+import MobilePlayer from "./players/player.mobile";
+import DesktopPlayer from "./players/player.desktop";
+import FullscreenPlayer from "./players/player.fullscreen";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -528,12 +527,18 @@ export function onTrackSearchAndPlay(id: string) {
 	fetch(`/api/track/${id}/explicitPlay`);
 }
 
-export default function Player({ mobile }: { mobile: boolean }) {
+export function playerHooks() {
 	const [track, setTrack] = useState(player.currentTrack);
 	player.onTrackUpdate = setTrack;
 
 	const [queue, setQueue] = useState(player.queue);
 	player.onQueueUpdate = setQueue;
+
+	const [shuffle, setShuffle] = useState(false);
+	player.onShuffleUpdate = setShuffle;
+
+	const [loop, setLoop] = useState(LoopState.none);
+	player.onLoopUpdate = setLoop;
 
 	const [isPlaying, setIsPlaying] = useState(player.isPlaying);
 	player.onPlaybackStateChange = setIsPlaying;
@@ -577,166 +582,49 @@ export default function Player({ mobile }: { mobile: boolean }) {
 		};
 	}, [player.currentTrack]);
 
-	return (
-		<div style={styles.queue(mobile, trackColour, darkerColour)}>
-			<div style={styles.player(mobile)}>
-				{track ? (
-					<div style={styles.trackArtContainer(mobile)}>
-						<img
-							style={styles.trackArt}
-							src={`/api/track/${track?.id}/art`}
-						/>
-					</div>
-				) : undefined}
-
-				<div style={styles.playerInfo}>
-					<p style={styles.trackTitle} id="player-title">
-						{track?.title ?? "Nothing is playing."}
-					</p>
-					<p style={styles.trackArtist} id="player-artist">
-						{track?.artist ?? ""}
-					</p>
-					{track?.subset ? (
-						<SubsetDisplay subset={track.subset}></SubsetDisplay>
-					) : undefined}
-
-					<ProgressBar />
-
-					<div style={styles.playerControls}>
-						<PlayerControl
-							src="/img/skip-back.svg"
-							onClick={() => player.skipBack()}
-						/>
-						<PlayerControl
-							src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
-							onClick={() => player.toggle()}
-							width="40px"
-							height="40px"
-						/>
-						<PlayerControl
-							src="/img/skip-forward.svg"
-							onClick={() => player.skipForward()}
-						/>
-					</div>
-				</div>
-			</div>
-
-			<div>
-				{playlist.length == 0 ? (
-					<p style={styles.queueEmptyText}>
-						{queue.isDynamic
-							? "Just go with the dynamic queue's flow!"
-							: "Nothing queued at the moment."}
-					</p>
-				) : (
-					playlist.map((entry, index) => (
-						<QueueItem
-							key={index}
-							track={entry}
-							offset={index + 1}
-						/>
-					))
-				)}
-			</div>
-		</div>
-	);
+	return {
+		track,
+		queue,
+		shuffle,
+		loop,
+		isPlaying,
+		playlist,
+		trackColour,
+		darkerColour
+	};
 }
 
-const styles = {
-	queue(mobile: boolean, trackColour?: string, darkerColour?: string) {
-		if (mobile) {
-			return {
-				width: "100dvw",
-				height: "40dvw",
+export default function Player({ mobile }: { mobile: boolean }) {
+	const {
+		track,
+		queue,
+		loop,
+		shuffle,
+		isPlaying,
+		playlist,
+		trackColour,
+		darkerColour
+	} = playerHooks();
 
-				padding: "24px",
-				background: darkerColour ?? "#181818",
-				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+	const [isFullscreen, setIsFullscreen] = useState(false);
 
-				overflowX: "hidden" as "hidden",
-				overflowY: "scroll" as "scroll"
-			};
-		} else {
-			return {
-				width: "260px",
-				height: "100%",
+	const PlayerElement = isFullscreen
+		? FullscreenPlayer
+		: mobile
+			? MobilePlayer
+			: DesktopPlayer;
 
-				padding: "24px",
-				paddingTop: "0px",
-				background:
-					trackColour && darkerColour
-						? `linear-gradient(to bottom, ${trackColour}, ${darkerColour} 400px`
-						: "#181818",
-				borderTop: "1px solid rgba(255, 255, 255, 0.06)",
-
-				overflowX: "hidden" as "hidden",
-				overflowY: "scroll" as "scroll"
-			};
-		}
-	},
-
-	player(mobile: boolean) {
-		return {
-			width: "100%",
-
-			display: "flex",
-			flexDirection: mobile ? ("row" as "row") : ("column" as "column"),
-
-			alignItems: "center",
-			margin: "20px 0px"
-		};
-	},
-
-	trackArtContainer(mobile: boolean) {
-		if (mobile) {
-			return { width: "15dvh", height: "15dvh", paddingRight: "10px" };
-		} else {
-			return {
-				width: "100%",
-				aspectRatio: "1/1",
-				minHeight: 0,
-				paddingRight: "10px"
-			};
-		}
-	},
-	trackArt: { width: "100%", height: "100%", borderRadius: "6%" },
-
-	playerInfo: {
-		display: "flex",
-		flexDirection: "column" as "column",
-		alignItems: "center",
-
-		width: "100%",
-
-		margin: "5px",
-
-		gap: "2px",
-		flex: 1
-	},
-	playerControls: {
-		display: "flex",
-		flexDirection: "row" as "row",
-		justifyContent: "center" as "center",
-		alignItems: "center" as "center",
-
-		width: "100%"
-	},
-
-	trackTitle: {
-		fontSize: "1.5rem",
-		fontWeight: 500,
-		color: "white",
-		textAlign: "center" as "center"
-	},
-	trackArtist: {
-		fontSize: "0.9rem",
-		color: "#888",
-		textAlign: "center" as "center"
-	},
-
-	queueEmptyText: {
-		userSelect: "none" as "none",
-		width: "100%",
-		textAlign: "center" as "center"
-	}
-};
+	return (
+		<PlayerElement
+			track={track}
+			queue={queue}
+			shuffle={shuffle}
+			loop={loop}
+			isPlaying={isPlaying}
+			playlist={playlist}
+			trackColour={trackColour}
+			darkerColour={darkerColour}
+			setIsFullscreen={setIsFullscreen}
+		/>
+	);
+}
