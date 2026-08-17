@@ -117,6 +117,7 @@ export async function getArtistMetadata(id: string): Promise<Artist> {
 
 	artist.albums.sort((a, b) => (a.modified ?? 0) - (b.modified ?? 0));
 	artist.albums.forEach((album) => {
+		album.tracks.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 		albumMetadata.set(album.id, album);
 
 		album.tracks.forEach((track) => trackMetadata.set(track.id, track));
