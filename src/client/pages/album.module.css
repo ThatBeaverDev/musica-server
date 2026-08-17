@@ -1,0 +1,62 @@
+.hero {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-end;
+	gap: 32px;
+	margin-bottom: 40px;
+}
+
+.art {
+	width: 240px;
+	height: 240px;
+
+	object-fit: cover;
+	border-radius: 6%;
+
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	flex-shrink: 0;
+}
+
+.title {
+	margin: 0%;
+	font-size: 3rem;
+	font-weight: 700;
+	text-align: left;
+	white-space: normal;
+}
+
+.text {
+	text-align: left;
+}
+
+.trackList {
+	display: flex;
+	flex-direction: column;
+}
+
+.albumMetadata {
+	font-size: 0.9rem;
+	color: #888;
+}
+
+/* mobile */
+@media (max-aspect-ratio: 7/10) {
+	.hero {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.title {
+		font-size: 2rem;
+		text-align: center;
+	}
+
+	.text {
+		text-align: center;
+	}
+
+	.bigPlayButton {
+		margin-left: auto;
+		margin-right: auto;
+	}
+}

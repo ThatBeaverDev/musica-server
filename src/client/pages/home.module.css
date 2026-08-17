@@ -1,0 +1,9 @@
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 13rem));
+	gap: 1rem;
+}
+
+.heading {
+	padding: 20px 0px;
+}

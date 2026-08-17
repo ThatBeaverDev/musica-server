@@ -9,8 +9,9 @@ import { useNavigate } from "react-router-dom";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { getAlbumMetadata } from "../lib/metadata.js";
+import styles from "./album.module.css";
 
-export default function Album({ mobile }: { mobile: boolean }) {
+export default function Album() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
 	const navigate = useNavigate();
 
@@ -96,26 +97,24 @@ export default function Album({ mobile }: { mobile: boolean }) {
 
 	const albumDurationInfo = album ? hoursAnd + minutesFormatted : "";
 
+	const icon = album ? `/api/album/${album.id}/art` : undefined;
 	document.title = album
 		? `${album.title} by ${album.artist} - Musica`
 		: "Album - Musica";
 
 	return (
 		<>
-			<div style={styles.hero(mobile)}>
-				<img
-					style={styles.art}
-					src={album ? `/api/album/${album.id}/art` : undefined}
-				/>
+			<div className={styles.hero}>
+				<img className={styles.art} src={icon} />
 
 				<div>
-					<p style={styles.text(mobile)}>Album</p>
+					<p className={styles.text}>Album</p>
 
-					<h1 style={styles.title(mobile)}>
+					<h1 className={styles.title}>
 						{album?.title ?? "Loading Album..."}
 					</h1>
 
-					<p style={styles.text(mobile)}>
+					<p className={styles.text}>
 						{album ? (
 							<>
 								<span
@@ -148,8 +147,9 @@ export default function Album({ mobile }: { mobile: boolean }) {
 						) : undefined}
 					</p>
 					<p
+						className={styles.text}
+
 						style={{
-							...styles.text(mobile),
 							color: album ? colourScore(album.score) : ""
 						}}
 					>
@@ -157,7 +157,7 @@ export default function Album({ mobile }: { mobile: boolean }) {
 					</p>
 
 					<BigPlayButton
-						style={styles.bigPlayButton(mobile)}
+						className={styles.bigPlayButton}
 
 						onClick={() => {
 							if (!album) return;
@@ -174,7 +174,7 @@ export default function Album({ mobile }: { mobile: boolean }) {
 
 			<div>
 				<h3>Tracks</h3>
-				<div style={styles.trackList}>
+				<div className={styles.trackList}>
 					{album
 						? album.tracks.map((track, index) => (
 								<AlbumTrack
@@ -197,7 +197,7 @@ export default function Album({ mobile }: { mobile: boolean }) {
 
 				<br />
 				<p
-					style={styles.albumMetadata}
+					className={styles.albumMetadata}
 				>{`${trackCountInfo} - ${albumDurationInfo}`}</p>
 			</div>
 
@@ -212,59 +212,3 @@ export default function Album({ mobile }: { mobile: boolean }) {
 		</>
 	);
 }
-
-const styles = {
-	hero(mobile: boolean) {
-		return {
-			display: "flex",
-			flexDirection: mobile ? ("column" as "column") : ("row" as "row"),
-			alignItems: mobile ? "center" : "flex-end",
-			gap: "32px",
-			marginBottom: "40px"
-		};
-	},
-
-	art: {
-		width: "240px",
-		height: "240px",
-		objectFit: "cover" as "cover",
-		borderRadius: "6%",
-		boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
-		flexShrink: 0
-	},
-
-	title(mobile: boolean) {
-		return {
-			margin: 0,
-			fontSize: mobile ? "2rem" : "3rem",
-			fontWeight: 700,
-			textAlign: mobile ? ("center" as "center") : ("left" as "left"),
-			whiteSpace: "normal" as "normal"
-		};
-	},
-
-	text(mobile: boolean) {
-		return {
-			textAlign: mobile ? ("center" as "center") : ("left" as "left")
-		};
-	},
-
-	bigPlayButton(mobile: boolean) {
-		return mobile
-			? {
-					marginLeft: "auto",
-					marginRight: "auto"
-				}
-			: {};
-	},
-
-	trackList: {
-		display: "flex",
-		flexDirection: "column" as "column"
-	},
-
-	albumMetadata: {
-		fontSize: "0.9rem",
-		color: "#888"
-	}
-};

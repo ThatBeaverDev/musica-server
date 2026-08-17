@@ -2,6 +2,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import alias from "@rollup/plugin-alias";
+import postcss from "rollup-plugin-postcss";
 
 export default [
 	{
@@ -32,6 +33,11 @@ export default [
 						replacement: "preact/jsx-runtime"
 					}
 				]
+			}),
+			postcss({
+				extract: "app.css",
+				modules: true,
+				minimize: true
 			})
 		]
 	}

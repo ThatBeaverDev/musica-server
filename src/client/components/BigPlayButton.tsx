@@ -3,9 +3,11 @@ import React from "react";
 
 export default function BigPlayButton({
 	onClick,
-	style
+	style,
+	className
 }: {
-	style: React.HTMLAttributes<HTMLDivElement>["style"];
+	className?: string;
+	style?: React.HTMLAttributes<HTMLDivElement>["style"];
 	onClick: () => void;
 }) {
 	const [hovered, setHovered] = useState(false);
@@ -14,6 +16,7 @@ export default function BigPlayButton({
 	return (
 		<div
 			style={{ ...style, ...styles.outer(hovered, active) }}
+			className={className}
 
 			onMouseEnter={() => setHovered(true)}
 			onMouseLeave={() => {

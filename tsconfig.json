@@ -18,5 +18,5 @@
 		"incremental": true,
 		"tsBuildInfoFile": "./build/.tsbuildinfo"
 	},
-	"include": ["./src", "./src/global.d.ts"]
+	"include": ["./src/client", "./src/client/global.d.ts"]
 }

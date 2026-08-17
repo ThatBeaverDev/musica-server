@@ -24,3 +24,22 @@ body {
 	display: flex;
 	flex-direction: row;
 }
+
+.content {
+	padding: 32px;
+	overflow-y: auto;
+
+	width: calc(100% - 260px);
+
+	flex-grow: 1;
+
+	transition: 0.2s ease;
+}
+
+/* mobile */
+@media (max-aspect-ratio: 7/10) {
+	.content {
+		width: 100%;
+		height: calc(100dvh - (40dvh + 50px));
+	}
+}

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Album } from "../musica";
-import { player } from "../Player";
-//import albumPage from "./album";
 import LargeAlbum from "../components/LargeAlbum";
 import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
 import { getAlbumIds, getAlbumMetadataBulk } from "../lib/metadata";
+import styles from "./home.module.css";
 
 export default function Home() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Album>();
@@ -37,21 +36,14 @@ export default function Home() {
 		};
 	}, []);
 
-	const playAlbum = (album: Album, shuffle: boolean = false) => {
-		if (!album.tracks?.length) return;
-
-		player.setQueue([], album.tracks[0], album.tracks.slice(1), shuffle);
-		player.resume();
-	};
-
 	document.title = "Home - Musica";
 
 	return (
 		<>
 			<h1>Welcome</h1>
-			<h3 style={styles.heading}>Recently Added</h3>
+			<h3 className={styles.heading}>Recently Added</h3>
 
-			<div style={styles.grid}>
+			<div className={styles.grid}>
 				{albums.map((album) => (
 					<LargeAlbum
 						key={album.id}
@@ -66,21 +58,8 @@ export default function Home() {
 					x={contextMenu.x}
 					y={contextMenu.y}
 					album={contextMenu.data}
-					onPlay={(shuffle) => playAlbum(contextMenu.data, shuffle)}
 				/>
 			)}
 		</>
 	);
 }
-
-const styles = {
-	grid: {
-		display: "grid",
-		gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 13rem))",
-		gap: "1rem"
-	},
-
-	heading: {
-		padding: "20px 0px"
-	}
-};

@@ -5,9 +5,10 @@ import Album from "./pages/Album";
 import Artist from "./pages/Artist";
 import Search from "./pages/Search";
 
-import Navbar from "./Navbar.js";
+import Navbar from "./components/Navbar/Navbar.js";
 import Player from "./Player.js";
 import { useState } from "react";
+import styles from "./app.module.css";
 
 declare global {
 	interface Window {
@@ -39,22 +40,10 @@ export default function App() {
 	const aspectRatio = size.width / size.height;
 	const mobile = aspectRatio < 0.7;
 
-	const styles = {
-		content: {
-			padding: "32px",
-			overflowY: "auto" as "auto",
-
-			width: mobile ? "100%" : `calc(100% - 260px)`,
-			height: mobile ? "calc(100dvh - (40dvh + 50px))" : undefined,
-
-			flexGrow: 1,
-
-			background: background
-		}
-	};
-
 	const root = document.getElementById("root");
-	if (root)
+
+	if (root) {
+		root.className = styles.main;
 		if (mobile) {
 			root.style.display = "flex";
 			root.style.flexDirection = "column";
@@ -62,18 +51,16 @@ export default function App() {
 			root.style.display = "";
 			root.style.flexDirection = "";
 		}
+	}
 
 	return (
 		<BrowserRouter>
 			<Navbar />
 
-			<div style={styles.content}>
+			<div className={styles.content} style={{ background }}>
 				<Routes>
 					<Route path="/" element={<Home />} />
-					<Route
-						path="/album/:id"
-						element={<Album mobile={mobile} />}
-					/>
+					<Route path="/album/:id" element={<Album />} />
 					<Route path="/artist/:id" element={<Artist />} />
 					<Route path="/search" element={<Search />} />
 				</Routes>

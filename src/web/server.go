@@ -156,7 +156,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	)
 
 	// CSS
-	ws.static("/styles/styles.css", "./public/styles.css", "text/css")
+	ws.static("/styles/styles.css", "./public/app.css", "text/css")
 
 	// JS
 	ws.static("/app.js", "./public/app.js", "text/javascript")

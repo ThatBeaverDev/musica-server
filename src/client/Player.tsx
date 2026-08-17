@@ -19,7 +19,7 @@ export enum LoopState {
 	all = 2
 }
 
-interface StandardQueue {
+export interface StandardQueue {
 	readonly isDynamic: false;
 
 	readonly loop: LoopState;
@@ -31,7 +31,7 @@ interface StandardQueue {
 	currentPlayOrderIndex: number;
 }
 
-interface DynamicQueue {
+export interface DynamicQueue {
 	readonly isDynamic: true;
 
 	readonly loop: LoopState;
@@ -42,7 +42,7 @@ interface DynamicQueue {
 	currentPlayOrderIndex: number;
 }
 
-type Queue = StandardQueue | DynamicQueue;
+export type Queue = StandardQueue | DynamicQueue;
 
 async function getRandomMix() {
 	const nextIdFetch = await fetch("/api/tracks/randomMixTrack", {
@@ -84,6 +84,8 @@ class AudioPlayer {
 	// for updating the UI
 	onTrackUpdate?: (track: Track) => void;
 	onQueueUpdate?: (queue: Queue) => void;
+	onLoopUpdate?: (loop: LoopState) => void;
+	onShuffleUpdate?: (shuffle: boolean) => void;
 	onProgressBarUpdate?: (current: number, duration: number) => void;
 	onPlaybackStateChange?: (isPlaying: boolean) => void;
 
@@ -364,6 +366,8 @@ class AudioPlayer {
 	#setLoopState(state: LoopState) {
 		// @ts-expect-error // this is an intended way to modify
 		this.queue.loop = state;
+
+		this.onLoopUpdate?.(state);
 	}
 
 	toggleLoop() {
@@ -435,7 +439,9 @@ class AudioPlayer {
 			// @ts-expect-error // this is an intended way to modify
 			this.queue.shuffle = false;
 		}
+
 		this.#renderQueue();
+		this.onShuffleUpdate?.(state);
 	}
 
 	toggleShuffle() {
