@@ -95,7 +95,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	}
 
 	// resize and write to disk
-	err = processAndSaveImage(imgBytes, artPath, 350)
+	err = processAndSaveImage(imgBytes, artPath, 500)
 	if err != nil {
 		fmt.Println("could not process/save image for ID '"+track.ID+"', using fallback:", err)
 
