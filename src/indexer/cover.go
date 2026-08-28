@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"path"
@@ -12,6 +13,9 @@ import (
 	"github.com/cenkalti/dominantcolor"
 	"github.com/nfnt/resize"
 	taglib "go.senan.xyz/taglib"
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 type CoverResult struct {
@@ -91,6 +95,7 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 
 	// fallback if no image exists
 	if imgBytes == nil {
+		fmt.Println("no cover for ID '" + track.ID + "' exists")
 		return FallbackCover, nil
 	}
 
