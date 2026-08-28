@@ -153,9 +153,9 @@ func (s *Indexer) indexTrack(directory string) error {
 	s.Index.Mutex.Lock()
 	defer s.Index.Mutex.Unlock()
 
-	if _, ok := s.Index.Tracks[track.ID]; ok {
+	if pre_existing, ok := s.Index.Tracks[track.ID]; ok {
 		// already exists
-		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "')")
+		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "'), files are '" + directory + "' and '" + pre_existing.Path + "'")
 	}
 
 	// write data
