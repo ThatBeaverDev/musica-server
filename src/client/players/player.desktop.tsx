@@ -60,6 +60,7 @@ export default function DesktopPlayer({
 				{track ? (
 					<div className={styles.trackArtContainer}>
 						<img
+							draggable={false}
 							className={styles.trackArt}
 							src={`/api/track/${track?.id}/art`}
 						/>

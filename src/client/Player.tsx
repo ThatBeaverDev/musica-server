@@ -6,6 +6,7 @@ import { getItemColours } from "./lib/colour";
 import MobilePlayer from "./players/player.mobile";
 import DesktopPlayer from "./players/player.desktop";
 import FullscreenPlayer from "./players/player.fullscreen";
+import styles from "./player.module.css";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -81,7 +82,7 @@ class AudioPlayer {
 	) => void;
 
 	// for updating the UI
-	onTrackUpdate?: (track: Track) => void;
+	onTrackUpdate?: (track: Track | undefined) => void;
 	onQueueUpdate?: (queue: Queue) => void;
 	onLoopUpdate?: (loop: LoopState) => void;
 	onShuffleUpdate?: (shuffle: boolean) => void;
@@ -269,6 +270,7 @@ class AudioPlayer {
 	}
 
 	#renderQueue() {
+		this.onTrackUpdate?.(this.currentTrack);
 		this.onQueueUpdate?.(this.queue);
 	}
 
@@ -608,23 +610,41 @@ export default function Player({ mobile }: { mobile: boolean }) {
 
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
-	const PlayerElement = isFullscreen
-		? FullscreenPlayer
-		: mobile
-			? MobilePlayer
-			: DesktopPlayer;
+	const BasePlayer = mobile ? MobilePlayer : DesktopPlayer;
+
+	if (track == undefined && isFullscreen) {
+		setIsFullscreen(false);
+	}
 
 	return (
-		<PlayerElement
-			track={track}
-			queue={queue}
-			shuffle={shuffle}
-			loop={loop}
-			isPlaying={isPlaying}
-			playlist={playlist}
-			trackColour={trackColour}
-			darkerColour={darkerColour}
-			setIsFullscreen={setIsFullscreen}
-		/>
+		<>
+			<BasePlayer
+				track={track}
+				queue={queue}
+				shuffle={shuffle}
+				loop={loop}
+				isPlaying={isPlaying}
+				playlist={playlist}
+				trackColour={trackColour}
+				darkerColour={darkerColour}
+				setIsFullscreen={setIsFullscreen}
+			/>
+
+			<div
+				className={`${styles.fullscreenPlayer} ${isFullscreen ? styles.open : ""}`}
+			>
+				<FullscreenPlayer
+					track={track}
+					queue={queue}
+					shuffle={shuffle}
+					loop={loop}
+					isPlaying={isPlaying}
+					playlist={playlist}
+					trackColour={trackColour}
+					darkerColour={darkerColour}
+					setIsFullscreen={setIsFullscreen}
+				/>
+			</div>
+		</>
 	);
 }

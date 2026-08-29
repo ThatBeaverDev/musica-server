@@ -1,44 +1,28 @@
 .container {
 	position: absolute;
 	left: 0px;
-	top: 50px;
 	width: 100vw;
 	height: calc(100vh - 50px);
 
 	display: flex;
 	flex-direction: row;
 	padding: 4rem;
+	gap: 4rem;
+
+	overflow-x: hidden;
+	overflow-y: scroll;
 
 	background-color: rgb(24, 24, 24);
+}
+
+/* mobile only */
+.header {
+	display: none;
 }
 
 .player {
 	display: flex;
 	flex-direction: column;
-}
-
-.toolbar {
-	width: 100%;
-
-	display: flex;
-	flex-direction: row;
-	justify-content: space-around;
-
-	padding: 1rem;
-}
-
-.toolIndicator,
-.toolItem {
-	filter: invert(100%);
-	transition: 0.2s ease;
-	padding-left: 2rem;
-	padding-right: 2rem;
-}
-.toolItem:hover {
-	transform: scale(1.1);
-}
-.toolItem:active {
-	transform: scale(0.75);
 }
 
 .trackArtContainer {
@@ -98,5 +82,22 @@
 @media (max-aspect-ratio: 7/10) {
 	.container {
 		flex-direction: column;
+	}
+
+	.header {
+		display: flex;
+		flex-direction: row;
+
+		justify-content: center;
+	}
+
+	.pullTab {
+		width: 50px;
+		height: 4px;
+
+		margin: 5px;
+		border-radius: 100px;
+
+		background-color: var(--item2Colour);
 	}
 }

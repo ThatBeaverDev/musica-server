@@ -1,13 +1,15 @@
+import { useDrag } from "@use-gesture/react";
+import { useNavigate } from "react-router-dom";
+import PlayerControl from "../components/PlayerControl";
 import { Track } from "../musica";
 import { LoopState, player, Queue } from "../Player";
-import PlayerControl from "../components/PlayerControl";
 import styles from "./mobile.module.css";
-import { useNavigate } from "react-router-dom";
 
 export default function MobilePlayer({
 	track,
 	isPlaying,
-	darkerColour
+	darkerColour,
+	setIsFullscreen
 }: {
 	track: Track | undefined;
 	queue: Queue;
@@ -22,10 +24,40 @@ export default function MobilePlayer({
 	const navigate = useNavigate();
 	const showAlbum = () => navigate(`/album/${track?.albumId}`);
 
+	const bind = useDrag(
+		({
+			last: dragFinished,
+			movement: [, my],
+			velocity: [, vy],
+			direction: [, dy]
+		}) => {
+			if (dragFinished) {
+				const isDraggingUp = dy < 0;
+				const passedDistanceThreshold = my < -50;
+				const passedVelocityThreshold = vy > 0.5;
+
+				if (
+					isDraggingUp &&
+					(passedDistanceThreshold || passedVelocityThreshold)
+				) {
+					setIsFullscreen(true);
+				}
+			}
+		}
+	);
+
+	if (track == undefined) return <></>;
+
 	return (
-		<div className={styles.queue} style={{ background: darkerColour }}>
+		<div
+			{...bind()}
+			onClick={() => setIsFullscreen(true)}
+			className={styles.queue}
+			style={{ background: darkerColour, touchAction: "none" }}
+		>
 			{track ? (
 				<img
+					draggable={false}
 					className={styles.trackArt}
 					src={`/api/track/${track?.id}/art`}
 					onClick={showAlbum}

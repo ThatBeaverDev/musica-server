@@ -1,5 +1,11 @@
 :root {
 	--background: #0a0a0a;
+	--item3Colour: #c7c7c7;
+	--item2Colour: #888888;
+	--itemColour: #494949;
+	--sidebarColour: #181818;
+	--panelColour: #121212;
+	--cardColour: #202020;
 }
 
 * {
