@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Track } from "../../musica";
 import ContextMenu from "./ContextMenu";
+import { onTrackSearchAndPlay } from "../../Player";
 
 export default function TrackContextMenu({
 	x,
@@ -18,7 +19,17 @@ export default function TrackContextMenu({
 	const navigation = useNavigate();
 
 	const items = [
-		{ label: "Play", action: () => onPlay(false) },
+		{
+			label: "Play",
+			action: () => {
+				onTrackSearchAndPlay(track.id);
+				onPlay(false);
+			}
+		},
+		{
+			label: "Edit Metadata",
+			action: () => navigation(`/edit/track/${track.id}`)
+		},
 		{ label: "Add to Queue", action: () => onPlay(false) },
 		{
 			label: "Show Album",
