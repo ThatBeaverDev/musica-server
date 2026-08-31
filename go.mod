@@ -6,7 +6,7 @@ require (
 	github.com/ThatBeaverDev/taggy v0.0.0-20260831080236-a73391409ebe
 	github.com/cenkalti/dominantcolor v1.0.3
 	github.com/go-chi/chi v1.5.5
-	github.com/go-chi/chi/v5 v5.3.0
+	github.com/go-chi/chi/v5 v5.3.2
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	go.senan.xyz/taglib v0.14.0
