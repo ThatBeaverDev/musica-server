@@ -23,6 +23,8 @@ type Track struct {
 	AlbumArtist   string
 	AlbumArtistId string
 
+	AlbumIsSingleName bool
+
 	Modified int64
 	Release  int
 	Number   int
@@ -94,7 +96,7 @@ type Indexer struct {
 	WorkingDirectory string
 	CacheDirectory   string
 
-	identityStorage *identityStorage.IdentityStorage
+	IdentityStorage *identityStorage.IdentityStorage
 	Config          *config.Config
 }
 
@@ -124,7 +126,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 		WorkingDirectory: workingDirectory,
 		CacheDirectory:   libraryCache,
 
-		identityStorage: idStorage,
+		IdentityStorage: idStorage,
 		Config:          config,
 	}
 
@@ -159,7 +161,7 @@ func (s *Indexer) indexTrack(directory string) error {
 	}
 
 	// write data
-	s.Index.Tracks[track.ID] = &track
+	s.Index.Tracks[track.ID] = track
 
 	return nil
 }

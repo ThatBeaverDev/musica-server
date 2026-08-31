@@ -18,15 +18,15 @@ import (
 	taglib "go.senan.xyz/taglib"
 )
 
-func (s *Indexer) fileMetaData(directory string) (Track, error) {
+func (s *Indexer) fileMetaData(directory string) (*Track, error) {
 	relative, err := filepath.Rel(s.WorkingDirectory, directory)
 	if err != nil {
-		return Track{}, fmt.Errorf("Failed to calculate relative path of file: %w", err)
+		return &Track{}, fmt.Errorf("Failed to calculate relative path of file: %w", err)
 	}
 
 	tags, err := taglib.ReadTags(directory)
 	if err != nil {
-		return Track{}, fmt.Errorf("Failed to read file tags: %w", err)
+		return &Track{}, fmt.Errorf("Failed to read file tags: %w", err)
 	}
 
 	// title
@@ -50,19 +50,21 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		artist = "Various Artists"
 	}
 
-	id, err := s.identityStorage.TrackId(title, artist)
+	id, err := s.IdentityStorage.TrackId(title, artist)
 	if err != nil {
-		return Track{}, fmt.Errorf("Failed to retrieve track ID: %w", err)
+		return &Track{}, fmt.Errorf("Failed to retrieve track ID: %w", err)
 	}
 
 	// album
 	trackAlbum := tags[taglib.Album]
 	var albumName string
+	albumIsSingleName := false
 
 	if len(trackAlbum) > 0 {
 		albumName = trackAlbum[0]
 	} else {
 		albumName = title
+		albumIsSingleName = true
 	}
 
 	// album artist
@@ -96,7 +98,7 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		releaseTime, err := util.ParseYear(releaseStore)
 
 		if err != nil {
-			return Track{}, fmt.Errorf("Failed to parse year of track: %w", err)
+			return &Track{}, fmt.Errorf("Failed to parse year of track: %w", err)
 		}
 
 		release = int(releaseTime.UnixMilli())
@@ -124,16 +126,16 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 
 	stats, err := os.Stat(directory)
 	if err != nil {
-		return Track{}, err
+		return &Track{}, err
 	}
 	modified := stats.ModTime().UnixMilli()
 
 	props, err := taglib.ReadProperties(directory)
 	if err != nil {
-		return Track{}, fmt.Errorf("Failed to read file properties: %w", err)
+		return &Track{}, fmt.Errorf("Failed to read file properties: %w", err)
 	}
 
-	track := Track{
+	track := &Track{
 		Title:  title,
 		Artist: artist,
 
@@ -141,6 +143,8 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		AlbumId:       "",
 		AlbumArtist:   albumArtist,
 		AlbumArtistId: "",
+
+		AlbumIsSingleName: albumIsSingleName,
 
 		Modified: modified,
 		Release:  release,
@@ -151,27 +155,26 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 		Number: number,
 	}
 
+	s.AddTrackToAlbumIfNotPresent(track)
+
+	return track, nil
+}
+
+func (s *Indexer) AddTrackToAlbumIfNotPresent(track *Track) {
 	s.Index.Mutex.Lock()
 	defer s.Index.Mutex.Unlock()
 
-	// add to album
-	albumSpecifier := GetAlbumSpecifierDirect(albumArtist, albumName)
-	// insure the ID is prepared so things are consistent
-	albumID := s.identityStorage.SpecifierToAlbumId(albumSpecifier)
-	track.AlbumId = albumID
+	album := s.getOrCreateAlbumLocked(track)
+	s.addTrackToAlbumLocked(album, track)
+}
+
+func (s *Indexer) getOrCreateAlbumLocked(track *Track) *Album {
+	albumSpecifier := GetAlbumSpecifierDirect(track.AlbumArtist, track.Album)
+	albumID := s.IdentityStorage.SpecifierToAlbumId(albumSpecifier)
 
 	album, ok := s.Index.Albums[albumID]
 	if ok {
-		if album.Release == 0 && track.Release != 0 {
-			album.Release = track.Release
-		}
-
-		if track.Modified > album.Modified {
-			album.Modified = track.Modified
-		}
-
-		album.Tracks = append(album.Tracks, &track)
-		track.AlbumArtistId = album.ArtistId
+		return album
 	} else {
 		album := &Album{
 			Title:    track.Album,
@@ -180,18 +183,16 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 
 			Modified: track.Modified,
 			Release:  track.Release,
-			Tracks:   []*Track{&track},
+			Tracks:   []*Track{},
 			ID:       albumID,
 		}
 
 		s.Index.Albums[albumID] = album
 
-		// add the new album to artist too
 		artistSpecifier := GetAlbumArtistSpecifier(album)
 		// insure the ID is prepared so things are consistent
-		artistID := s.identityStorage.ASpecifierToArtistId(artistSpecifier)
+		artistID := s.IdentityStorage.ASpecifierToArtistId(artistSpecifier)
 		album.ArtistId = artistID
-		track.AlbumArtistId = album.ArtistId
 
 		artist, ok := s.Index.Artists[artistID]
 		if ok {
@@ -213,9 +214,97 @@ func (s *Indexer) fileMetaData(directory string) (Track, error) {
 
 			s.Index.Artists[artistID] = artist
 		}
+
+		return album
+	}
+}
+
+func (s *Indexer) removeTrackFromAlbumLocked(album *Album, trackPath string) {
+	if album == nil {
+		return
 	}
 
-	return track, nil
+	for idx, track := range album.Tracks {
+		if track.Path == trackPath {
+			album.Tracks = append(album.Tracks[:idx], album.Tracks[idx+1:]...)
+
+			var modified int64 = 0
+			var release int = 0
+			for _, track := range album.Tracks {
+				if release == 0 && track.Release != 0 {
+					release = track.Release
+				}
+
+				if track.Modified > modified {
+					modified = track.Modified
+				}
+			}
+
+			album.Modified = modified
+			album.Release = release
+
+			break
+		}
+	}
+
+	if len(album.Tracks) == 0 {
+		// delete album
+		delete(s.Index.Albums, album.ID)
+
+		artist, ok := s.Index.Artists[album.ArtistId]
+		if ok {
+			for idx, storedAlbum := range artist.Albums {
+				if album.ID == storedAlbum.ID {
+					artist.Albums = append(artist.Albums[:idx], artist.Albums[idx+1:]...)
+					break
+				}
+			}
+
+			if len(artist.Albums) == 0 {
+				// delete artist too
+				delete(s.Index.Artists, artist.ID)
+
+			}
+
+		}
+	}
+}
+
+func (s *Indexer) addTrackToAlbumLocked(album *Album, track *Track) {
+	track.AlbumId = album.ID
+	track.AlbumArtistId = album.ArtistId
+
+	// Check presence in new album
+	for _, albumTrack := range album.Tracks {
+		if track.Path == albumTrack.Path {
+			return
+		}
+	}
+
+	if album.Release == 0 && track.Release != 0 {
+		album.Release = track.Release
+	}
+
+	if track.Modified > album.Modified {
+		album.Modified = track.Modified
+	}
+
+	album.Tracks = append(album.Tracks, track)
+}
+
+func (s *Indexer) ReassignTrack(track *Track, oldAlbumID string) {
+	s.Index.Mutex.Lock()
+	defer s.Index.Mutex.Unlock()
+
+	// remove from old if needed
+	if oldAlbumID != "" {
+		if oldAlbum, exists := s.Index.Albums[oldAlbumID]; exists {
+			s.removeTrackFromAlbumLocked(oldAlbum, track.Path)
+		}
+	}
+
+	newAlbum := s.getOrCreateAlbumLocked(track)
+	s.addTrackToAlbumLocked(newAlbum, track)
 }
 
 type ExtraArtistMetadata struct {
