@@ -168,3 +168,28 @@ func BulkEditTrackMetadata(indexer *indexer.Indexer, scoreManager *scores.ScoreM
 
 	return nil
 }
+
+func ChangeTrackArt(indexer *indexer.Indexer, track *indexer.Track, coverFile string) error {
+	indexer.Index.Mutex.RLock()
+	defer indexer.Index.Mutex.RUnlock()
+
+	if _, ok := indexer.Index.Tracks[track.ID]; !ok {
+		return errors.New("no track by ID '" + track.ID + "' exists.")
+	}
+
+	if coverFile == "" {
+		return errors.New("cover path must be specified, not a zero-value, as this is a no-op.")
+	}
+
+	err := taggy.TagFile(track.Path, blank, blank, blank, blank, blank, blank, coverFile)
+	if err != nil {
+		return fmt.Errorf("failed to edit track tags: %w", err)
+	}
+
+	err = indexer.OnTrackArtChange(track)
+	if err != nil {
+		return fmt.Errorf("failed to mark track art change by cache clearing: %w", err)
+	}
+
+	return nil
+}

@@ -118,3 +118,24 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 		Directory: artPath,
 	}, nil
 }
+
+func (s *Indexer) OnTrackArtChange(track *Track) error {
+	_, ok := s.trackToPictureStoreMap[track.ID]
+
+	if ok {
+		// cached entry exists, we'll unmark the cache and delete the entry
+		delete(s.trackToPictureStoreMap, track.ID)
+
+		artPath := path.Join(
+			s.CacheDirectory,
+			fmt.Sprint("track_", track.ID, "_art"),
+		)
+
+		err := os.Remove(artPath)
+		if err != nil {
+			return fmt.Errorf("failed to delete art cache file: %w", err)
+		}
+	}
+
+	return nil
+}
