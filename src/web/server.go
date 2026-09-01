@@ -50,6 +50,8 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	api.Get("/track/{id}/explicitPlay", ws.userSpecificPlay)
 	api.Get("/track/{id}/played", ws.trackPlayed)
 	api.Get("/track/{id}/skipped", ws.trackSkipped)
+	api.Post("/track/{id}/editMetadata", ws.editTrackMetadata)
+	api.Post("/track/{id}/editArt", ws.editTrackArt)
 
 	api.Post("/bulk/tracks/info", ws.bulkTracks)
 
