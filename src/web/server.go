@@ -79,6 +79,7 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	ws.static("/album/*", "./public/index.html", "text/html")
 	ws.static("/artist/*", "./public/index.html", "text/html")
 	ws.static("/search", "./public/index.html", "text/html")
+	ws.static("/edit/*", "./public/index.html", "text/html")
 
 	ws.static(
 		"/apple-touch-icon.png",
@@ -142,6 +143,11 @@ func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, score
 	ws.static(
 		"/img/minimise.svg",
 		"./public/img/minimise.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/reset.svg",
+		"./public/img/reset.svg",
 		"image/svg+xml",
 	)
 	// loop

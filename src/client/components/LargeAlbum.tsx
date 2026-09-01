@@ -64,7 +64,8 @@ const styles = {
 		width: "100%",
 		aspectRatio: 1,
 		objectFit: "cover" as "cover",
-		borderRadius: "6%"
+		borderRadius: "6%",
+		pointerEvents: "none" as "none"
 	},
 
 	albumTitle: {

@@ -10,6 +10,7 @@ export interface Track {
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	number?: number;
+	discNumber?: number;
 
 	id: string;
 
