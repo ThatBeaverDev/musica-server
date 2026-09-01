@@ -18,6 +18,11 @@ func EditTrackTitle(indexer *indexer.Indexer, scoreManager *scores.ScoreManager,
 		return fmt.Errorf("failed to generate new track ID: %w", err)
 	}
 
+	err = backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
 	err = taggy.TagFile(track.Path, []string{newTitle}, blank, blank, blank, blank, blank, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
@@ -41,7 +46,12 @@ func EditTrackTitle(indexer *indexer.Indexer, scoreManager *scores.ScoreManager,
 }
 
 func EditTrackAlbum(indexer *indexer.Indexer, track *indexer.Track, newAlbum string) error {
-	err := taggy.TagFile(track.Path, blank, []string{newAlbum}, blank, blank, blank, blank, "")
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, blank, []string{newAlbum}, blank, blank, blank, blank, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
@@ -54,7 +64,12 @@ func EditTrackAlbum(indexer *indexer.Indexer, track *indexer.Track, newAlbum str
 }
 
 func EditTrackArtist(track *indexer.Track, newArtist string) error {
-	err := taggy.TagFile(track.Path, blank, blank, []string{newArtist}, blank, blank, blank, "")
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, blank, blank, []string{newArtist}, blank, blank, blank, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
@@ -65,7 +80,12 @@ func EditTrackArtist(track *indexer.Track, newArtist string) error {
 }
 
 func EditTrackAlbumArtist(indexer *indexer.Indexer, track *indexer.Track, newAlbumArtist string) error {
-	err := taggy.TagFile(track.Path, blank, blank, blank, []string{newAlbumArtist}, blank, blank, "")
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, blank, blank, blank, []string{newAlbumArtist}, blank, blank, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
@@ -78,7 +98,12 @@ func EditTrackAlbumArtist(indexer *indexer.Indexer, track *indexer.Track, newAlb
 }
 
 func EditTrackNumber(track *indexer.Track, newNumber int) error {
-	err := taggy.TagFile(track.Path, blank, blank, blank, blank, []string{strconv.Itoa(newNumber)}, blank, "")
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, blank, blank, blank, blank, []string{strconv.Itoa(newNumber)}, blank, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
@@ -119,7 +144,12 @@ func BulkEditTrackMetadata(indexer *indexer.Indexer, scoreManager *scores.ScoreM
 		discNumbers = []string{strconv.Itoa(metadata.DiscNumber)}
 	}
 
-	err := taggy.TagFile(track.Path, titles, albums, artists, albumArtists, numbers, discNumbers, "")
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, titles, albums, artists, albumArtists, numbers, discNumbers, "")
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
@@ -181,7 +211,12 @@ func ChangeTrackArt(indexer *indexer.Indexer, track *indexer.Track, coverFile st
 		return errors.New("cover path must be specified, not a zero-value, as this is a no-op.")
 	}
 
-	err := taggy.TagFile(track.Path, blank, blank, blank, blank, blank, blank, coverFile)
+	err := backupFile(track)
+	if err != nil {
+		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
+	}
+
+	err = taggy.TagFile(track.Path, blank, blank, blank, blank, blank, blank, coverFile)
 	if err != nil {
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}

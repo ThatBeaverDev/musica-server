@@ -8,6 +8,7 @@ import (
 	"musica-server/src/config"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -146,6 +147,17 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 }
 
 func (s *Indexer) indexTrack(directory string) error {
+	filename := filepath.Base(directory)
+	ext := filepath.Ext(directory)
+	filenameNoExt := filename[:len(filename)-len(ext)]
+
+	ext2 := filepath.Ext(filenameNoExt)
+
+	if ext2 == ".bak" {
+		// ignore backup files
+		return nil
+	}
+
 	track, err := s.fileMetaData(directory)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve File Metadata: %w", err)
