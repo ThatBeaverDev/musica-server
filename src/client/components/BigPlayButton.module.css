@@ -1,0 +1,40 @@
+.outer {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1rem;
+
+	border-radius: 100px;
+	background-color: white;
+
+	width: max-content;
+
+	padding: 10px 2rem;
+
+	margin-top: 1rem;
+
+	transition: ease 0.2s;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.outer:hover {
+	transform: scale(1.1);
+}
+
+.outer:active {
+	transform: scale(0.95);
+}
+
+.icon {
+	width: 20px;
+	height: 20px;
+	user-select: none;
+	pointer-events: none;
+}
+
+.text {
+	color: black;
+	vertical-align: center;
+	user-select: none;
+	pointer-events: none;
+}
