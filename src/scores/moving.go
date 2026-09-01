@@ -25,5 +25,7 @@ func (s *ScoreManager) ChangeTrackId(oldID string, newID string) error {
 		s.trackScores[newID] = scoreData
 	}
 
+	s.store()
+
 	return nil
 }
