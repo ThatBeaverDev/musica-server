@@ -1,6 +1,7 @@
 package edit
 
 import (
+	"errors"
 	"fmt"
 	"musica-server/src/indexer"
 	"musica-server/src/scores"
@@ -22,7 +23,10 @@ func EditTrackTitle(indexer *indexer.Indexer, scoreManager *scores.ScoreManager,
 		return fmt.Errorf("failed to edit track tags: %w", err)
 	}
 
-	err = changeTrackId(indexer, scoreManager, track, newId)
+	indexer.Index.Mutex.Lock()
+	defer indexer.Index.Mutex.Unlock()
+
+	err = changeTrackIdUnsafe(indexer, scoreManager, track, newId)
 	if err != nil {
 		return fmt.Errorf("failed to change track ID: %w", err)
 	}
@@ -30,7 +34,7 @@ func EditTrackTitle(indexer *indexer.Indexer, scoreManager *scores.ScoreManager,
 	if track.AlbumIsSingleName {
 		track.Album = newTitle
 
-		indexer.ReassignTrack(track, track.AlbumId)
+		indexer.ReassignTrackUnsafe(track, track.AlbumId)
 	}
 
 	return nil
@@ -123,13 +127,16 @@ func BulkEditTrackMetadata(indexer *indexer.Indexer, scoreManager *scores.ScoreM
 	titleChanged := metadata.Title != "" && metadata.Title != track.Title
 	artistChanged := metadata.Artist != "" && metadata.Artist != track.Artist
 
+	indexer.Index.Mutex.Lock()
+	defer indexer.Index.Mutex.Unlock()
+
 	if titleChanged || artistChanged {
 		newId, err := indexer.IdentityStorage.TrackId(metadata.Title, track.Artist)
 		if err != nil {
 			return fmt.Errorf("failed to generate new track ID: %w", err)
 		}
 
-		err = changeTrackId(indexer, scoreManager, track, newId)
+		err = changeTrackIdUnsafe(indexer, scoreManager, track, newId)
 		if err != nil {
 			return fmt.Errorf("failed to change track ID: %w", err)
 		}
@@ -156,7 +163,7 @@ func BulkEditTrackMetadata(indexer *indexer.Indexer, scoreManager *scores.ScoreM
 	}
 
 	if metadata.Album != "" || metadata.AlbumArtist != "" || (titleChanged && track.AlbumIsSingleName) {
-		indexer.ReassignTrack(track, track.AlbumId)
+		indexer.ReassignTrackUnsafe(track, track.AlbumId)
 	}
 
 	return nil

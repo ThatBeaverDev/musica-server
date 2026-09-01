@@ -50,6 +50,10 @@ func (history *HistoryManager) store() {
 	history.mutex.RLock()
 	defer history.mutex.RUnlock()
 
+	history.storeUnsafe()
+}
+
+func (history *HistoryManager) storeUnsafe() {
 	storageData := historyStorageV1{Version: 1, History: history.History.Tracks}
 	jsonData, err := json.Marshal(storageData)
 
