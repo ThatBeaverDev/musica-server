@@ -31,7 +31,6 @@ export default function Topbar() {
 				<NavItem onClick={() => navigate("/")}>Home</NavItem>
 				<NavItem onClick={() => navigate("/search")}>Search</NavItem>
 				<NavItem onClick={() => navigate("/library")}>Library</NavItem>
-				<NavItem onClick={() => navigate("/queue")}>Queue</NavItem>
 				<NavItem
 					onClick={() => {
 						player.startDynamicQueue();
