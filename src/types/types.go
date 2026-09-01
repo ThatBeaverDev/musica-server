@@ -16,6 +16,8 @@ type WebExportedTrack = struct {
 	AlbumArtist   string `json:"albumArtist"`
 	AlbumArtistId string `json:"albumArtistId"`
 
+	IsSingle bool `json:"isSingle"`
+
 	Modified int64 `json:"modified"`
 	Release  int   `json:"release"`
 	Number   int   `json:"number"`
@@ -38,6 +40,8 @@ func TrackToWeb(track *indexer.Track, scoresManager *scores.ScoreManager) *WebEx
 		AlbumId:       track.AlbumId,
 		AlbumArtist:   track.AlbumArtist,
 		AlbumArtistId: track.AlbumArtistId,
+
+		IsSingle: track.AlbumIsSingleName,
 
 		Modified: track.Modified,
 		Release:  track.Release,
