@@ -41,3 +41,4 @@ through docker mappings.
 | `mediaLibrary` | `./audio`        | Directory in which media files are stored in.                                                                                          |
 | `scores`       | `./scores.json`  | File for scores to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder)       |
 | `history`      | `./history.json` | File for history data to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder) |
+| `organise`     | `false`          | Whether to re-organise the media library on startup                                                                                    |
