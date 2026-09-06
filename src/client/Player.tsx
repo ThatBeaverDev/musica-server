@@ -315,7 +315,7 @@ class AudioPlayer {
 		this.#renderQueue();
 	}
 
-	startDynamicQueue() {
+	startDynamicQueue(track?: Track) {
 		this.resetQueue();
 
 		this.queue = {
@@ -323,8 +323,8 @@ class AudioPlayer {
 
 			loop: LoopState.none,
 
-			playlist: [],
-			playOrder: [],
+			playlist: track ? [track, track] : [],
+			playOrder: track ? [0, 1] : [],
 
 			currentPlayOrderIndex: 0
 		};

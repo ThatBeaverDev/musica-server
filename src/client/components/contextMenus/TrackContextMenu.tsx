@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Track } from "../../musica";
 import ContextMenu from "./ContextMenu";
-import { onTrackSearchAndPlay } from "../../Player";
+import { onTrackSearchAndPlay, player } from "../../Player";
 
 export default function TrackContextMenu({
 	x,
@@ -18,6 +18,13 @@ export default function TrackContextMenu({
 }) {
 	const navigation = useNavigate();
 
+	function dynamicQueueFromHere() {
+		onTrackSearchAndPlay(track.id);
+
+		player.startDynamicQueue(track);
+		player.resume();
+	}
+
 	const items = [
 		{
 			label: "Play",
@@ -31,6 +38,10 @@ export default function TrackContextMenu({
 			action: () => navigation(`/edit/track/${track.id}`)
 		},
 		{ label: "Add to Queue", action: () => onPlay(false) },
+		{
+			label: "Start Dynamic Queue Here",
+			action: () => dynamicQueueFromHere()
+		},
 		{
 			label: "Show Album",
 			action: () => {
