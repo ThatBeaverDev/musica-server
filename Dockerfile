@@ -7,7 +7,7 @@ RUN npx tsc
 RUN npx rollup -c
 
 # backend (go)
-FROM golang:1.26.6 AS backend-builder
+FROM golang:1.27.0 AS backend-builder
 WORKDIR /app
 COPY . .
 RUN go mod download
