@@ -263,7 +263,7 @@ export default function EditTrack() {
 							onChange={(value) => setTrackArt(value)}
 						/>
 
-						{artChanged || true ? (
+						{artChanged ? (
 							<div
 								onClick={() => applyArtChanges()}
 								className={styles.submitButton}
