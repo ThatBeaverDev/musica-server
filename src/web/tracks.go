@@ -66,6 +66,24 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func resolve(paths ...string) (string, error) {
+	var result string
+
+	for i := len(paths) - 1; i >= 0; i-- {
+		if result == "" {
+			result = paths[i]
+		} else {
+			result = filepath.Join(paths[i], result)
+		}
+
+		if filepath.IsAbs(paths[i]) {
+			return filepath.Clean(result), nil
+		}
+	}
+
+	return filepath.Abs(result)
+}
+
 func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -75,12 +93,15 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullPath := filepath.Join(ws.indexer.WorkingDirectory, track.Path)
+	fullPath, err := resolve(ws.indexer.WorkingDirectory, track.Path)
+	if err != nil {
+		http.Error(w, "Track media file path could not be resolved", http.StatusInternalServerError)
+	}
 
 	file, err := os.Open(fullPath)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Track media file does not exist. Server may need to restart to update index.", 500)
+		http.Error(w, "Track media file does not exist. Server may need to restart to update index.", http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()

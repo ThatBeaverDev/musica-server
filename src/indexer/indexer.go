@@ -73,6 +73,8 @@ type trackIndex struct {
 	Albums  map[string]*Album
 	Artists map[string]*Artist
 
+	HasDuplicates bool
+
 	Mutex sync.RWMutex
 }
 
@@ -118,6 +120,8 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 			Tracks:  make(map[string]*Track),
 			Albums:  make(map[string]*Album),
 			Artists: make(map[string]*Artist),
+
+			HasDuplicates: false,
 
 			Mutex: sync.RWMutex{},
 		},
@@ -169,6 +173,7 @@ func (s *Indexer) indexTrack(directory string) error {
 
 	if pre_existing, ok := s.Index.Tracks[track.ID]; ok {
 		// already exists
+		s.Index.HasDuplicates = true
 		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "'), files are '" + directory + "' and '" + pre_existing.Path + "'")
 	}
 
