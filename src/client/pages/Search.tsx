@@ -4,7 +4,7 @@ import { useRef } from "preact/hooks";
 import { Album, Artist, SearchResult, Track } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
 import AlbumTrack from "../components/AlbumTrack";
-import { player } from "../Player";
+import { onTrackSearchAndPlay, player } from "../Player";
 import LargeArtist from "../components/LargeArtist";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
 import TrackContextMenu from "../components/contextMenus/TrackContextMenu";
@@ -91,6 +91,8 @@ export default function Search() {
 								track={item}
 								key={index}
 								onClick={() => {
+									onTrackSearchAndPlay(item.id);
+
 									player.setQueue(
 										results.tracks.slice(0, index - 1),
 										item,
