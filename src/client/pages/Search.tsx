@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { cardColour } from "../constants";
 import { useRef } from "preact/hooks";
-import { SearchResult } from "../musica";
+import { Album, Artist, SearchResult, Track } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
 import AlbumTrack from "../components/AlbumTrack";
 import { player } from "../Player";
 import LargeArtist from "../components/LargeArtist";
+import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
+import TrackContextMenu from "../components/contextMenus/TrackContextMenu";
+import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu";
+import ArtistContextMenu from "../components/contextMenus/ArtistContextMenu";
 
 export default function Search() {
 	const [query, setInputtedQuery] = useState(
@@ -14,6 +18,12 @@ export default function Search() {
 
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [searchActive, setSearchActive] = useState(false);
+
+	const { contextMenu, activateContextMenu } = contextMenuHelper<
+		| { type: "track"; track: Track; index: number }
+		| { type: "album"; album: Album }
+		| { type: "artist"; artist: Artist }
+	>();
 
 	function newTextboxState(val: string) {
 		setInputtedQuery(val);
@@ -88,7 +98,13 @@ export default function Search() {
 									);
 									player.resume();
 								}}
-								onContextMenu={() => {}}
+								onContextMenu={(e) =>
+									activateContextMenu(e, {
+										type: "track",
+										track: item,
+										index
+									})
+								}
 								art={true}
 							></AlbumTrack>
 						))
@@ -101,15 +117,18 @@ export default function Search() {
 			) : undefined}
 			<div style={styles.resultPanelGrid}>
 				{results
-					? results.albums
-							.slice(0, 10)
-							.map((item, index) => (
-								<LargeAlbum
-									album={item}
-									key={index}
-									onContextMenu={() => {}}
-								></LargeAlbum>
-							))
+					? results.albums.slice(0, 10).map((item, index) => (
+							<LargeAlbum
+								album={item}
+								key={index}
+								onContextMenu={(e) =>
+									activateContextMenu(e, {
+										type: "album",
+										album: item
+									})
+								}
+							></LargeAlbum>
+						))
 					: undefined}
 			</div>
 
@@ -119,17 +138,54 @@ export default function Search() {
 			) : undefined}
 			<div style={styles.resultPanelGrid}>
 				{results
-					? results.artists
-							.slice(0, 10)
-							.map((item, index) => (
-								<LargeArtist
-									artist={item}
-									key={index}
-									onContextMenu={() => {}}
-								></LargeArtist>
-							))
+					? results.artists.slice(0, 10).map((item, index) => (
+							<LargeArtist
+								artist={item}
+								key={index}
+								onContextMenu={(e) =>
+									activateContextMenu(e, {
+										type: "artist",
+										artist: item
+									})
+								}
+							></LargeArtist>
+						))
 					: undefined}
 			</div>
+
+			{contextMenu &&
+				(contextMenu.data.type == "track" ? (
+					<TrackContextMenu
+						x={contextMenu.x}
+						y={contextMenu.y}
+						track={contextMenu.data.track}
+						onPlay={() => {
+							if (contextMenu.data.type != "track") return;
+							if (!results) return;
+
+							const { index, track: item } = contextMenu.data;
+
+							player.setQueue(
+								results.tracks.slice(0, index - 1),
+								item,
+								results.tracks.slice(index + 1)
+							);
+							player.resume();
+						}}
+					/>
+				) : contextMenu.data.type == "album" ? (
+					<AlbumContextMenu
+						x={contextMenu.x}
+						y={contextMenu.y}
+						album={contextMenu.data.album}
+					/>
+				) : contextMenu.data.type == "artist" ? (
+					<ArtistContextMenu
+						x={contextMenu.x}
+						y={contextMenu.y}
+						artist={contextMenu.data.artist}
+					/>
+				) : undefined)}
 		</>
 	);
 }
