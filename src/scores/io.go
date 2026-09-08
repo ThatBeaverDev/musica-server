@@ -119,11 +119,15 @@ func readScoreMap(indexer *indexer.Indexer) (shared.TrackScoreMap, error) {
 
 func (scores *ScoreManager) store() {
 	scores.storeMutex.RLock()
+	defer scores.storeMutex.RUnlock()
 
+	scores.storeUnsafe()
+
+}
+
+func (scores *ScoreManager) storeUnsafe() {
 	storageData := scoreStorageV1{Version: 1, Scores: scores.trackScores}
 	jsonData, err := json.Marshal(storageData)
-
-	scores.storeMutex.RUnlock()
 
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)

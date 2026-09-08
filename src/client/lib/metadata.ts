@@ -29,6 +29,20 @@ export async function getTrackColour(id: string): Promise<string> {
 	return colour;
 }
 
+export async function beforeTrackUpdate(track: Track) {
+	trackMetadata.delete(track.id);
+	trackColours.delete(track.id);
+
+	albumMetadata.delete(track.albumId);
+	albumColours.delete(track.albumId);
+
+	artistMetadata.delete(track.albumArtistId);
+	artistColours.delete(track.albumArtistId);
+
+	idListPopulated = false;
+	allAlbumIds.splice(0, Infinity);
+}
+
 const albumMetadata = new Map<string, Album>();
 
 let idListPopulated = false;

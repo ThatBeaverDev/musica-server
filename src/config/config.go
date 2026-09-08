@@ -15,6 +15,8 @@ type Config struct {
 
 	ScoresFile  string `json:"scores"`
 	HistoryFile string `json:"history"`
+
+	OrganiseLibrary bool `json:"organise"`
 }
 
 const defaultPort = 3000
@@ -51,6 +53,7 @@ func New() (*Config, error) {
 	if Cfg.HistoryFile == "" {
 		Cfg.HistoryFile = defaultHistoryFile
 	}
+	// zero value of bool is false, files aren't moved by default.
 
 	return &Cfg, nil
 }

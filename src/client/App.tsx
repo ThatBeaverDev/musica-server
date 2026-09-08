@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar/Navbar.js";
 import Player from "./Player.js";
 import { useState } from "react";
 import styles from "./app.module.css";
+import EditTrack from "./pages/edit/EditTrack";
 
 declare global {
 	interface Window {
@@ -63,6 +64,7 @@ export default function App() {
 					<Route path="/album/:id" element={<Album />} />
 					<Route path="/artist/:id" element={<Artist />} />
 					<Route path="/search" element={<Search />} />
+					<Route path="/edit/track/:id" element={<EditTrack />} />
 				</Routes>
 			</div>
 

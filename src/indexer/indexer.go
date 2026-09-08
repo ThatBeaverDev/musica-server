@@ -8,6 +8,7 @@ import (
 	"musica-server/src/config"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -72,6 +73,8 @@ type trackIndex struct {
 	Albums  map[string]*Album
 	Artists map[string]*Artist
 
+	HasDuplicates bool
+
 	Mutex sync.RWMutex
 }
 
@@ -118,6 +121,8 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 			Albums:  make(map[string]*Album),
 			Artists: make(map[string]*Artist),
 
+			HasDuplicates: false,
+
 			Mutex: sync.RWMutex{},
 		},
 
@@ -146,6 +151,17 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 }
 
 func (s *Indexer) indexTrack(directory string) error {
+	filename := filepath.Base(directory)
+	ext := filepath.Ext(directory)
+	filenameNoExt := filename[:len(filename)-len(ext)]
+
+	ext2 := filepath.Ext(filenameNoExt)
+
+	if ext2 == ".bak" {
+		// ignore backup files
+		return nil
+	}
+
 	track, err := s.fileMetaData(directory)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve File Metadata: %w", err)
@@ -157,6 +173,7 @@ func (s *Indexer) indexTrack(directory string) error {
 
 	if pre_existing, ok := s.Index.Tracks[track.ID]; ok {
 		// already exists
+		s.Index.HasDuplicates = true
 		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "'), files are '" + directory + "' and '" + pre_existing.Path + "'")
 	}
 

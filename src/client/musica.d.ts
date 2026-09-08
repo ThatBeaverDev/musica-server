@@ -7,9 +7,12 @@ export interface Track {
 	albumArtist: string;
 	albumArtistId: string;
 
+	isSingle: boolean;
+
 	modified: number;
 	release?: ReturnType<typeof Date.now>;
 	number?: number;
+	discNumber?: number;
 
 	id: string;
 

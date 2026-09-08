@@ -7,10 +7,7 @@ import (
 	"musica-server/src/scores"
 )
 
-func changeTrackId(indexer *indexer.Indexer, scoreManager *scores.ScoreManager, track *indexer.Track, newId string) error {
-	indexer.Index.Mutex.Lock()
-	defer indexer.Index.Mutex.Unlock()
-
+func changeTrackIdUnsafe(indexer *indexer.Indexer, scoreManager *scores.ScoreManager, track *indexer.Track, newId string) error {
 	oldId := track.ID
 
 	if _, ok := indexer.Index.Tracks[oldId]; !ok {

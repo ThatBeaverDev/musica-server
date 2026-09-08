@@ -16,5 +16,6 @@ func (s *HistoryManager) ChangeTrackId(oldID string, newID string) error {
 		s.History.Tracks[newID] = historyData
 	}
 
+	s.storeUnsafe()
 	return nil
 }

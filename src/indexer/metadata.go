@@ -292,10 +292,7 @@ func (s *Indexer) addTrackToAlbumLocked(album *Album, track *Track) {
 	album.Tracks = append(album.Tracks, track)
 }
 
-func (s *Indexer) ReassignTrack(track *Track, oldAlbumID string) {
-	s.Index.Mutex.Lock()
-	defer s.Index.Mutex.Unlock()
-
+func (s *Indexer) ReassignTrackUnsafe(track *Track, oldAlbumID string) {
 	// remove from old if needed
 	if oldAlbumID != "" {
 		if oldAlbum, exists := s.Index.Albums[oldAlbumID]; exists {
@@ -305,6 +302,13 @@ func (s *Indexer) ReassignTrack(track *Track, oldAlbumID string) {
 
 	newAlbum := s.getOrCreateAlbumLocked(track)
 	s.addTrackToAlbumLocked(newAlbum, track)
+}
+
+func (s *Indexer) ReassignTrack(track *Track, oldAlbumID string) {
+	s.Index.Mutex.Lock()
+	defer s.Index.Mutex.Unlock()
+
+	s.ReassignTrack(track, oldAlbumID)
 }
 
 type ExtraArtistMetadata struct {
@@ -350,7 +354,7 @@ func SetInterval(fn func(), interval time.Duration) chan struct{} {
 	return done
 }
 
-func (s *Indexer) getArtistWithoutMetadata() *Artist {
+func (s *Indexer) getFirstArtistWithoutMetadata() *Artist {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -365,7 +369,7 @@ func (s *Indexer) getArtistWithoutMetadata() *Artist {
 
 func (s *Indexer) SetupSlowArtistExtraMetadataLoop() {
 	SetInterval(func() {
-		artist := s.getArtistWithoutMetadata()
+		artist := s.getFirstArtistWithoutMetadata()
 
 		if artist != nil {
 			fmt.Println("Loading metadata for '" + artist.Name + "'")

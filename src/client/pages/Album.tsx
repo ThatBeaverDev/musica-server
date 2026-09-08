@@ -186,8 +186,6 @@ export default function Album() {
 										playByIndex(index);
 									}}
 									onContextMenu={(e) => {
-										onTrackSearchAndPlay(track.id);
-
 										activateContextMenu(e, track);
 									}}
 								/>
