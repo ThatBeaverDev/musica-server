@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -110,6 +111,8 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Accept-Ranges", "bytes")
 	w.Header().Set("Content-Type", "audio/mpeg")
+	w.Header().Set("Content-Encoding", "identity")
+	w.Header().Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
 
 	http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
 }

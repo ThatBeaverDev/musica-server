@@ -25,7 +25,6 @@ type WebServer struct {
 
 func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager) *WebServer {
 	r := chi.NewRouter()
-	r.Use(middleware.Compress(5))
 	r.Use(middleware.Logger)
 
 	ws := &WebServer{
