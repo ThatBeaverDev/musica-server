@@ -1,29 +1,30 @@
 # frontend (tsx)
-FROM node:24 AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 WORKDIR /app
+RUN apk update && apk add rsync
+COPY package*.json ./
+RUN npm ci
 COPY . .
-RUN npm install
-RUN npx tsc
-RUN npx rollup -c
+RUN ./build:frontend.sh
 
 # backend (go)
-FROM golang:1.27.0 AS backend-builder
+FROM golang:1.27.0-alpine AS backend-builder
 WORKDIR /app
-COPY . .
+COPY go.mod go.sum ./
 RUN go mod download
-RUN GOOS=linux go build -o musica-server .
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o musica-server .
 
 # merge it
-FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
+FROM alpine:3.20
+RUN apk add --no-cache \
     ca-certificates \
-    gosu \
-    && rm -rf /var/lib/apt/lists/*
+    su-exec
 
 WORKDIR /app
-COPY --from=backend-builder /app/musica-server /app/musica-server
-COPY --from=frontend-builder /app/public /app/public
-COPY docker_entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --from=backend-builder /app/musica-server ./musica-server
+COPY --from=frontend-builder /app/public ./public
+COPY --chown=root:root docker_entrypoint.sh /usr/local/bin/entrypoint.sh
 # write static config file
 RUN echo '{"mediaLibrary": "/app/audio", "scores": "/app/data/scores.json", "history": "/app/data/history.json"}' > /app/config.json
 

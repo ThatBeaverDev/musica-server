@@ -5,6 +5,6 @@ services:
         ports:
             - 3000:3000 # host:container
         volumes:
-            - ./audio:/app/audio # configure this to your media library
+            - /Users/Zac/mediaLibrary/music:/app/audio # configure this to your media library
             - ./data:/app/data # contains history.json and scores.json.
             - ./cache:/app/cache # make cache persist across runs
