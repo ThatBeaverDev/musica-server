@@ -3,6 +3,7 @@ package edit
 import (
 	"errors"
 	"fmt"
+	safe_fs "musica-server/src/fs"
 	"musica-server/src/indexer"
 	"os"
 	"path/filepath"
@@ -47,6 +48,11 @@ func ReorganiseLibrary(indexer *indexer.Indexer) error {
 		if err != nil {
 			return fmt.Errorf("failed to move track "+track.Title+" by "+track.Artist+" to new directory: %w", err)
 		}
+	}
+
+	err := safe_fs.DeleteEmptySubdirectories(indexer.Index.Root)
+	if err != nil {
+		return fmt.Errorf("failed to delete empty directories: %w", err)
 	}
 
 	return nil
