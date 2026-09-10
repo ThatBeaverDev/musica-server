@@ -1,0 +1,45 @@
+.card {
+	background: var(--cardColour);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+
+	border-radius: 14px;
+	padding: 14px;
+
+	display: flex;
+	flex-direction: column;
+
+	transform: 0.2s ease;
+}
+
+.card:hover {
+	background: rgb(45, 45, 45);
+	transform: scale(1.03);
+}
+
+.albumArt {
+	width: 100%;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border-radius: 6%;
+	pointer-events: none;
+}
+
+.albumTitle,
+.albumArtist {
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.albumTitle {
+	margin-top: 0.5rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+}
+
+.albumArtist {
+	margin-top: 0.25rem;
+	font-size: 0.85rem;
+	color: #9a9a9a;
+}

@@ -1,7 +1,7 @@
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler } from "react";
 import { Album } from "../musica";
 import { useNavigate } from "react-router-dom";
-import { cardColour } from "../constants";
+import styles from "./LargeAlbum.module.css";
 
 export default function LargeAlbum({
 	album,
@@ -10,17 +10,14 @@ export default function LargeAlbum({
 	album: Album;
 	onContextMenu: MouseEventHandler<HTMLDivElement>;
 }) {
-	const [isHovered, setIsHovered] = useState(false);
 	const navigate = useNavigate();
 
 	const showAlbum = () => navigate(`/album/${album.id}`);
 
 	return (
 		<div
-			style={styles.card(isHovered)}
+			className={styles.card}
 			onContextMenu={onContextMenu}
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
 
 			onClick={showAlbum}
 		>
@@ -28,56 +25,11 @@ export default function LargeAlbum({
 				loading="lazy"
 				fetchPriority="low"
 				src={`/api/album/${album.id}/art`}
-				style={styles.albumArt}
+				className={styles.albumArt}
 			/>
 
-			<p style={styles.albumTitle}>{album.title}</p>
-			<p style={styles.albumArtist}>{album.artist}</p>
+			<p className={styles.albumTitle}>{album.title}</p>
+			<p className={styles.albumArtist}>{album.artist}</p>
 		</div>
 	);
 }
-
-const albumTitleBase = {
-	textAlign: "center" as "center",
-	overflow: "hidden",
-	whiteSpace: "nowrap",
-	textOverflow: "ellipsis"
-};
-
-const styles = {
-	card(hovered: boolean) {
-		return {
-			background: hovered ? "rgb(45, 45, 45)" : cardColour,
-			border: "1px solid rgba(255, 255, 255, 0.06)",
-
-			borderRadius: "14px",
-			padding: "14px",
-			display: "flex",
-			flexDirection: "column" as "column",
-			transition: "0.2s ease",
-
-			transform: hovered ? "scale(1.03)" : ""
-		};
-	},
-
-	albumArt: {
-		width: "100%",
-		aspectRatio: 1,
-		objectFit: "cover" as "cover",
-		borderRadius: "6%",
-		pointerEvents: "none" as "none"
-	},
-
-	albumTitle: {
-		...albumTitleBase,
-		marginTop: "0.5rem",
-		fontSize: "0.95rem",
-		fontWeight: 600
-	},
-	albumArtist: {
-		...albumTitleBase,
-		marginTop: "0.25rem",
-		fontSize: "0.85rem",
-		color: "#9a9a9a"
-	}
-};
