@@ -26,7 +26,7 @@ COPY --from=backend-builder /app/musica-server ./musica-server
 COPY --from=frontend-builder /app/public ./public
 COPY --chown=root:root docker_entrypoint.sh /usr/local/bin/entrypoint.sh
 # write static config file
-RUN echo '{"mediaLibrary": "/app/audio", "scores": "/app/data/scores.json", "history": "/app/data/history.json"}' > /app/config.json
+RUN echo '{"mediaLibrary": "/app/audio", "scores": "/app/data/scores.json", "history": "/app/data/history.json", "logFile": "/app/data/musica-server.log"}' > /app/config.json
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

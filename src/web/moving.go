@@ -2,7 +2,6 @@ package webServer
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"musica-server/src/edit"
 	"net/http"
@@ -68,7 +67,7 @@ func (ws *WebServer) editTrackArt(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxArtworkSize)
 
-	tmp, err := os.CreateTemp("", "artwork-upload-*")
+	tmp, err := os.CreateTemp("", "artwork-upload-*.tmp")
 	if err != nil {
 		http.Error(w, "could not create temporary file", http.StatusInternalServerError)
 		return
@@ -95,7 +94,7 @@ func (ws *WebServer) editTrackArt(w http.ResponseWriter, r *http.Request) {
 
 	err = edit.ChangeTrackArt(ws.indexer, track, tmp.Name())
 	if err != nil {
-		fmt.Println("failed to change track art", err)
+		ws.logger.Error("failed to change track art", err)
 		http.Error(w, "failed to change track art", http.StatusInternalServerError)
 	}
 

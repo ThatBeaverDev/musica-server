@@ -143,13 +143,13 @@ func (ws *WebServer) artistAlbumFallbackArtBytes(id string) ([]byte, error) {
 
 	cover, err := ws.indexer.GetCover(*artist.Albums[0].Tracks[0])
 	if err != nil {
-		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
 		cover = indexer.FallbackCover
 	}
 
 	bytes, err := os.ReadFile(cover.Directory)
 	if err != nil {
-		fmt.Println("Error retrieving cover file for ID '"+id+"'': ", err)
+		ws.logger.Error("Error retrieving cover file for ID '"+id+"'': ", err)
 		cover = indexer.FallbackCover
 	}
 
@@ -225,7 +225,7 @@ func (ws *WebServer) artistColour(w http.ResponseWriter, r *http.Request) {
 		dir = path.Join(ws.indexer.CacheDirectory, fmt.Sprint(artist.ID, "_artist_art"))
 	}
 
-	dominantColour, err := indexer.FindDominantColour(dir)
+	dominantColour, err := indexer.FindDominantColour(ws.logger, dir)
 	if err != nil {
 		http.Error(w, "Failed to extract dominant colour.", http.StatusInternalServerError)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	identityStorage "musica-server/src"
 	"musica-server/src/indexer"
+	"musica-server/src/logging"
 	scores "musica-server/src/scores"
 	search "musica-server/src/search"
 	"net/http"
@@ -21,20 +22,22 @@ type WebServer struct {
 	router *chi.Mux
 
 	identityStorage *identityStorage.IdentityStorage
+	logger          *logging.Logger
 }
 
-func New(idx *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager) *WebServer {
+func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager) *WebServer {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
 	ws := &WebServer{
-		indexer: idx,
-		search:  search.NewSearcher(idx, scores),
+		indexer: indexer,
+		search:  search.NewSearcher(indexer, scores),
 		scores:  scores,
 
 		router: r,
 
 		identityStorage: idStorage,
+		logger:          indexer.Logger,
 	}
 
 	api := chi.NewRouter()
@@ -234,6 +237,6 @@ func (ws *WebServer) Listen(port int) error {
 		IdleTimeout:       120 * time.Second,
 	}
 
-	fmt.Println("Server listening on", addr)
+	ws.logger.Log("Server listening on", addr)
 	return srv.ListenAndServe()
 }

@@ -6,6 +6,7 @@ import (
 	"mime"
 	identityStorage "musica-server/src"
 	"musica-server/src/config"
+	"musica-server/src/logging"
 	"os"
 	"path"
 	"path/filepath"
@@ -101,9 +102,10 @@ type Indexer struct {
 
 	IdentityStorage *identityStorage.IdentityStorage
 	Config          *config.Config
+	Logger          *logging.Logger
 }
 
-func New(directory string, idStorage *identityStorage.IdentityStorage, config *config.Config) (*Indexer, error) {
+func New(directory string, idStorage *identityStorage.IdentityStorage, config *config.Config, logger *logging.Logger) (*Indexer, error) {
 	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return &Indexer{}, fmt.Errorf("Failed to retrieve working directory: %w", err)
@@ -133,6 +135,7 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 
 		IdentityStorage: idStorage,
 		Config:          config,
+		Logger:          logger,
 	}
 
 	waitGroup := sync.WaitGroup{}
@@ -179,6 +182,7 @@ func (s *Indexer) indexTrack(directory string) error {
 
 	// write data
 	s.Index.Tracks[track.ID] = track
+	s.Logger.Debug("Indexed file at", track.Path)
 
 	return nil
 }
@@ -226,7 +230,7 @@ func (s *Indexer) walk(dir string, waitGroup *sync.WaitGroup) error {
 				err := s.indexTrack(path)
 
 				if err != nil {
-					fmt.Println(fmt.Errorf("Failed to index track: %w", err))
+					s.Logger.Error(fmt.Errorf("Failed to index track: %w", err))
 				}
 			}(directory)
 

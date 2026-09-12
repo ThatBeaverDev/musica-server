@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	identityStorage "musica-server/src"
 	"musica-server/src/config"
 	"musica-server/src/edit"
 	"musica-server/src/indexer"
+	"musica-server/src/logging"
 	scores "musica-server/src/scores"
 	webServer "musica-server/src/web"
 	"os"
@@ -39,19 +39,24 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	indexerDirectory := resolvePath(workingDirectory, config.MediaLibrary)
-
-	indexer, err := indexer.New(indexerDirectory, idStorage, config)
+	logger, err := logging.New(config)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println("")
-	fmt.Println("Indexed:")
-	fmt.Println("-", len(indexer.Index.Tracks), "Tracks,")
-	fmt.Println("-", len(indexer.Index.Albums), "Albums and")
-	fmt.Println("-", len(indexer.Index.Artists), "Artists!")
-	fmt.Println("")
+	indexerDirectory := resolvePath(workingDirectory, config.MediaLibrary)
+
+	indexer, err := indexer.New(indexerDirectory, idStorage, config, logger)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	logger.Log("")
+	logger.Log("Indexed:")
+	logger.Log("-", len(indexer.Index.Tracks), "Tracks,")
+	logger.Log("-", len(indexer.Index.Albums), "Albums and")
+	logger.Log("-", len(indexer.Index.Artists), "Artists!")
+	logger.Log("")
 
 	scorer, err := scores.New(indexer)
 	if err != nil {

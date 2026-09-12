@@ -35,10 +35,11 @@ the `config.json` file is used to configure the server. This is set statically
 in docker since this is used to specify directories and ports, which is done
 through docker mappings.
 
-| Property       | Default Value    | Meaning                                                                                                                                |
-| -------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `port`         | `3000`           | Port to use for the webUI and API.                                                                                                     |
-| `mediaLibrary` | `./audio`        | Directory in which media files are stored in.                                                                                          |
-| `scores`       | `./scores.json`  | File for scores to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder)       |
-| `history`      | `./history.json` | File for history data to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder) |
-| `organise`     | `false`          | Whether to re-organise the media library on startup                                                                                    |
+| Property       | Default Value         | Meaning                                                                                                                                |
+| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`         | `3000`                | Port to use for the webUI and API.                                                                                                     |
+| `mediaLibrary` | `./audio`             | Directory in which media files are stored in.                                                                                          |
+| `scores`       | `./scores.json`       | File for scores to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder)       |
+| `history`      | `./history.json`      | File for history data to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder) |
+| `logFile`      | `./musica-server.log` | File for program logs to be appended to.                                                                                               |
+| `organise`     | `false`               | Whether to re-organise the media library on startup                                                                                    |

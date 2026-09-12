@@ -6,6 +6,7 @@ import (
 	"musica-server/src/config"
 	"musica-server/src/history"
 	"musica-server/src/indexer"
+	"musica-server/src/logging"
 	shared "musica-server/src/sharedScores"
 	"sync"
 	"time"
@@ -19,6 +20,7 @@ type ScoreManager struct {
 
 	storeMutex sync.RWMutex
 	indexer    *indexer.Indexer
+	logger     *logging.Logger
 }
 
 func New(indexer *indexer.Indexer) (*ScoreManager, error) {
@@ -37,6 +39,7 @@ func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 		config:      indexer.Config,
 		trackScores: trackScores, // track to score (-50 to 50)
 		indexer:     indexer,
+		logger:      indexer.Logger,
 	}
 
 	go scoreManager.store()
@@ -45,7 +48,7 @@ func New(indexer *indexer.Indexer) (*ScoreManager, error) {
 }
 
 func (scores *ScoreManager) DeltaScore(track *indexer.Track, delta float64) {
-	fmt.Println(track.Title, "( by", track.Artist, ") delta by", delta)
+	scores.logger.Log(track.Title, "( by", track.Artist, ") delta by", delta)
 
 	scores.storeMutex.Lock()
 	defer scores.storeMutex.Unlock()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"musica-server/src/indexer"
+	"musica-server/src/logging"
 	"os"
 	"path/filepath"
 )
@@ -53,6 +54,58 @@ func backupFile(track *indexer.Track) error {
 	_, err = io.Copy(trackFile, backupFile)
 	if err != nil {
 		return fmt.Errorf("failed to copy file to destination (backup exists at "+backupFilepath+", don't worry): %w", err)
+	}
+
+	return nil
+}
+
+func createTempBackup(logger *logging.Logger, track *indexer.Track) (_ *os.File, err error) {
+	trackParentDirectory := filepath.Dir(track.Path)
+
+	tmp, err := os.CreateTemp(trackParentDirectory, "temp-backup-*.tmp")
+	if err != nil {
+		return nil, fmt.Errorf("failed to open track file to copy to temp file: %w", err)
+	}
+
+	tempFileName := tmp.Name()
+	logger.Debug("Temporary backup of " + track.Title + " by " + track.Artist + " created at " + tempFileName)
+
+	defer (func() {
+		if err != nil {
+			tmp.Close()
+			os.Remove(tempFileName)
+		}
+	})()
+
+	trackFile, err := os.Open(track.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp backup file: %w", err)
+	}
+	defer trackFile.Close()
+
+	_, err = io.Copy(tmp, trackFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy file to tempfile: %w", err)
+	}
+
+	return tmp, nil
+}
+
+func restoreTempBackup(logger *logging.Logger, track *indexer.Track, tmp *os.File) error {
+	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("failed to seek temp file to start: %w", err)
+	}
+	logger.Debug("Temporary backup of " + track.Title + " by " + track.Artist + " restored from " + tmp.Name())
+
+	trackFile, err := os.Create(track.Path)
+	if err != nil {
+		return fmt.Errorf("failed to create open track file: %w", err)
+	}
+	defer trackFile.Close()
+
+	_, err = io.Copy(trackFile, tmp)
+	if err != nil {
+		return fmt.Errorf("failed to copy temp file back to main file in restore: %w", err)
 	}
 
 	return nil

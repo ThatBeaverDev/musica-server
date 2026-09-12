@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/jpeg"
 	_ "image/png"
+	"musica-server/src/logging"
 	"net/http"
 	"os"
 	"path"
@@ -23,10 +24,10 @@ type CoverResult struct {
 	Directory string
 }
 
-func FindDominantColour(fileInput string) (string, error) {
+func FindDominantColour(logger *logging.Logger, fileInput string) (string, error) {
 	f, err := os.Open(fileInput)
 	if err != nil {
-		fmt.Println("File not found:", fileInput)
+		logger.Error("File not found:", fileInput)
 		return "", err
 	}
 	defer f.Close()
@@ -89,20 +90,20 @@ func (s *Indexer) GetCover(track Track) (CoverResult, error) {
 	// read image from audio file
 	imgBytes, err := taglib.ReadImage(track.Path)
 	if err != nil {
-		fmt.Println("failed to load cover image for ID '"+track.ID+"':", err)
+		s.Logger.Error("failed to load cover image for ID '"+track.ID+"':", err)
 		return FallbackCover, nil
 	}
 
 	// fallback if no image exists
 	if imgBytes == nil {
-		fmt.Println("no cover for ID '" + track.ID + "' exists")
+		s.Logger.Error("no cover for ID '" + track.ID + "' exists")
 		return FallbackCover, nil
 	}
 
 	// resize and write to disk
 	err = processAndSaveImage(imgBytes, artPath, 500)
 	if err != nil {
-		fmt.Println("could not process/save image for ID '"+track.ID+"', using fallback:", err)
+		s.Logger.Error("could not process/save image for ID '"+track.ID+"', using fallback:", err)
 
 		return FallbackCover, nil
 	}
