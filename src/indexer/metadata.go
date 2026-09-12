@@ -201,7 +201,7 @@ func (s *Indexer) getOrCreateAlbumLocked(track *Track) *Album {
 			// no network. If not cached, returns nil.
 			extra, err := s.GetArtistExtraMetadata(album.Artist, false)
 			if err != nil {
-				fmt.Println("failure to retrieve artist extra metadata, bypassing:", err)
+				s.Logger.Warn("failure to retrieve artist extra metadata, bypassing:", err)
 			}
 
 			artist := &Artist{
@@ -372,11 +372,11 @@ func (s *Indexer) SetupSlowArtistExtraMetadataLoop() {
 		artist := s.getFirstArtistWithoutMetadata()
 
 		if artist != nil {
-			fmt.Println("Loading metadata for '" + artist.Name + "'")
+			s.Logger.Debug("Loading metadata for '" + artist.Name + "'")
 
 			extra, err := s.GetArtistExtraMetadata(artist.Name, true)
 			if err != nil {
-				fmt.Println("failure to retrieve artist extra metadata, bypassing:", err)
+				s.Logger.Warn("failure to retrieve artist extra metadata, bypassing:", err)
 				return
 			}
 
@@ -463,7 +463,7 @@ func (s *Indexer) GetArtistExtraMetadata(name string, network bool) (*ExtraArtis
 		jsonData, err := json.Marshal(extra)
 
 		if err != nil {
-			fmt.Println("Error marshaling JSON:", err)
+			s.Logger.Error("Error marshaling JSON:", err)
 		}
 
 		err = os.WriteFile(dir, jsonData, 0644)

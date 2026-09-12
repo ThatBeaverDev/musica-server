@@ -52,7 +52,7 @@ func parseLegacy(indexer *indexer.Indexer, jsonData []byte) (shared.TrackScoreMa
 	for oldID, data := range scoresLegacyMap {
 		newID, ok := idTranslationMap[oldID]
 		if !ok {
-			fmt.Println("ID " + oldID + " could not be translated in migration")
+			indexer.Logger.Error("ID " + oldID + " could not be translated in migration")
 			continue
 		}
 
@@ -130,15 +130,15 @@ func (scores *ScoreManager) storeUnsafe() {
 	jsonData, err := json.Marshal(storageData)
 
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
+		scores.logger.Error("Error marshaling JSON:", err)
 		return
 	}
 
 	scoresFile := scores.config.ScoresFile
 	err = safeFS.SafeWriteFile(scoresFile, jsonData)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to write to "+scoresFile+": %w", err))
+		scores.logger.Error(fmt.Errorf("failed to write to "+scoresFile+": %w", err))
 	}
 
-	fmt.Println("Successfully saved to " + scoresFile + ".")
+	scores.logger.Log("Successfully saved to " + scoresFile + ".")
 }

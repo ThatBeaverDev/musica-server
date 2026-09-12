@@ -3,7 +3,6 @@ package webServer
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"musica-server/src/indexer"
 	webTypes "musica-server/src/types"
 	"net/http"
@@ -87,13 +86,13 @@ func (ws *WebServer) albumArt(w http.ResponseWriter, r *http.Request) {
 
 	cover, err := ws.indexer.GetCover(*album.Tracks[0])
 	if err != nil {
-		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
 		cover = indexer.FallbackCover
 	}
 
 	bytes, err := os.ReadFile(cover.Directory)
 	if err != nil {
-		fmt.Println("Error retrieving cover file for ID '"+id+"'': ", err)
+		ws.logger.Error("Error retrieving cover file for ID '"+id+"'': ", err)
 		cover = indexer.FallbackCover
 	}
 
@@ -117,11 +116,11 @@ func (ws *WebServer) albumColour(w http.ResponseWriter, r *http.Request) {
 
 	cover, err := ws.indexer.GetCover(*album.Tracks[0])
 	if err != nil {
-		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
 		cover = indexer.FallbackCover
 	}
 
-	dominantColour, err := indexer.FindDominantColour(cover.Directory)
+	dominantColour, err := indexer.FindDominantColour(ws.logger, cover.Directory)
 	if err != nil {
 		http.Error(w, "Failed to extract dominant colour.", 500)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"musica-server/src/indexer"
+	"musica-server/src/logging"
 	shared "musica-server/src/sharedScores"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ type History struct {
 type HistoryManager struct {
 	History *History
 	indexer *indexer.Indexer
+	logger  *logging.Logger
 
 	mutex sync.RWMutex
 }
@@ -48,6 +50,7 @@ func New(indexer *indexer.Indexer) (*HistoryManager, error) {
 	historyManager := &HistoryManager{
 		History: &history,
 		indexer: indexer,
+		logger:  indexer.Logger,
 
 		mutex: sync.RWMutex{},
 	}
@@ -58,7 +61,7 @@ func New(indexer *indexer.Indexer) (*HistoryManager, error) {
 }
 
 func (history *HistoryManager) OnUpdateScore(track *indexer.Track, oldScore float64, date time.Time) {
-	fmt.Println("New score for " + track.ID + " of " + fmt.Sprintf("%f", oldScore) + ".")
+	history.logger.Log("New score for " + track.ID + " of " + fmt.Sprintf("%f", oldScore) + ".")
 	entryStore := &shared.TrackScoreEntry{Score: roundFloat(oldScore, 3), Date: date}
 
 	trackEntry, ok := history.History.Tracks[track.ID]

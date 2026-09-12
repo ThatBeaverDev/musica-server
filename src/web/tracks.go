@@ -101,7 +101,7 @@ func (ws *WebServer) trackFile(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(fullPath)
 	if err != nil {
-		fmt.Println(err)
+		ws.logger.Error(fmt.Errorf("failed to open track file for streaming: %w", err))
 		http.Error(w, "Track media file does not exist. Server may need to restart to update index.", http.StatusInternalServerError)
 		return
 	}
@@ -128,13 +128,13 @@ func (ws *WebServer) trackArt(w http.ResponseWriter, r *http.Request) {
 
 	cover, err := ws.indexer.GetCover(*track)
 	if err != nil {
-		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
 		cover = indexer.FallbackCover
 	}
 
 	bytes, err := os.ReadFile(cover.Directory)
 	if err != nil {
-		fmt.Println("Error retrieving cover file for ID '"+id+"'': ", err)
+		ws.logger.Error("Error retrieving cover file for ID '"+id+"'': ", err)
 		cover = indexer.FallbackCover
 	}
 
@@ -158,11 +158,11 @@ func (ws *WebServer) trackColour(w http.ResponseWriter, r *http.Request) {
 
 	cover, err := ws.indexer.GetCover(*track)
 	if err != nil {
-		fmt.Println("Error retrieving cover for ID '"+id+"': ", err)
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
 		cover = indexer.FallbackCover
 	}
 
-	dominantColour, err := indexer.FindDominantColour(cover.Directory)
+	dominantColour, err := indexer.FindDominantColour(ws.logger, cover.Directory)
 	if err != nil {
 		http.Error(w, "Failed to extract dominant colour.", 500)
 	}

@@ -15,14 +15,18 @@ type Config struct {
 
 	ScoresFile  string `json:"scores"`
 	HistoryFile string `json:"history"`
+	LogFile     string `json:"logFile"`
 
 	OrganiseLibrary bool `json:"organise"`
+
+	DebugMode bool `json:"debugMode"`
 }
 
 const defaultPort = 3000
-const defaultMediaLibrary = "audio"
-const defaultScoresFile = "scores.json"
-const defaultHistoryFile = "history.json"
+const defaultMediaLibrary = "./audio"
+const defaultScoresFile = "./scores.json"
+const defaultHistoryFile = "./history.json"
+const defaultLogFile = "./musica-server.log"
 
 func New() (*Config, error) {
 	var Cfg Config
@@ -53,7 +57,10 @@ func New() (*Config, error) {
 	if Cfg.HistoryFile == "" {
 		Cfg.HistoryFile = defaultHistoryFile
 	}
-	// zero value of bool is false, files aren't moved by default.
+	if Cfg.LogFile == "" {
+		Cfg.LogFile = defaultLogFile
+	}
+	// zero value of bool is false, therefore `organise` defaults to false, as does `DebugMode`
 
 	return &Cfg, nil
 }

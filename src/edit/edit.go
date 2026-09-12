@@ -49,14 +49,14 @@ func BulkEditTrackMetadata(indexer *indexer.Indexer, scoreManager *scores.ScoreM
 		return fmt.Errorf("failed to create backup of track before mutation: %w", err)
 	}
 
-	tmpFile, err := createTempBackup(track)
+	tmpFile, err := createTempBackup(indexer.Logger, track)
 
 	defer (func() {
 		tmpFileName := tmpFile.Name()
 		tmpFile.Close()
 
 		if err != nil {
-			err = restoreTempBackup(track, tmpFile)
+			err = restoreTempBackup(indexer.Logger, track, tmpFile)
 			if err != nil {
 				panic(err)
 			}

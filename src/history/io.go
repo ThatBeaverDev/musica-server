@@ -58,15 +58,15 @@ func (history *HistoryManager) storeUnsafe() {
 	jsonData, err := json.Marshal(storageData)
 
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
+		history.logger.Error("Error marshaling JSON:", err)
 		return
 	}
 
 	historyFile := history.indexer.Config.HistoryFile
 	err = safeFS.SafeWriteFile(historyFile, jsonData)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to write to "+historyFile+": %w", err))
+		history.logger.Error(fmt.Errorf("failed to write to "+historyFile+": %w", err))
 	}
 
-	fmt.Println("Successfully saved to " + historyFile + ".")
+	history.logger.Log("Successfully saved to " + historyFile + ".")
 }
