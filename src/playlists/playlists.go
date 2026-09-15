@@ -1,6 +1,7 @@
 package playlists
 
 import (
+	"fmt"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
 	"sync"
@@ -27,9 +28,14 @@ type PlaylistManager struct {
 	mutex *sync.RWMutex
 }
 
-func New(logger *logging.Logger, indexer *indexer.Indexer) PlaylistManager {
-	manager := PlaylistManager{
-		Playlists: make(PlaylistMap),
+func New(logger *logging.Logger, indexer *indexer.Indexer) (*PlaylistManager, error) {
+	playlists, err := readPlaylists(indexer)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read playlists from disk: %w", err)
+	}
+
+	manager := &PlaylistManager{
+		Playlists: playlists,
 		NextId:    0,
 
 		logger:  logger,
@@ -38,7 +44,9 @@ func New(logger *logging.Logger, indexer *indexer.Indexer) PlaylistManager {
 		mutex: &sync.RWMutex{},
 	}
 
-	return manager
+	go manager.store()
+
+	return manager, nil
 }
 
 func (p *PlaylistManager) generatePlaylistId() int64 {

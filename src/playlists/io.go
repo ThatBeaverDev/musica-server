@@ -31,7 +31,7 @@ type playlistData struct {
 }
 
 // load data from appropriate version
-func readHistory(indexer *indexer.Indexer) (PlaylistMap, error) {
+func readPlaylists(indexer *indexer.Indexer) (PlaylistMap, error) {
 
 	jsonData, err := os.ReadFile(indexer.Config.HistoryFile)
 	if err != nil {
