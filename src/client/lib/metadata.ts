@@ -95,7 +95,11 @@ export async function getAlbumMetadataBulk(ids: string[]): Promise<Album[]> {
 		});
 
 		const fetchedAlbums: Album[] = await albumStatsRequest.json();
-		fetchedAlbums.forEach((album) => albumMetadata.set(album.id, album));
+		fetchedAlbums.forEach((album) => {
+			album.tracks.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+
+			albumMetadata.set(album.id, album);
+		});
 	}
 
 	const results = ids.map((id) => albumMetadata.get(id));
