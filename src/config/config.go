@@ -13,9 +13,10 @@ type Config struct {
 
 	MediaLibrary string `json:"mediaLibrary"`
 
-	ScoresFile  string `json:"scores"`
-	HistoryFile string `json:"history"`
-	LogFile     string `json:"logFile"`
+	ScoresFile    string `json:"scores"`
+	HistoryFile   string `json:"history"`
+	LogFile       string `json:"logFile"`
+	PlaylistsFile string `json:"playlistsFile"`
 
 	OrganiseLibrary bool `json:"organise"`
 
@@ -27,6 +28,7 @@ const defaultMediaLibrary = "./audio"
 const defaultScoresFile = "./scores.json"
 const defaultHistoryFile = "./history.json"
 const defaultLogFile = "./musica-server.log"
+const defaultPlaylistsFile = "./playlists.json"
 
 func New() (*Config, error) {
 	var Cfg Config
@@ -59,6 +61,9 @@ func New() (*Config, error) {
 	}
 	if Cfg.LogFile == "" {
 		Cfg.LogFile = defaultLogFile
+	}
+	if Cfg.PlaylistsFile == "" {
+		Cfg.PlaylistsFile = defaultPlaylistsFile
 	}
 	// zero value of bool is false, therefore `organise` defaults to false, as does `DebugMode`
 
