@@ -94,6 +94,7 @@ func readScoreMap(indexer *indexer.Indexer) (shared.TrackScoreMap, error) {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
+			indexer.Logger.Log("Creating blank scores store.")
 			return make(shared.TrackScoreMap), nil
 		}
 		return nil, fmt.Errorf("failed to read scores file: %w", err)

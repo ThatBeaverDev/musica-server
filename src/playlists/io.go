@@ -36,6 +36,7 @@ func readPlaylists(indexer *indexer.Indexer) (PlaylistMap, error) {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
+			indexer.Logger.Log("Creating blank playlists store.")
 			return make(PlaylistMap), nil
 		}
 		return make(PlaylistMap), fmt.Errorf("failed to read scores file: %w", err)
