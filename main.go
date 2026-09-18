@@ -7,6 +7,7 @@ import (
 	"musica-server/src/edit"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
+	"musica-server/src/playlists"
 	scores "musica-server/src/scores"
 	webServer "musica-server/src/web"
 	"os"
@@ -59,6 +60,11 @@ func main() {
 	logger.Log("")
 
 	scorer, err := scores.New(indexer)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	_, err = playlists.New(logger, indexer)
 	if err != nil {
 		log.Fatalln(err)
 	}
