@@ -64,7 +64,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	_, err = playlists.New(logger, indexer)
+	playlistManager, err := playlists.New(logger, indexer)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -76,7 +76,7 @@ func main() {
 		}
 	}
 
-	server := webServer.New(indexer, idStorage, scorer)
+	server := webServer.New(indexer, idStorage, scorer, playlistManager)
 
 	err = server.Listen(config.Port)
 	if err != nil {

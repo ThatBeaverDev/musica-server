@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"musica-server/src/indexer"
+	"musica-server/src/playlists"
 	"musica-server/src/scores"
 	webTypes "musica-server/src/types"
 	"net/http"
@@ -212,8 +213,24 @@ func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
 	ws.scores.Skipped(track)
 }
 
-func (ws *WebServer) randomMixTrack(w http.ResponseWriter, _ *http.Request) {
+func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+	id := chi.URLParam(r, "id")
+
+	var playlist *playlists.Playlist
+
+	if id == "" {
+		playlist = nil
+	} else {
+		p, ok := ws.playlists.Playlists[id]
+		if !ok {
+			ws.logger.Warn("playlist requested for randomMixTrack does not exist.")
+			http.Error(w, "playlist does not exist", http.StatusNotFound)
+			return
+		}
+
+		playlist = p
+	}
 
 	type RandomMixTrackResponse = struct {
 		ID     string        `json:"id"`
