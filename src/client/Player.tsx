@@ -27,6 +27,7 @@ export interface StandardQueue {
 
 	playlist: Track[];
 	playOrder: number[];
+	isInitiated: boolean;
 
 	currentPlayOrderIndex: number;
 }
@@ -38,6 +39,7 @@ export interface DynamicQueue {
 
 	playlist: Track[];
 	playOrder: number[];
+	isInitiated: boolean;
 
 	currentPlayOrderIndex: number;
 }
@@ -65,6 +67,7 @@ class AudioPlayer {
 
 		playlist: [],
 		playOrder: [],
+		isInitiated: false,
 
 		currentPlayOrderIndex: 0
 	};
@@ -88,6 +91,8 @@ class AudioPlayer {
 	onShuffleUpdate?: (shuffle: boolean) => void;
 	onProgressBarUpdate?: (current: number, duration: number) => void;
 	onPlaybackStateChange?: (isPlaying: boolean) => void;
+
+	refreshDynamicQueueInterval?: ReturnType<typeof setInterval>;
 
 	constructor(audio?: HTMLAudioElement) {
 		this.audio =
@@ -122,6 +127,10 @@ class AudioPlayer {
 			}
 		});
 
+		this.refreshDynamicQueueInterval = setInterval(() => {
+			this.#insureDynamicQueueLength(false); // do one only
+		}, 250);
+
 		this.#renderQueue();
 
 		// media session
@@ -148,28 +157,37 @@ class AudioPlayer {
 		];
 	}
 
-	async #insureDynamicQueueLength() {
+	async #insureDynamicQueueLength(repeat: boolean = true) {
 		if (!this.queue.isDynamic) return;
 
-		const targetLastIndex = this.queue.currentPlayOrderIndex + 15;
+		// amount of tracks we want to have infront of us
+		const targetLookahead = 15;
+
+		const targetLastIndex =
+			this.queue.currentPlayOrderIndex + targetLookahead;
 		const targetLength = targetLastIndex + 1;
-		let added = false;
 
-		while (this.queue.playlist.length < targetLength) {
-			const { track: randomTrack } = await getRandomMix();
+		let isTooShort = this.queue.playlist.length < targetLength;
 
-			const index = this.queue.playlist.push(randomTrack) - 1;
-			this.queue.playOrder.push(index);
+		if (isTooShort) {
+			while (isTooShort) {
+				const { track: randomTrack } = await getRandomMix();
 
-			added = true;
+				const index = this.queue.playlist.push(randomTrack) - 1;
+				this.queue.playOrder.push(index);
+
+				isTooShort = this.queue.playlist.length < targetLength;
+
+				if (!repeat) {
+					isTooShort = false;
+				}
+			}
+
+			this.#renderQueue();
 		}
-
-		if (added) this.#renderQueue();
 	}
 
 	async #getNextTrack(number: number): Promise<Track | undefined> {
-		await this.#insureDynamicQueueLength();
-
 		switch (this.queue.loop) {
 			case LoopState.one:
 				return this.currentTrack;
@@ -221,7 +239,6 @@ class AudioPlayer {
 	async #playTrack(track: Track) {
 		this.currentInitiated = true;
 
-		await this.#insureDynamicQueueLength();
 		this.onTrackUpdate?.(track);
 
 		if (navigator.mediaSession && window.MediaMetadata) {
@@ -261,6 +278,7 @@ class AudioPlayer {
 
 			playlist: [],
 			playOrder: [],
+			isInitiated: false,
 
 			currentPlayOrderIndex: 0
 		};
@@ -271,7 +289,11 @@ class AudioPlayer {
 
 	#renderQueue() {
 		this.onTrackUpdate?.(this.currentTrack);
-		this.onQueueUpdate?.(this.queue);
+		this.onQueueUpdate?.({
+			...this.queue,
+			playlist: [...this.queue.playlist],
+			playOrder: [...this.queue.playOrder]
+		});
 	}
 
 	addToQueue(track: Track) {
@@ -301,6 +323,7 @@ class AudioPlayer {
 
 			playlist,
 			playOrder: playlist.map((_, i) => i),
+			isInitiated: false,
 
 			// Position right before the 'now' track so rollover(1) lands on it
 			currentPlayOrderIndex: before.length - 1,
@@ -315,7 +338,7 @@ class AudioPlayer {
 		this.#renderQueue();
 	}
 
-	startDynamicQueue(track?: Track) {
+	async startDynamicQueue(track?: Track) {
 		this.resetQueue();
 
 		this.queue = {
@@ -323,13 +346,22 @@ class AudioPlayer {
 
 			loop: LoopState.none,
 
-			playlist: track ? [track, track] : [],
-			playOrder: track ? [0, 1] : [],
+			playlist: track ? [track] : [],
+			playOrder: track ? [0] : [],
+			isInitiated: false,
 
 			currentPlayOrderIndex: 0
 		};
 
+		if (!track) {
+			// make sure there is at least one track ready to play, the populator loop can finish it
+			await this.#insureDynamicQueueLength(false);
+		}
+
+		debug("start dynamic queue", this.queue.playlist);
+
 		this.#renderQueue();
+		this.resume();
 	}
 
 	pause() {
@@ -345,7 +377,7 @@ class AudioPlayer {
 		if (!this.queue.isDynamic && this.queue.playOrder.length === 0) return;
 
 		if (!this.currentInitiated) {
-			await this.rollover(1);
+			await this.rollover(this.queue.isInitiated ? 1 : 0); // don't skip if the queue is brand new
 		} else {
 			this.onPlaybackStateChange?.(true);
 			await this.audio.play();

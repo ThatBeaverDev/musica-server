@@ -22,7 +22,6 @@ export default function TrackContextMenu({
 		onTrackSearchAndPlay(track.id);
 
 		player.startDynamicQueue(track);
-		player.resume();
 	}
 
 	const items = [
