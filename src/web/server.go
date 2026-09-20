@@ -5,6 +5,7 @@ import (
 	identityStorage "musica-server/src"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
+	"musica-server/src/playlists"
 	scores "musica-server/src/scores"
 	search "musica-server/src/search"
 	"net/http"
@@ -15,9 +16,10 @@ import (
 )
 
 type WebServer struct {
-	indexer *indexer.Indexer
-	search  *search.SearchManager
-	scores  *scores.ScoreManager
+	indexer   *indexer.Indexer
+	search    *search.SearchManager
+	scores    *scores.ScoreManager
+	playlists *playlists.PlaylistManager
 
 	router *chi.Mux
 
@@ -25,14 +27,15 @@ type WebServer struct {
 	logger          *logging.Logger
 }
 
-func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager) *WebServer {
+func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, scores *scores.ScoreManager, playlists *playlists.PlaylistManager) *WebServer {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
 	ws := &WebServer{
-		indexer: indexer,
-		search:  search.NewSearcher(indexer, scores),
-		scores:  scores,
+		indexer:   indexer,
+		search:    search.NewSearcher(indexer, scores),
+		scores:    scores,
+		playlists: playlists,
 
 		router: r,
 
@@ -73,6 +76,10 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 	api.Get("/bulk/artists/info", ws.bulkArtists)
 
 	// Playlists
+	api.Get("/playlists/list", ws.listPlaylists)
+	api.Get("/playlists/new", ws.newPlaylist)
+
+	api.Get("/playlist/{id}/info", ws.playlistInfo)
 	api.Get("/playlist/{id}/randomMixTrack", ws.randomMixTrack)
 
 	// Search
