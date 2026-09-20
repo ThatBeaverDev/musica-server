@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type WebExportedTrack = struct {
+type WebExportedTrack struct {
 	Title  string `json:"title"`
 	Artist string `json:"artist"`
 
@@ -55,7 +55,7 @@ func TrackToWeb(track *indexer.Track, scoresManager *scores.ScoreManager) *WebEx
 	}
 }
 
-type WebExportedAlbum = struct {
+type WebExportedAlbum struct {
 	Title    string `json:"title"`
 	Artist   string `json:"artist"`
 	ArtistId string `json:"artistId"`
@@ -97,6 +97,9 @@ func AlbumToWeb(album *indexer.Album, scoresManager *scores.ScoreManager) *WebEx
 
 	sort.Slice(exported.Tracks, func(i, j int) bool {
 		return exported.Tracks[i].Title < exported.Tracks[j].Title
+	})
+	sort.Slice(exported.Tracks, func(i, j int) bool {
+		return exported.Tracks[i].Number < exported.Tracks[j].Number
 	})
 
 	return exported
