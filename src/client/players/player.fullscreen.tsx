@@ -163,7 +163,7 @@ export default function DesktopPlayer({
 
 			<div className={styles.queue}>
 				{playlist.map((track, index) => (
-					<QueueItem track={track} offset={index} />
+					<QueueItem track={track} offset={index + 1} />
 				))}
 			</div>
 		</div>
