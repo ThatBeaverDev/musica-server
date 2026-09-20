@@ -325,8 +325,7 @@ class AudioPlayer {
 			playOrder: playlist.map((_, i) => i),
 			isInitiated: false,
 
-			// Position right before the 'now' track so rollover(1) lands on it
-			currentPlayOrderIndex: before.length - 1,
+			currentPlayOrderIndex: before.length,
 
 			loop: LoopState.none,
 			shuffle: false
