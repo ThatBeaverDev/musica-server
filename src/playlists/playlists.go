@@ -86,6 +86,8 @@ func (p *PlaylistManager) NewPlaylist(title string, description string, tracks [
 	p.Playlists[id] = playlist
 	p.mutex.Unlock()
 
+	go p.store()
+
 	return playlist
 }
 
