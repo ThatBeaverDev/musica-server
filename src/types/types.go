@@ -244,11 +244,19 @@ type WebExportedPlaylist struct {
 	Id     string              `json:"id"`
 }
 
-func PlaylistToWeb(playlist *playlists.Playlist, scoresManager *scores.ScoreManager) *WebExportedPlaylist {
+func PlaylistToWeb(playlist *playlists.Playlist, indexer *indexer.Indexer, scoresManager *scores.ScoreManager) *WebExportedPlaylist {
 	var tracks []*WebExportedTrack
-	for _, track := range playlist.Tracks {
-		webExported := TrackToWeb(track, scoresManager)
-		tracks = append(tracks, webExported)
+	indexer.Index.Mutex.RLock()
+	defer indexer.Index.Mutex.RUnlock()
+	for _, trackID := range playlist.TrackIds {
+		track, ok := indexer.Index.Tracks[trackID]
+		if !ok {
+			// we'll just log a warning
+			indexer.Logger.Warn("Track by ID '" + trackID + "', which is member of playlist by ID '" + playlist.ID + "' does not exist and will be excluded from web serving.")
+		} else {
+			webExported := TrackToWeb(track, scoresManager)
+			tracks = append(tracks, webExported)
+		}
 	}
 
 	exported := &WebExportedPlaylist{
@@ -257,7 +265,7 @@ func PlaylistToWeb(playlist *playlists.Playlist, scoresManager *scores.ScoreMana
 		PictureTrackId: playlist.PictureTrackId,
 
 		Tracks: tracks,
-		Id:     playlist.Id,
+		Id:     playlist.ID,
 	}
 
 	sort.Slice(exported.Tracks, func(i, j int) bool {

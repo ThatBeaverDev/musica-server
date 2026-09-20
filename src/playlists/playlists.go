@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
+	"strconv"
 	"sync"
 )
 
@@ -12,15 +13,15 @@ type Playlist struct {
 	Description    string `json:"description"`
 	PictureTrackId string `json:"pictureTrackId"` // track id
 
-	Tracks []*indexer.Track `json:"tracks"`
-	Id     int64            `json:"id"`
+	TrackIds []string `json:"tracks"`
+	ID       string   `json:"id"`
 }
 
-type PlaylistMap map[int64]Playlist
+type PlaylistMap map[string]*Playlist
 
 type PlaylistManager struct {
 	Playlists PlaylistMap `json:"playlists"` // id to playlist
-	NextId    int64       `json:"nextId"`
+	NextId    int         `json:"nextId"`
 
 	logger  *logging.Logger
 	indexer *indexer.Indexer
@@ -49,36 +50,41 @@ func New(logger *logging.Logger, indexer *indexer.Indexer) (*PlaylistManager, er
 	return manager, nil
 }
 
-func (p *PlaylistManager) generatePlaylistId() int64 {
+func (p *PlaylistManager) generatePlaylistId() string {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
 	return p.generatePlaylistIdUnsafe()
 }
 
-func (p *PlaylistManager) generatePlaylistIdUnsafe() int64 {
+func (p *PlaylistManager) generatePlaylistIdUnsafe() string {
 	id := p.NextId
 	p.NextId++
 
-	return id
+	return strconv.Itoa(id)
 }
 
-func (p *PlaylistManager) NewPlaylist(title string, description string, tracks []*indexer.Track) Playlist {
+func (p *PlaylistManager) NewPlaylist(title string, description string, tracks []*indexer.Track) *Playlist {
 	p.mutex.Lock()
-	defer p.mutex.Unlock()
 
 	id := p.generatePlaylistIdUnsafe()
 
-	playlist := Playlist{
+	var ids []string
+	for _, track := range tracks {
+		ids = append(ids, track.ID)
+	}
+
+	playlist := &Playlist{
 		Name:           title,
 		Description:    description,
-		PictureTrackId: tracks[0].ID,
+		PictureTrackId: ids[0],
 
-		Tracks: tracks,
-		Id:     id,
+		TrackIds: ids,
+		ID:       id,
 	}
 
 	p.Playlists[id] = playlist
+	p.mutex.Unlock()
 
 	return playlist
 }
