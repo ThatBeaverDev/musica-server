@@ -2,6 +2,7 @@ package webTypes
 
 import (
 	"musica-server/src/indexer"
+	"musica-server/src/playlists"
 	"musica-server/src/scores"
 	"sort"
 	"strconv"
@@ -229,6 +230,38 @@ func ArtistToWeb(artist *indexer.Artist, scoresManager *scores.ScoreManager) *We
 
 	sort.Slice(exported.Albums, func(i, j int) bool {
 		return exported.Albums[i].Title < exported.Albums[j].Title
+	})
+
+	return exported
+}
+
+type WebExportedPlaylist struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	PictureTrackId string `json:"pictureTrackId"`
+
+	Tracks []*WebExportedTrack `json:"tracks"`
+	Id     string              `json:"id"`
+}
+
+func PlaylistToWeb(playlist *playlists.Playlist, scoresManager *scores.ScoreManager) *WebExportedPlaylist {
+	var tracks []*WebExportedTrack
+	for _, track := range playlist.Tracks {
+		webExported := TrackToWeb(track, scoresManager)
+		tracks = append(tracks, webExported)
+	}
+
+	exported := &WebExportedPlaylist{
+		Name:           playlist.Name,
+		Description:    playlist.Description,
+		PictureTrackId: playlist.PictureTrackId,
+
+		Tracks: tracks,
+		Id:     playlist.Id,
+	}
+
+	sort.Slice(exported.Tracks, func(i, j int) bool {
+		return exported.Tracks[i].Title < exported.Tracks[j].Title
 	})
 
 	return exported
