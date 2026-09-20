@@ -22,7 +22,12 @@ func (ws *WebServer) listTracks(w http.ResponseWriter, r *http.Request) {
 		list = append(list, id)
 	}
 
-	json.NewEncoder(w).Encode(list)
+	err := json.NewEncoder(w).Encode(list)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
+
 }
 
 func (ws *WebServer) trackInfo(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +40,11 @@ func (ws *WebServer) trackInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	webExported := webTypes.TrackToWeb(track, ws.scores)
-	json.NewEncoder(w).Encode(webExported)
+	err := json.NewEncoder(w).Encode(webExported)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +74,11 @@ func (ws *WebServer) bulkTracks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	json.NewEncoder(w).Encode(result)
+	err := json.NewEncoder(w).Encode(result)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func resolve(paths ...string) (string, error) {
@@ -172,9 +185,13 @@ func (ws *WebServer) trackColour(w http.ResponseWriter, r *http.Request) {
 		DominantColour string `json:"dominantColour"`
 	}
 
-	json.NewEncoder(w).Encode(DominantColourResponse{
+	err = json.NewEncoder(w).Encode(DominantColourResponse{
 		DominantColour: dominantColour,
 	})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
@@ -237,9 +254,9 @@ func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
 		Subset scores.Subset `json:"subset"`
 	}
 
-	randomMixChoice, err := ws.scores.ChooseMixTrack()
+	randomMixChoice, err := ws.scores.ChooseMixTrack(nil)
 	if err != nil {
-		http.Error(w, "No tracks in library.", 404)
+		http.Error(w, "No tracks in library.", http.StatusNotFound)
 		return
 	}
 
@@ -248,5 +265,9 @@ func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
 
 	result := RandomMixTrackResponse{ID: track, Subset: subset}
 
-	json.NewEncoder(w).Encode(result)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
