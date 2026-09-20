@@ -254,7 +254,7 @@ func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
 		Subset scores.Subset `json:"subset"`
 	}
 
-	randomMixChoice, err := ws.scores.ChooseMixTrack(nil)
+	randomMixChoice, err := ws.scores.ChooseMixTrack(playlist)
 	if err != nil {
 		http.Error(w, "No tracks in library.", http.StatusNotFound)
 		return
