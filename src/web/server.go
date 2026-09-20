@@ -33,7 +33,7 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 
 	ws := &WebServer{
 		indexer:   indexer,
-		search:    search.NewSearcher(indexer, scores),
+		search:    search.NewSearcher(indexer, scores, playlists),
 		scores:    scores,
 		playlists: playlists,
 
