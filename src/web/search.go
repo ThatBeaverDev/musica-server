@@ -12,5 +12,9 @@ func (ws *WebServer) searchQuery(w http.ResponseWriter, r *http.Request) {
 
 	response := ws.search.Query(query)
 
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }

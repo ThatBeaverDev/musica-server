@@ -45,7 +45,11 @@ func (ws *WebServer) artistInfo(w http.ResponseWriter, r *http.Request) {
 
 	webExported := webTypes.ArtistToWeb(artist, ws.scores)
 
-	json.NewEncoder(w).Encode(webExported)
+	err := json.NewEncoder(w).Encode(webExported)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) bulkArtists(w http.ResponseWriter, r *http.Request) {
@@ -234,7 +238,11 @@ func (ws *WebServer) artistColour(w http.ResponseWriter, r *http.Request) {
 		DominantColour string `json:"dominantColour"`
 	}
 
-	json.NewEncoder(w).Encode(DominantColourResponse{
+	err = json.NewEncoder(w).Encode(DominantColourResponse{
 		DominantColour: dominantColour,
 	})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }

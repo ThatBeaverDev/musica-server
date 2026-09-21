@@ -2,7 +2,11 @@ package scores
 
 import (
 	"errors"
+	"maps"
 	"math/rand/v2"
+	"musica-server/src/indexer"
+	"musica-server/src/playlists"
+	"slices"
 )
 
 type Categories struct {
@@ -30,13 +34,26 @@ func GetScoreSubset(score float64) Subset {
 	return SubsetOther
 }
 
-func (scores *ScoreManager) categoriseTracks() *Categories {
+func (scores *ScoreManager) categoriseTracks(playlist *playlists.Playlist) *Categories {
 	var topSet []string
 	var middleSet []string
 	var bottomSet []string
 	var all []string
 
-	for id, track := range scores.indexer.Index.Tracks {
+	var tracks []*indexer.Track
+	if playlist == nil {
+		tracks = slices.Collect(maps.Values(scores.indexer.Index.Tracks))
+	} else {
+		for _, id := range playlist.TrackIds {
+			track, ok := scores.indexer.Index.Tracks[id]
+			if ok {
+				tracks = append(tracks, track)
+			}
+
+		}
+	}
+
+	for _, track := range tracks {
 		score := scores.TrackScore(track.ID)
 
 		subset := GetScoreSubset(score)
@@ -49,16 +66,16 @@ func (scores *ScoreManager) categoriseTracks() *Categories {
 		// action, will add to `all`
 
 		case SubsetWildcard:
-			bottomSet = append(bottomSet, id)
+			bottomSet = append(bottomSet, track.ID)
 
 		case SubsetExploration:
-			middleSet = append(middleSet, id)
+			middleSet = append(middleSet, track.ID)
 
 		case SubsetStandard:
-			topSet = append(topSet, id)
+			topSet = append(topSet, track.ID)
 		}
 
-		all = append(all, id)
+		all = append(all, track.ID)
 	}
 
 	categories := &Categories{
@@ -89,10 +106,10 @@ type RandomSubset struct {
 	Subset Subset
 }
 
-func (scores *ScoreManager) ChooseRandomSubset() (RandomSubset, error) {
+func (scores *ScoreManager) ChooseRandomSubset(playlist *playlists.Playlist) (RandomSubset, error) {
 	point := rand.Float64() * 100
 
-	categories := scores.categoriseTracks()
+	categories := scores.categoriseTracks(playlist)
 	var ids []string
 	subset := SubsetOther
 
@@ -129,8 +146,8 @@ type MixTrackChoice struct {
 	Subset Subset
 }
 
-func (scores *ScoreManager) ChooseMixTrack() (MixTrackChoice, error) {
-	randomSubset, err := scores.ChooseRandomSubset()
+func (scores *ScoreManager) ChooseMixTrack(playlist *playlists.Playlist) (MixTrackChoice, error) {
+	randomSubset, err := scores.ChooseRandomSubset(playlist)
 	if err != nil {
 		return MixTrackChoice{}, err
 	}

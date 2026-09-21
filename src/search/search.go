@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"musica-server/src/indexer"
+	"musica-server/src/playlists"
 	"musica-server/src/scores"
 	webTypes "musica-server/src/types"
 	"sort"
@@ -11,14 +12,16 @@ import (
 )
 
 type SearchManager struct {
-	indexer *indexer.Indexer
-	scores  *scores.ScoreManager
+	playlists *playlists.PlaylistManager
+	indexer   *indexer.Indexer
+	scores    *scores.ScoreManager
 }
 
 type SearchResult struct {
-	Tracks  []*webTypes.WebExportedTrack  `json:"tracks"`
-	Albums  []*webTypes.WebExportedAlbum  `json:"albums"`
-	Artists []*webTypes.WebExportedArtist `json:"artists"`
+	Tracks    []*webTypes.WebExportedTrack    `json:"tracks"`
+	Albums    []*webTypes.WebExportedAlbum    `json:"albums"`
+	Artists   []*webTypes.WebExportedArtist   `json:"artists"`
+	Playlists []*webTypes.WebExportedPlaylist `json:"playlists"`
 }
 
 type rankedTrack struct {
@@ -36,9 +39,17 @@ type rankedArtist struct {
 	Rank   int
 }
 
-func NewSearcher(indexer *indexer.Indexer, scores *scores.ScoreManager) *SearchManager {
-	return &SearchManager{indexer: indexer, scores: scores}
+type rankedPlaylist struct {
+	Playlist *webTypes.WebExportedPlaylist
+	Rank     int
+}
 
+func NewSearcher(indexer *indexer.Indexer, scores *scores.ScoreManager, playlists *playlists.PlaylistManager) *SearchManager {
+	return &SearchManager{
+		indexer:   indexer,
+		scores:    scores,
+		playlists: playlists,
+	}
 }
 
 func scoreTrack(query string, t *indexer.Track) int {
@@ -124,9 +135,41 @@ func scoreArtist(query string, a *indexer.Artist) int {
 		{a.Name, 100},
 	}
 
-	// insure album for a track shows up
-	for _, track := range a.Albums {
-		fields = append(fields, Field{value: track.Title, weight: 20})
+	// insure artist for an album shows up
+	for _, album := range a.Albums {
+		fields = append(fields, Field{value: album.Title, weight: 20})
+	}
+
+	for _, field := range fields {
+		if field.value == "" {
+			continue
+		}
+
+		rank := fuzzy.RankMatchNormalizedFold(query, field.value)
+		if rank == -1 {
+			continue
+		}
+
+		rank += field.weight
+
+		if best == -1 || rank < best {
+			best = rank
+		}
+	}
+
+	return best
+}
+
+func scorePlaylist(query string, p *playlists.Playlist) int {
+	best := -1
+
+	type Field struct {
+		value  string
+		weight int
+	}
+
+	fields := []Field{
+		{p.Name, 0},
 	}
 
 	for _, field := range fields {
@@ -171,6 +214,7 @@ func (s *SearchManager) Query(query string) SearchResult {
 	var rankedTracks []rankedTrack
 	var rankedAlbums []rankedAlbum
 	var rankedArtists []rankedArtist
+	var rankedPlaylists []rankedPlaylist
 
 	for _, track := range s.indexer.Index.Tracks {
 		if rank := scoreTrack(query, track); rank != -1 {
@@ -199,6 +243,15 @@ func (s *SearchManager) Query(query string) SearchResult {
 		}
 	}
 
+	for _, playlist := range s.playlists.Playlists {
+		if rank := scorePlaylist(query, playlist); rank != -1 {
+			rankedPlaylists = append(rankedPlaylists, rankedPlaylist{
+				Playlist: webTypes.PlaylistToWeb(playlist, s.indexer, s.scores),
+				Rank:     rank,
+			})
+		}
+	}
+
 	sort.Slice(rankedTracks, func(i, j int) bool {
 		return rankedTracks[i].Track.Score > rankedTracks[j].Track.Score
 	})
@@ -220,10 +273,18 @@ func (s *SearchManager) Query(query string) SearchResult {
 		return rankedArtists[i].Rank < rankedArtists[j].Rank
 	})
 
+	sort.Slice(rankedPlaylists, func(i, j int) bool {
+		return rankedPlaylists[i].Playlist.Name < rankedPlaylists[j].Playlist.Name
+	})
+	sort.Slice(rankedPlaylists, func(i, j int) bool {
+		return rankedPlaylists[i].Rank < rankedPlaylists[j].Rank
+	})
+
 	result := SearchResult{
-		Tracks:  make([]*webTypes.WebExportedTrack, len(rankedTracks)),
-		Albums:  make([]*webTypes.WebExportedAlbum, len(rankedAlbums)),
-		Artists: make([]*webTypes.WebExportedArtist, len(rankedArtists)),
+		Tracks:    make([]*webTypes.WebExportedTrack, len(rankedTracks)),
+		Albums:    make([]*webTypes.WebExportedAlbum, len(rankedAlbums)),
+		Artists:   make([]*webTypes.WebExportedArtist, len(rankedArtists)),
+		Playlists: make([]*webTypes.WebExportedPlaylist, len(rankedPlaylists)),
 	}
 
 	for i, track := range rankedTracks {
@@ -236,6 +297,10 @@ func (s *SearchManager) Query(query string) SearchResult {
 
 	for i, artist := range rankedArtists {
 		result.Artists[i] = artist.Artist
+	}
+
+	for i, playlist := range rankedPlaylists {
+		result.Playlists[i] = playlist.Playlist
 	}
 
 	return result

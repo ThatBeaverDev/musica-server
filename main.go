@@ -7,6 +7,7 @@ import (
 	"musica-server/src/edit"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
+	"musica-server/src/playlists"
 	scores "musica-server/src/scores"
 	webServer "musica-server/src/web"
 	"os"
@@ -63,6 +64,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	playlistManager, err := playlists.New(logger, indexer)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	if config.OrganiseLibrary {
 		err := edit.ReorganiseLibrary(indexer)
 		if err != nil {
@@ -70,7 +76,7 @@ func main() {
 		}
 	}
 
-	server := webServer.New(indexer, idStorage, scorer)
+	server := webServer.New(indexer, idStorage, scorer, playlistManager)
 
 	err = server.Listen(config.Port)
 	if err != nil {

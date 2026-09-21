@@ -2,12 +2,13 @@ package webTypes
 
 import (
 	"musica-server/src/indexer"
+	"musica-server/src/playlists"
 	"musica-server/src/scores"
 	"sort"
 	"strconv"
 )
 
-type WebExportedTrack = struct {
+type WebExportedTrack struct {
 	Title  string `json:"title"`
 	Artist string `json:"artist"`
 
@@ -55,7 +56,7 @@ func TrackToWeb(track *indexer.Track, scoresManager *scores.ScoreManager) *WebEx
 	}
 }
 
-type WebExportedAlbum = struct {
+type WebExportedAlbum struct {
 	Title    string `json:"title"`
 	Artist   string `json:"artist"`
 	ArtistId string `json:"artistId"`
@@ -97,6 +98,9 @@ func AlbumToWeb(album *indexer.Album, scoresManager *scores.ScoreManager) *WebEx
 
 	sort.Slice(exported.Tracks, func(i, j int) bool {
 		return exported.Tracks[i].Title < exported.Tracks[j].Title
+	})
+	sort.Slice(exported.Tracks, func(i, j int) bool {
+		return exported.Tracks[i].Number < exported.Tracks[j].Number
 	})
 
 	return exported
@@ -226,6 +230,46 @@ func ArtistToWeb(artist *indexer.Artist, scoresManager *scores.ScoreManager) *We
 
 	sort.Slice(exported.Albums, func(i, j int) bool {
 		return exported.Albums[i].Title < exported.Albums[j].Title
+	})
+
+	return exported
+}
+
+type WebExportedPlaylist struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	PictureTrackId string `json:"pictureTrackId"`
+
+	Tracks []*WebExportedTrack `json:"tracks"`
+	Id     string              `json:"id"`
+}
+
+func PlaylistToWeb(playlist *playlists.Playlist, indexer *indexer.Indexer, scoresManager *scores.ScoreManager) *WebExportedPlaylist {
+	var tracks []*WebExportedTrack
+	indexer.Index.Mutex.RLock()
+	defer indexer.Index.Mutex.RUnlock()
+	for _, trackID := range playlist.TrackIds {
+		track, ok := indexer.Index.Tracks[trackID]
+		if !ok {
+			// we'll just log a warning
+			indexer.Logger.Warn("Track by ID '" + trackID + "', which is member of playlist by ID '" + playlist.ID + "' does not exist and will be excluded from web serving.")
+		} else {
+			webExported := TrackToWeb(track, scoresManager)
+			tracks = append(tracks, webExported)
+		}
+	}
+
+	exported := &WebExportedPlaylist{
+		Name:           playlist.Name,
+		Description:    playlist.Description,
+		PictureTrackId: playlist.PictureTrackId,
+
+		Tracks: tracks,
+		Id:     playlist.ID,
+	}
+
+	sort.Slice(exported.Tracks, func(i, j int) bool {
+		return exported.Tracks[i].Title < exported.Tracks[j].Title
 	})
 
 	return exported

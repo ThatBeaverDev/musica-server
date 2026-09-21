@@ -40,7 +40,11 @@ func (ws *WebServer) albumInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	webExported := webTypes.AlbumToWeb(album, ws.scores)
-	json.NewEncoder(w).Encode(webExported)
+	err := json.NewEncoder(w).Encode(webExported)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +74,10 @@ func (ws *WebServer) bulkAlbums(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := json.NewEncoder(w).Encode(result); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	err := json.NewEncoder(w).Encode(result)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
 	}
 }
 
@@ -129,7 +135,11 @@ func (ws *WebServer) albumColour(w http.ResponseWriter, r *http.Request) {
 		DominantColour string `json:"dominantColour"`
 	}
 
-	json.NewEncoder(w).Encode(DominantColourResponse{
+	err = json.NewEncoder(w).Encode(DominantColourResponse{
 		DominantColour: dominantColour,
 	})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }

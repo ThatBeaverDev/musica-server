@@ -33,6 +33,7 @@ func readHistory(indexer *indexer.Indexer) (History, error) {
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Doesn't exist, return a fresh map
+			indexer.Logger.Log("Creating blank history store.")
 			return History{Tracks: make(TrackHistoryMap)}, nil
 		}
 		return History{}, fmt.Errorf("failed to read scores file: %w", err)

@@ -50,7 +50,11 @@ func (ws *WebServer) editTrackMetadata(w http.ResponseWriter, r *http.Request) {
 		r.Body.Close()
 	}()
 
-	json.NewEncoder(w).Encode(changeTrackResult{Ok: true})
+	err = json.NewEncoder(w).Encode(changeTrackResult{Ok: true})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 const maxArtworkSize = 10 << 20 // 10 MiB
@@ -98,5 +102,9 @@ func (ws *WebServer) editTrackArt(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to change track art", http.StatusInternalServerError)
 	}
 
-	json.NewEncoder(w).Encode(changeTrackResult{Ok: true})
+	err = json.NewEncoder(w).Encode(changeTrackResult{Ok: true})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
