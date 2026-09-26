@@ -67,6 +67,15 @@ export interface SearchResult {
 	artists: Artist[];
 }
 
+export interface Playlist {
+	name: string;
+	description: string;
+	pictureTrackId: string;
+
+	tracks: Track[];
+	id: string;
+}
+
 export type Subset =
 	"standard" | "exploration" | "wildcard" | "dislike" | "other";
 

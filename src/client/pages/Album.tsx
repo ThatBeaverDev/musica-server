@@ -10,6 +10,7 @@ import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { getAlbumMetadata } from "../lib/metadata.js";
 import styles from "./album.module.css";
+import { formatTrackListDuration } from "../lib/time.js";
 
 export default function Album() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
@@ -82,20 +83,9 @@ export default function Album() {
 		? `${album.tracks.length} track${album.tracks.length == 1 ? "" : "s"}`
 		: "";
 
-	let totalAlbumDurationMinutes = 0;
-	album?.tracks.forEach(
-		(track) => (totalAlbumDurationMinutes += track.duration / 60)
-	);
-
-	const hours = Math.floor(totalAlbumDurationMinutes / 60);
-	const minutes = Math.floor(totalAlbumDurationMinutes % 60);
-
-	const hoursFormatted = hours == 0 ? "" : `${hours} hours`;
-	const minutesFormatted = minutes == 0 ? "" : `${minutes} minutes`;
-
-	const hoursAnd = hoursFormatted ? `${hoursFormatted} and ` : "";
-
-	const albumDurationInfo = album ? hoursAnd + minutesFormatted : "";
+	const albumDurationInfo = album
+		? formatTrackListDuration(album.tracks)
+		: "";
 
 	const icon = album ? `/api/album/${album.id}/art` : undefined;
 	document.title = album

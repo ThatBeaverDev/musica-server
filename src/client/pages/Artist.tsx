@@ -9,6 +9,7 @@ import styles from "./artist.module.css";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { player } from "../Player.js";
 import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu.js";
+import { formatTrackListDuration } from "../lib/time.js";
 
 export default function Artist() {
 	// context menu, close on any mouse press
@@ -68,20 +69,7 @@ export default function Artist() {
 		? `${tracks.length} track${tracks.length == 1 ? "" : "s"}`
 		: "";
 
-	let totalArtistDurationMinutes = 0;
-	tracks.forEach(
-		(track) => (totalArtistDurationMinutes += track.duration / 60)
-	);
-
-	const hours = Math.floor(totalArtistDurationMinutes / 60);
-	const minutes = Math.floor(totalArtistDurationMinutes % 60);
-
-	const hoursFormatted = hours == 0 ? "" : `${hours} hours`;
-	const minutesFormatted = minutes == 0 ? "" : `${minutes} minutes`;
-
-	const hoursAnd = hoursFormatted ? `${hoursFormatted} and ` : "";
-
-	const artistDurationInfo = artist ? hoursAnd + minutesFormatted : "";
+	const artistDurationInfo = artist ? formatTrackListDuration(tracks) : "";
 
 	const icon = artist ? `/api/artist/${artist.id}/art` : undefined;
 	document.title = artist ? `${artist.name} - Musica` : "Artist - Musica";

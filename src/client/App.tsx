@@ -10,6 +10,7 @@ import Player from "./Player.js";
 import { useState } from "react";
 import styles from "./app.module.css";
 import EditTrack from "./pages/edit/EditTrack";
+import Playlist from "./pages/Playlist";
 
 declare global {
 	interface Window {
@@ -63,6 +64,7 @@ export default function App() {
 					<Route path="/" element={<Home />} />
 					<Route path="/album/:id" element={<Album />} />
 					<Route path="/artist/:id" element={<Artist />} />
+					<Route path="/playlist/:id" element={<Playlist />} />
 					<Route path="/search" element={<Search />} />
 					<Route path="/edit/track/:id" element={<EditTrack />} />
 				</Routes>

@@ -93,6 +93,7 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 	ws.static("/", "./public/index.html", "text/html")
 	ws.static("/album/*", "./public/index.html", "text/html")
 	ws.static("/artist/*", "./public/index.html", "text/html")
+	ws.static("/playlist/*", "./public/index.html", "text/html")
 	ws.static("/search", "./public/index.html", "text/html")
 	ws.static("/edit/*", "./public/index.html", "text/html")
 

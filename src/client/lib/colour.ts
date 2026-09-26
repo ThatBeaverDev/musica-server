@@ -1,4 +1,9 @@
-import { getAlbumColour, getArtistColour, getTrackColour } from "./metadata";
+import {
+	getAlbumColour,
+	getArtistColour,
+	getPlaylistColour,
+	getTrackColour
+} from "./metadata";
 
 export function hexToRgb(hex: string): [number, number, number] {
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -12,7 +17,7 @@ export function hexToRgb(hex: string): [number, number, number] {
 }
 
 export async function getItemColours(
-	type: "track" | "album" | "artist",
+	type: "track" | "album" | "artist" | "playlist",
 	id: string,
 	maxValue: number = 70
 ): Promise<[string, string]> {
@@ -24,6 +29,8 @@ export async function getItemColours(
 				return getAlbumColour(id);
 			case "artist":
 				return getArtistColour(id);
+			case "playlist":
+				return getPlaylistColour(id);
 		}
 	};
 

@@ -1,4 +1,4 @@
-import { Album, Artist, Track } from "../musica";
+import { Album, Artist, Playlist, Track } from "../musica";
 
 const trackMetadata = new Map<string, Track>();
 export async function getTrackMetadata(id: string): Promise<Track> {
@@ -157,5 +157,59 @@ export async function getArtistColour(id: string): Promise<string> {
 		await colourFetch.json();
 
 	artistColours.set(id, colour);
+	return colour;
+}
+
+/* ===== Playlists ===== */
+
+const playlistMetadata = new Map<string, Playlist>();
+
+let playlistIdListPopulated = false;
+const allPlaylistIds: string[] = [];
+
+export async function getPlaylistIds() {
+	if (!playlistIdListPopulated) {
+		const idURL = `/api/playlists/list`;
+		const playlistIdsRequest = await fetch(idURL);
+
+		if (!playlistIdsRequest.ok) {
+			throw new Error(
+				`Failed to list playlists from ${idURL}: HTTP Status ${playlistIdsRequest.status}`
+			);
+		}
+
+		allPlaylistIds.push(...(await playlistIdsRequest.json()));
+		playlistIdListPopulated = true;
+	}
+
+	return allAlbumIds;
+}
+export async function getPlaylistMetadata(id: string): Promise<Playlist> {
+	const cacheEntry = playlistMetadata.get(id);
+	if (cacheEntry) return cacheEntry;
+
+	const playlistFetch = await fetch(`/api/playlist/${id}/info`, {
+		priority: "high"
+	});
+	const playlist: Playlist = await playlistFetch.json();
+
+	playlist.tracks.forEach((track) => trackMetadata.set(track.id, track));
+
+	playlistMetadata.set(id, playlist);
+	return playlist;
+}
+
+const playlistColours = new Map<string, string>();
+export async function getPlaylistColour(id: string): Promise<string> {
+	const cacheEntry = playlistColours.get(id);
+	if (cacheEntry) return cacheEntry;
+
+	const colourFetch = await fetch(`/api/playlist/${id}/colour`, {
+		priority: "low"
+	});
+	const { dominantColour: colour }: { dominantColour: string } =
+		await colourFetch.json();
+
+	playlistColours.set(id, colour);
 	return colour;
 }
