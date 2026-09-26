@@ -2,9 +2,12 @@ package webServer
 
 import (
 	"encoding/json"
+	"errors"
 	"musica-server/src/indexer"
+	"musica-server/src/playlists"
 	webTypes "musica-server/src/types"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -56,7 +59,7 @@ func (ws *WebServer) newPlaylist(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *WebServer) listPlaylists(w http.ResponseWriter, r *http.Request) {
-	var list []string
+	list := []string{}
 
 	for id := range ws.playlists.Playlists {
 		list = append(list, id)
@@ -80,6 +83,99 @@ func (ws *WebServer) playlistInfo(w http.ResponseWriter, r *http.Request) {
 
 	webExported := webTypes.PlaylistToWeb(playlist, ws.indexer, ws.scores)
 	err := json.NewEncoder(w).Encode(webExported)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
+}
+
+func (ws *WebServer) getPlaylistIconTrack(playlist *playlists.Playlist) (*indexer.Track, error) {
+	track, ok := ws.indexer.Index.Tracks[playlist.PictureTrackId]
+	if !ok {
+		totalTracks := len(playlist.TrackIds)
+
+		if totalTracks != 0 {
+			playlist.PictureTrackId = playlist.TrackIds[0]
+			return ws.getPlaylistIconTrack(playlist)
+		}
+
+		playlist.PictureTrackId = ""
+		return nil, errors.New("Playlist has no tracks and therefore no art.")
+	}
+
+	return track, nil
+}
+
+func (ws *WebServer) playlistArt(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	playlist, ok := ws.playlists.Playlists[id]
+	if !ok {
+		http.Error(w, "Playlist not found", http.StatusNotFound)
+		return
+	}
+
+	track, err := ws.getPlaylistIconTrack(playlist)
+	if err != nil {
+		http.Error(w, "Playlist art not found", http.StatusInternalServerError)
+		return
+	}
+
+	cover, err := ws.indexer.GetCover(*track)
+	if err != nil {
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	bytes, err := os.ReadFile(cover.Directory)
+	if err != nil {
+		ws.logger.Error("Error retrieving cover file for ID '"+id+"'': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	// don't re-request for a day
+	w.Header().Set("Cache-Control", "public, max-age=86400, immutable")
+
+	w.Header().Set("Content-Type", cover.Mime)
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(bytes)
+}
+
+func (ws *WebServer) playlistColour(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	playlist, ok := ws.playlists.Playlists[id]
+	if !ok {
+		http.Error(w, "Playlist not found", http.StatusNotFound)
+		return
+	}
+
+	track, err := ws.getPlaylistIconTrack(playlist)
+	if err != nil {
+		http.Error(w, "Playlist art not found", http.StatusInternalServerError)
+		return
+
+	}
+
+	cover, err := ws.indexer.GetCover(*track)
+	if err != nil {
+		ws.logger.Error("Error retrieving cover for ID '"+id+"': ", err)
+		cover = indexer.FallbackCover
+	}
+
+	dominantColour, err := indexer.FindDominantColour(ws.logger, cover.Directory)
+	if err != nil {
+		http.Error(w, "Failed to extract dominant colour.", 500)
+	}
+
+	type DominantColourResponse struct {
+		DominantColour string `json:"dominantColour"`
+	}
+
+	err = json.NewEncoder(w).Encode(DominantColourResponse{
+		DominantColour: dominantColour,
+	})
 	if err != nil {
 		ws.logger.Error("failed to encode JSON response: ", err.Error())
 		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
