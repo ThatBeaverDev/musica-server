@@ -36,7 +36,16 @@ func New() (*Config, error) {
 	// Open the configuration file.
 	file, err := os.Open("config.json")
 	if err != nil {
-		return &Config{Port: defaultPort, MediaLibrary: defaultMediaLibrary}, nil
+		return &Config{
+			Port: defaultPort,
+
+			MediaLibrary: defaultMediaLibrary,
+
+			ScoresFile:    defaultScoresFile,
+			HistoryFile:   defaultHistoryFile,
+			LogFile:       defaultLogFile,
+			PlaylistsFile: defaultPlaylistsFile,
+		}, nil
 	}
 	defer file.Close()
 
