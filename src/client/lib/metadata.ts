@@ -96,6 +96,7 @@ export async function getAlbumMetadataBulk(ids: string[]): Promise<Album[]> {
 
 		const fetchedAlbums: Album[] = await albumStatsRequest.json();
 		fetchedAlbums.forEach((album) => {
+			album.tracks.forEach((track) => trackMetadata.set(track.id, track));
 			album.tracks.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 
 			albumMetadata.set(album.id, album);
@@ -182,7 +183,7 @@ export async function getPlaylistIds() {
 		playlistIdListPopulated = true;
 	}
 
-	return allAlbumIds;
+	return allPlaylistIds;
 }
 export async function getPlaylistMetadata(id: string): Promise<Playlist> {
 	const cacheEntry = playlistMetadata.get(id);
