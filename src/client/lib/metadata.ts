@@ -199,6 +199,36 @@ export async function getPlaylistMetadata(id: string): Promise<Playlist> {
 	return playlist;
 }
 
+export async function getPlaylistMetadataBulk(
+	ids: string[]
+): Promise<Playlist[]> {
+	if (ids.length == 0) return [];
+
+	const idSet = new Set(ids);
+	const knownIds = new Set(playlistMetadata.keys());
+
+	const unknownIds = idSet.difference(knownIds);
+
+	if (unknownIds.size !== 0) {
+		const playlistStatsRequest = await fetch(`/api/bulk/playlists/info`, {
+			headers: { playlists: JSON.stringify([...unknownIds]) },
+			priority: "high"
+		});
+
+		const fetchedPlaylists: Playlist[] = await playlistStatsRequest.json();
+		fetchedPlaylists.forEach((playlist) => {
+			playlist.tracks.forEach((track) =>
+				trackMetadata.set(track.id, track)
+			);
+			playlistMetadata.set(playlist.id, playlist);
+		});
+	}
+
+	const results = ids.map((id) => playlistMetadata.get(id));
+
+	return results.filter((item) => item !== undefined);
+}
+
 const playlistColours = new Map<string, string>();
 export async function getPlaylistColour(id: string): Promise<string> {
 	const cacheEntry = playlistColours.get(id);

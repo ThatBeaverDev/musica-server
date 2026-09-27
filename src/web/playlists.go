@@ -106,6 +106,40 @@ func (ws *WebServer) getPlaylistIconTrack(playlist *playlists.Playlist) (*indexe
 	return track, nil
 }
 
+func (ws *WebServer) bulkPlaylists(w http.ResponseWriter, r *http.Request) {
+	playlistsHeader := r.Header.Get("playlists")
+	if playlistsHeader == "" {
+		http.Error(w, "Playlists to receive bulk properties for must be specified in the 'playlists' header.", http.StatusBadRequest)
+		return
+	}
+
+	if len(playlistsHeader) > 20000 {
+		http.Error(w, "Too many characters in `playlists` header", http.StatusBadRequest)
+		return
+	}
+
+	var ids []string
+	if err := json.Unmarshal([]byte(playlistsHeader), &ids); err != nil {
+		http.Error(w, "Invalid playlists header: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result := []*webTypes.WebExportedPlaylist{}
+
+	for _, id := range ids {
+		if playlist, ok := ws.playlists.Playlists[id]; ok {
+			webExported := webTypes.PlaylistToWeb(playlist, ws.indexer, ws.scores)
+			result = append(result, webExported)
+		}
+	}
+
+	err := json.NewEncoder(w).Encode(result)
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
+}
+
 func (ws *WebServer) playlistArt(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
