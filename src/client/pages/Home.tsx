@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
-import { Album } from "../musica";
+import { Album, Playlist } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
-import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu";
-import { contextMenuHelper } from "../components/contextMenus/ContextMenu";
-import { getAlbumIds, getAlbumMetadataBulk } from "../lib/metadata";
+import {
+	getAlbumIds,
+	getAlbumMetadataBulk,
+	getPlaylistIds,
+	getPlaylistMetadataBulk
+} from "../lib/metadata";
 import styles from "./home.module.css";
+import LargePlaylist from "../components/LargePlaylist";
+import SmartContextMenu, {
+	smartContextMenuHelper
+} from "../components/contextMenus/SmartContextMenu";
 
 export default function Home() {
-	const { contextMenu, activateContextMenu } = contextMenuHelper<Album>();
+	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
 
 	// fetch albums
 	const [albums, setAlbums] = useState<Album[]>([]);
@@ -36,28 +43,73 @@ export default function Home() {
 		};
 	}, []);
 
+	// fetch playlists
+	const [playlists, setPlaylists] = useState<Playlist[]>([]);
+	useEffect(() => {
+		let isMounted = true;
+
+		const fetchPlaylists = async () => {
+			//try {
+			const playlistIDs = await getPlaylistIds();
+			const playlists = await getPlaylistMetadataBulk(playlistIDs);
+
+			//playlists.sort((a, b) => b.modified - a.modified);
+
+			if (isMounted) {
+				setPlaylists(playlists);
+			}
+			//} catch (error) {
+			//	console.error("Error loading playlists:", error);
+			//}
+		};
+
+		fetchPlaylists();
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
 	document.title = "Home - Musica";
 
 	return (
 		<>
 			<h1>Welcome</h1>
-			<h3 className={styles.heading}>Recently Added</h3>
 
-			<div className={styles.grid}>
+			<h3 className={styles.heading}>Recently Added</h3>
+			<div className={styles.carousel}>
 				{albums.map((album) => (
 					<LargeAlbum
 						key={album.id}
 						album={album}
-						onContextMenu={(e) => activateContextMenu(e, album)}
+						onContextMenu={(e) =>
+							activateContextMenu(e, { type: "album", album })
+						}
+					/>
+				))}
+			</div>
+
+			<h3 className={styles.heading}>Playlists</h3>
+			<div className={styles.carousel}>
+				{playlists.map((playlist) => (
+					<LargePlaylist
+						key={playlist.id}
+						playlist={playlist}
+						onContextMenu={(e) =>
+							activateContextMenu(e, {
+								type: "playlist",
+								playlist
+							})
+						}
 					/>
 				))}
 			</div>
 
 			{contextMenu && (
-				<AlbumContextMenu
+				<SmartContextMenu
 					x={contextMenu.x}
 					y={contextMenu.y}
-					album={contextMenu.data}
+					menu={contextMenu.data}
 				/>
 			)}
 		</>
