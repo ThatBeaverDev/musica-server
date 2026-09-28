@@ -85,6 +85,7 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 	api.Get("/bulk/playlists/info", ws.bulkPlaylists)
 
 	api.Get("/playlist/{id}/randomMixTrack", ws.randomMixTrack)
+	api.Get("/playlist/{id}/delete", ws.deletePlaylist)
 
 	// Search
 	api.Get("/search/{query}", ws.searchQuery)

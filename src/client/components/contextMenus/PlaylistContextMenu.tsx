@@ -28,7 +28,13 @@ export default function PlaylistContextMenu({
 
 	const items = [
 		{ label: "Play", action: () => onPlay(false) },
-		{ label: "Shuffle", action: () => onPlay(true) }
+		{ label: "Shuffle", action: () => onPlay(true) },
+		{
+			label: "Delete Playlist",
+			action: () => {
+				fetch(`/api/playlist/${playlist.id}/delete`);
+			}
+		}
 	];
 
 	return (

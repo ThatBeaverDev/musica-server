@@ -211,3 +211,19 @@ func (ws *WebServer) playlistColour(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
 	}
 }
+
+func (ws *WebServer) deletePlaylist(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	_, err := ws.playlists.PlaylistById(id)
+	if err != nil {
+		http.Error(w, "Playlist not found", http.StatusNotFound)
+		return
+	}
+
+	err = ws.playlists.DeletePlaylist(id)
+	if err != nil {
+		http.Error(w, "Failed to delete playlist", http.StatusInternalServerError)
+		return
+	}
+}

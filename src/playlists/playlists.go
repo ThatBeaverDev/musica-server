@@ -110,3 +110,10 @@ func (p *PlaylistManager) PlaylistIds() []string {
 
 	return list
 }
+
+func (p *PlaylistManager) DeletePlaylist(id string) error {
+	delete(p.playlists, id)
+	go p.store()
+
+	return nil
+}
