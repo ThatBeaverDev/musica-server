@@ -117,3 +117,21 @@ func (p *PlaylistManager) DeletePlaylist(id string) error {
 
 	return nil
 }
+
+func (p *PlaylistManager) AddPlaylistItems(playlistId string, tracks []*indexer.Track) error {
+	p.mutex.Lock()
+
+	playlist, err := p.PlaylistById(playlistId)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve track: %w", err)
+	}
+
+	for _, track := range tracks {
+		playlist.TrackIds = append(playlist.TrackIds, track.ID)
+	}
+	p.mutex.Unlock()
+
+	go p.store()
+
+	return nil
+}

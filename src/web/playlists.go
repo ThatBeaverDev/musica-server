@@ -227,3 +227,37 @@ func (ws *WebServer) deletePlaylist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (ws *WebServer) addPlaylistItems(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	tracksHeader := r.Header.Get("tracks")
+	if tracksHeader == "" {
+		http.Error(w, "Tracks to add to the platlist must be specified 'tracks' header.", http.StatusBadRequest)
+		return
+	}
+
+	if len(tracksHeader) > 20000 {
+		http.Error(w, "Too many characters in `tracks` header", http.StatusBadRequest)
+		return
+	}
+
+	var ids []string
+	if err := json.Unmarshal([]byte(tracksHeader), &ids); err != nil {
+		http.Error(w, "Invalid tracks header: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var tracks []*indexer.Track
+	for _, id := range ids {
+		track, ok := ws.indexer.Index.Tracks[id]
+		if ok {
+			tracks = append(tracks, track)
+		}
+	}
+
+	err := ws.playlists.AddPlaylistItems(id, tracks)
+	if err != nil {
+		http.Error(w, "Failed to add tracks to playlist: "+err.Error(), http.StatusInternalServerError)
+	}
+}
