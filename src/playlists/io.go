@@ -12,6 +12,7 @@ import (
 type playlistStorageV1 struct {
 	Version   int         `json:"version"`
 	Playlists PlaylistMap `json:"playlists"`
+	NextId    int         `json:"nextId"`
 }
 
 // load v1 data
@@ -58,7 +59,11 @@ func (p *PlaylistManager) store() {
 }
 
 func (p *PlaylistManager) storeUnsafe() {
-	storageData := playlistStorageV1{Version: 1, Playlists: p.Playlists}
+	storageData := playlistStorageV1{
+		Version:   1,
+		Playlists: p.playlists,
+		NextId:    p.nextId,
+	}
 	jsonData, err := json.Marshal(storageData)
 
 	if err != nil {
