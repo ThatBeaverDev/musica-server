@@ -1,6 +1,7 @@
 package playlists
 
 import (
+	"errors"
 	"fmt"
 	"musica-server/src/indexer"
 	"musica-server/src/logging"
@@ -20,8 +21,8 @@ type Playlist struct {
 type PlaylistMap map[string]*Playlist
 
 type PlaylistManager struct {
-	Playlists PlaylistMap `json:"playlists"` // id to playlist
-	NextId    int         `json:"nextId"`
+	playlists PlaylistMap // id to playlist
+	nextId    int
 
 	logger  *logging.Logger
 	indexer *indexer.Indexer
@@ -36,8 +37,8 @@ func New(logger *logging.Logger, indexer *indexer.Indexer) (*PlaylistManager, er
 	}
 
 	manager := &PlaylistManager{
-		Playlists: playlists,
-		NextId:    0,
+		playlists: playlists,
+		nextId:    0,
 
 		logger:  logger,
 		indexer: indexer,
@@ -58,8 +59,8 @@ func (p *PlaylistManager) generatePlaylistId() string {
 }
 
 func (p *PlaylistManager) generatePlaylistIdUnsafe() string {
-	id := p.NextId
-	p.NextId++
+	id := p.nextId
+	p.nextId++
 
 	return strconv.Itoa(id)
 }
@@ -83,7 +84,7 @@ func (p *PlaylistManager) NewPlaylist(title string, description string, tracks [
 		ID:       id,
 	}
 
-	p.Playlists[id] = playlist
+	p.playlists[id] = playlist
 	p.mutex.Unlock()
 
 	go p.store()
@@ -91,4 +92,21 @@ func (p *PlaylistManager) NewPlaylist(title string, description string, tracks [
 	return playlist
 }
 
-func store() {}
+func (p *PlaylistManager) PlaylistById(id string) (*Playlist, error) {
+	playlist, ok := p.playlists[id]
+	if !ok {
+		return nil, errors.New("Playlist not found")
+	}
+
+	return playlist, nil
+}
+
+func (p *PlaylistManager) PlaylistIds() []string {
+	list := []string{}
+
+	for id := range p.playlists {
+		list = append(list, id)
+	}
+
+	return list
+}

@@ -239,9 +239,9 @@ func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		playlist = nil
 	} else {
-		p, ok := ws.playlists.Playlists[id]
-		if !ok {
-			ws.logger.Warn("playlist requested for randomMixTrack does not exist.")
+		p, err := ws.playlists.PlaylistById(id)
+		if err != nil {
+			ws.logger.Warn("playlist requested for randomMixTrack does not exist:", err)
 			http.Error(w, "playlist does not exist", http.StatusNotFound)
 			return
 		}

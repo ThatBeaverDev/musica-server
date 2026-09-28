@@ -243,7 +243,14 @@ func (s *SearchManager) Query(query string) SearchResult {
 		}
 	}
 
-	for _, playlist := range s.playlists.Playlists {
+	playlistIds := s.playlists.PlaylistIds()
+
+	for _, id := range playlistIds {
+		playlist, err := s.playlists.PlaylistById(id)
+		if err != nil {
+			continue
+		}
+
 		if rank := scorePlaylist(query, playlist); rank != -1 {
 			rankedPlaylists = append(rankedPlaylists, rankedPlaylist{
 				Playlist: webTypes.PlaylistToWeb(playlist, s.indexer, s.scores),

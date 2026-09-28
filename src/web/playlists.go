@@ -59,11 +59,7 @@ func (ws *WebServer) newPlaylist(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *WebServer) listPlaylists(w http.ResponseWriter, r *http.Request) {
-	list := []string{}
-
-	for id := range ws.playlists.Playlists {
-		list = append(list, id)
-	}
+	list := ws.playlists.PlaylistIds()
 
 	err := json.NewEncoder(w).Encode(list)
 	if err != nil {
@@ -75,14 +71,14 @@ func (ws *WebServer) listPlaylists(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) playlistInfo(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	playlist, ok := ws.playlists.Playlists[id]
-	if !ok {
+	playlist, err := ws.playlists.PlaylistById(id)
+	if err != nil {
 		http.Error(w, "Playlist not found", http.StatusNotFound)
 		return
 	}
 
 	webExported := webTypes.PlaylistToWeb(playlist, ws.indexer, ws.scores)
-	err := json.NewEncoder(w).Encode(webExported)
+	err = json.NewEncoder(w).Encode(webExported)
 	if err != nil {
 		ws.logger.Error("failed to encode JSON response: ", err.Error())
 		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
@@ -127,7 +123,7 @@ func (ws *WebServer) bulkPlaylists(w http.ResponseWriter, r *http.Request) {
 	result := []*webTypes.WebExportedPlaylist{}
 
 	for _, id := range ids {
-		if playlist, ok := ws.playlists.Playlists[id]; ok {
+		if playlist, err := ws.playlists.PlaylistById(id); err == nil {
 			webExported := webTypes.PlaylistToWeb(playlist, ws.indexer, ws.scores)
 			result = append(result, webExported)
 		}
@@ -143,8 +139,8 @@ func (ws *WebServer) bulkPlaylists(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) playlistArt(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	playlist, ok := ws.playlists.Playlists[id]
-	if !ok {
+	playlist, err := ws.playlists.PlaylistById(id)
+	if err != nil {
 		http.Error(w, "Playlist not found", http.StatusNotFound)
 		return
 	}
@@ -179,8 +175,8 @@ func (ws *WebServer) playlistArt(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) playlistColour(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	playlist, ok := ws.playlists.Playlists[id]
-	if !ok {
+	playlist, err := ws.playlists.PlaylistById(id)
+	if err != nil {
 		http.Error(w, "Playlist not found", http.StatusNotFound)
 		return
 	}
