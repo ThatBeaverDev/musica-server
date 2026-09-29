@@ -48,18 +48,18 @@ export default function Home() {
 		let isMounted = true;
 
 		const fetchPlaylists = async () => {
-			//try {
-			const playlistIDs = await getPlaylistIds();
-			const playlists = await getPlaylistMetadataBulk(playlistIDs);
+			try {
+				const playlistIDs = await getPlaylistIds();
+				const playlists = await getPlaylistMetadataBulk(playlistIDs);
 
-			//playlists.sort((a, b) => b.modified - a.modified);
+				//playlists.sort((a, b) => b.modified - a.modified);
 
-			if (isMounted) {
-				setPlaylists(playlists);
+				if (isMounted) {
+					setPlaylists(playlists);
+				}
+			} catch (error) {
+				console.error("Error loading playlists:", error);
 			}
-			//} catch (error) {
-			//	console.error("Error loading playlists:", error);
-			//}
 		};
 
 		fetchPlaylists();
