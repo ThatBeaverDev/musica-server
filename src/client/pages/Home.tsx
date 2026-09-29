@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { Album, Playlist } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
-import {
-	getAlbumIds,
-	getAlbumMetadataBulk,
-	getPlaylistIds,
-	getPlaylistMetadataBulk
-} from "../lib/metadata";
 import styles from "./home.module.css";
 import LargePlaylist from "../components/LargePlaylist";
 import SmartContextMenu, {
 	smartContextMenuHelper
 } from "../components/contextMenus/SmartContextMenu";
+import { getAlbumIds, getAlbumMetadataBulk } from "../lib/metadata/albums";
+import {
+	getPlaylistIds,
+	getPlaylistMetadataBulk
+} from "../lib/metadata/playlists";
 
 export default function Home() {
 	const { contextMenu, activateContextMenu } = smartContextMenuHelper();

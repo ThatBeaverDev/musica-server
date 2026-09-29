@@ -4,7 +4,7 @@ import { Album, Artist } from "../musica.js";
 import LargeAlbum from "../components/LargeAlbum.js";
 import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
 import { getItemColours } from "../lib/colour.js";
-import { getArtistMetadata } from "../lib/metadata.js";
+import { getArtistMetadata } from "../lib/metadata/artists.js";
 import styles from "./artist.module.css";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { player } from "../Player.js";

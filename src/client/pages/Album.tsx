@@ -8,7 +8,7 @@ import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
 import { useNavigate } from "react-router-dom";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
-import { getAlbumMetadata } from "../lib/metadata.js";
+import { getAlbumMetadata } from "../lib/metadata/albums.js";
 import styles from "./album.module.css";
 import { formatTrackListDuration } from "../lib/time.js";
 

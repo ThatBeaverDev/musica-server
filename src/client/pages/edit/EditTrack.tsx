@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Track } from "../../musica";
 import { useEffect } from "preact/hooks";
-import { beforeTrackUpdate, getTrackMetadata } from "../../lib/metadata";
+import { beforeTrackUpdate, getTrackMetadata } from "../../lib/metadata/tracks";
 import { getItemColours } from "../../lib/colour";
 import { colourScore } from "../../lib/score";
 import styles from "./editTrack.module.css";

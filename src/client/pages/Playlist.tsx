@@ -6,9 +6,9 @@ import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
 import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
-import { getPlaylistMetadata } from "../lib/metadata.js";
 import styles from "./album.module.css";
 import { formatTrackListDuration } from "../lib/time.js";
+import { getPlaylistMetadata } from "../lib/metadata/playlists.js";
 
 export default function Playlist() {
 	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();

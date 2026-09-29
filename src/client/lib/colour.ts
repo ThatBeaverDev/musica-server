@@ -1,9 +1,7 @@
-import {
-	getAlbumColour,
-	getArtistColour,
-	getPlaylistColour,
-	getTrackColour
-} from "./metadata";
+import { getAlbumColour } from "./metadata/albums";
+import { getArtistColour } from "./metadata/artists";
+import { getPlaylistColour } from "./metadata/playlists";
+import { getTrackColour } from "./metadata/tracks";
 
 export function hexToRgb(hex: string): [number, number, number] {
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);

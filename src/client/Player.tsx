@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { RandomMixTrackResult, Track } from "./musica";
-import { getTrackMetadata } from "./lib/metadata";
+import { getTrackMetadata } from "./lib/metadata/tracks";
 import { useEffect } from "preact/hooks";
 import { getItemColours } from "./lib/colour";
 import MobilePlayer from "./players/player.mobile";
