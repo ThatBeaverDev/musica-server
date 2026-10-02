@@ -228,12 +228,12 @@ func (ws *WebServer) deletePlaylist(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ws *WebServer) addPlaylistItems(w http.ResponseWriter, r *http.Request) {
+func (ws *WebServer) setPlaylistItems(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	tracksHeader := r.Header.Get("tracks")
 	if tracksHeader == "" {
-		http.Error(w, "Tracks to add to the platlist must be specified 'tracks' header.", http.StatusBadRequest)
+		http.Error(w, "Tracks to set the playlist contents to must be specified 'tracks' header.", http.StatusBadRequest)
 		return
 	}
 
@@ -256,8 +256,8 @@ func (ws *WebServer) addPlaylistItems(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := ws.playlists.AddPlaylistItems(id, tracks)
+	err := ws.playlists.SetPlaylistItems(id, tracks)
 	if err != nil {
-		http.Error(w, "Failed to add tracks to playlist: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to set playlist tracks list: "+err.Error(), http.StatusInternalServerError)
 	}
 }
