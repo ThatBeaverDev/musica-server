@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Track } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { onTrackSearchAndPlay, player } from "../../Player";
+import PlaylistAdditionModal from "../modals/PlaylistAdditionModal";
 
 export default function TrackContextMenu({
 	x,
@@ -35,6 +36,12 @@ export default function TrackContextMenu({
 		{
 			label: "Edit Metadata",
 			action: () => navigation(`/edit/track/${track.id}`)
+		},
+		{
+			label: "Add to Playlist...",
+			action: () => {
+				window.setModal(<PlaylistAdditionModal tracks={[track]} />);
+			}
 		},
 		{ label: "Add to Queue", action: () => onPlay(false) },
 		{

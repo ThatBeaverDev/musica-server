@@ -7,6 +7,15 @@ export function loadPlaylist(playlist: Playlist) {
 
 	playlist.tracks.forEach((track) => loadTrack(track));
 }
+export function deletePlaylist(id: string) {
+	playlistMetadata.delete(id);
+	playlistColours.delete(id);
+	playlistIdListPopulated = false;
+}
+export function requirePlaylistIdRefresh() {
+	playlistIdListPopulated = false;
+	allPlaylistIds.splice(0, Infinity);
+}
 
 let playlistIdListPopulated = false;
 const allPlaylistIds: string[] = [];

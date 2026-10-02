@@ -15,6 +15,7 @@ import Playlist from "./pages/Playlist";
 declare global {
 	interface Window {
 		setBackground(background: string): void;
+		setModal(modal: React.ReactNode | undefined): void;
 	}
 }
 
@@ -23,8 +24,11 @@ export default function App() {
 		width: window.innerWidth,
 		height: window.innerHeight
 	});
+
 	const [background, setBackground] = useState("transparent");
 	window.setBackground = setBackground;
+	const [modal, setModal] = useState<React.ReactNode | undefined>();
+	window.setModal = setModal;
 
 	window.addEventListener(
 		"resize",
@@ -56,21 +60,24 @@ export default function App() {
 	}
 
 	return (
-		<BrowserRouter>
-			<Navbar />
+		<>
+			<BrowserRouter>
+				<Navbar />
 
-			<div className={styles.content} style={{ background }}>
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/album/:id" element={<Album />} />
-					<Route path="/artist/:id" element={<Artist />} />
-					<Route path="/playlist/:id" element={<Playlist />} />
-					<Route path="/search" element={<Search />} />
-					<Route path="/edit/track/:id" element={<EditTrack />} />
-				</Routes>
-			</div>
+				<div className={styles.content} style={{ background }}>
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route path="/album/:id" element={<Album />} />
+						<Route path="/artist/:id" element={<Artist />} />
+						<Route path="/playlist/:id" element={<Playlist />} />
+						<Route path="/search" element={<Search />} />
+						<Route path="/edit/track/:id" element={<EditTrack />} />
+					</Routes>
+				</div>
 
-			<Player mobile={mobile} />
-		</BrowserRouter>
+				<Player mobile={mobile} />
+			</BrowserRouter>
+			{modal}
+		</>
 	);
 }
