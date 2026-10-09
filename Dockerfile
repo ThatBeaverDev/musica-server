@@ -5,7 +5,7 @@ RUN apk update && apk add rsync
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN ./build:frontend.sh
+RUN ./build_frontend.sh
 
 # backend (go)
 FROM golang:1.27.0-alpine AS backend-builder

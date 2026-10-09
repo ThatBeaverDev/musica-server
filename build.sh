@@ -1,5 +1,5 @@
 # client code
-./build:frontend.sh
+./build_frontend.sh
 
 # server code
 go build
