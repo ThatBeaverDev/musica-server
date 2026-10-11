@@ -103,7 +103,7 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 
 	ws.static(
 		"/apple-touch-icon.png",
-		"./public/img/apple-touch-icon.png",
+		"./public/apple-touch-icon.png",
 		"image/png",
 	)
 	ws.static(
@@ -130,121 +130,6 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 		"/web-app-manifest-512x512.png",
 		"./public/img/web-app-manifest-512x512.png",
 		"image/png",
-	)
-
-	// player icons
-	ws.static(
-		"/img/play.svg",
-		"./public/img/play.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/pause.svg",
-		"./public/img/pause.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/skip-forward.svg",
-		"./public/img/skip-forward.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/skip-back.svg",
-		"./public/img/skip-back.svg",
-		"image/svg+xml",
-	)
-
-	// extra controls
-	ws.static(
-		"/img/maximise.svg",
-		"./public/img/maximise.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/minimise.svg",
-		"./public/img/minimise.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/reset.svg",
-		"./public/img/reset.svg",
-		"image/svg+xml",
-	)
-	// loop
-	ws.static(
-		"/img/no-loop.svg",
-		"./public/img/no-loop.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/loop-1.svg",
-		"./public/img/loop-1.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/loop.svg",
-		"./public/img/loop.svg",
-		"image/svg+xml",
-	)
-	// shuffle
-	ws.static(
-		"/img/no-shuffle.svg",
-		"./public/img/no-shuffle.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/shuffle.svg",
-		"./public/img/shuffle.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/dynamic-queue.svg",
-		"./public/img/dynamic-queue.svg",
-		"image/svg+xml",
-	)
-
-	// subset icons
-	ws.static(
-		"/img/standard.svg",
-		"./public/img/standard.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/explore.svg",
-		"./public/img/explore.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/wildcard.svg",
-		"./public/img/wildcard.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/dislike.svg",
-		"./public/img/dislike.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/other.svg",
-		"./public/img/other.svg",
-		"image/svg+xml",
-	)
-
-	// utility icons
-	ws.static(
-		"/img/list-plus.svg",
-		"./public/img/list-plus.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/play-unfilled.svg",
-		"./public/img/play-unfilled.svg",
-		"image/svg+xml",
-	)
-	ws.static(
-		"/img/empty.svg",
-		"./public/img/empty.svg",
-		"image/svg+xml",
 	)
 
 	// CSS

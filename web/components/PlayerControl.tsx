@@ -1,28 +1,27 @@
 import styles from "./PlayerControl.module.css";
 
+interface PlayerControlParams {
+	className: string;
+	style: Object;
+}
+
 export default function PlayerControl({
-	src,
+	icon: Icon,
 	width,
-	height,
-	onClick
+	height
 }: {
-	src: string;
+	icon: (params: PlayerControlParams) => React.JSX.Element;
 	width?: string;
 	height?: string;
-	onClick: () => void;
 }) {
 	return (
-		<img
+		<Icon
 			className={styles.playerControl}
 
 			style={{
 				width: width ?? "30px",
 				height: height ?? "30px"
 			}}
-
-			src={src}
-			draggable="false"
-			onClick={() => onClick()}
 		/>
 	);
 }

@@ -1,4 +1,5 @@
 import { Subset } from "../musica";
+import { Asterisk, Ellipsis, Home, LucideIcon, Map, Trash } from "lucide-react";
 
 export function getSubsetName(subset: Subset) {
 	switch (subset) {
@@ -38,21 +39,21 @@ export function getSubsetColour(subset: Subset) {
 	}
 }
 
-export function getSubsetIcon(subset: Subset) {
+export function GetSubsetIcon(subset: Subset): LucideIcon {
 	switch (subset) {
 		case "standard":
-			return "/img/standard.svg";
+			return Home;
 
 		case "exploration":
-			return "/img/explore.svg";
+			return Map;
 
 		case "wildcard":
-			return "/img/wildcard.svg";
+			return Asterisk;
 
 		case "dislike":
-			return "/img/dislike.svg";
+			return Trash;
 
 		case "other":
-			return "/img/other.svg";
+			return Ellipsis;
 	}
 }

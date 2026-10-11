@@ -3,6 +3,15 @@ import { Track } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { onTrackSearchAndPlay, player } from "../../Player";
 import PlaylistAdditionModal from "../modals/PlaylistAdditionModal";
+import {
+	DiscAlbum,
+	ListPlus,
+	Pen,
+	Play,
+	Plus,
+	Route,
+	User
+} from "lucide-react";
 
 export default function TrackContextMenu({
 	x,
@@ -28,7 +37,7 @@ export default function TrackContextMenu({
 	const items = [
 		{
 			label: "Play",
-			icon: "/img/play-unfilled.svg",
+			icon: <Play width={14} height={14} />,
 			action: () => {
 				onTrackSearchAndPlay(track.id);
 				onPlay(false);
@@ -36,36 +45,36 @@ export default function TrackContextMenu({
 		},
 		{
 			label: "Edit Metadata",
-			icon: "/img/empty.svg",
+			icon: <Pen width={14} height={14} />,
 			action: () => navigation(`/edit/track/${track.id}`)
 		},
 		{
 			label: "Add to Playlist",
-			icon: "/img/list-plus.svg",
+			icon: <ListPlus width={14} height={14} />,
 			action: () => {
 				window.setModal(<PlaylistAdditionModal tracks={[track]} />);
 			}
 		},
 		{
 			label: "Add to Queue",
-			icon: "/img/empty.svg",
+			icon: <Plus width={14} height={14} />,
 			action: () => onPlay(false)
 		},
 		{
 			label: "Start Dynamic Queue Here",
-			icon: "/img/dynamic-queue.svg",
+			icon: <Route width={14} height={14} />,
 			action: () => dynamicQueueFromHere()
 		},
 		{
 			label: "Show Album",
-			icon: "/img/empty.svg",
+			icon: <DiscAlbum width={14} height={14} />,
 			action: () => {
 				navigation(`/album/${track.albumId}`);
 			}
 		},
 		{
 			label: "Show Artist",
-			icon: "/img/empty.svg",
+			icon: <User width={14} height={14} />,
 			action: () => {
 				navigation(`/artist/${track.albumArtistId}`);
 			}

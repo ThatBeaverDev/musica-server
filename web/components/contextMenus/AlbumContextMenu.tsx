@@ -3,6 +3,7 @@ import { Album } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { player } from "../../Player";
 import PlaylistAdditionModal from "../modals/PlaylistAdditionModal";
+import { ListPlus, Play, Shuffle, User } from "lucide-react";
 
 export default function AlbumContextMenu({
 	x,
@@ -28,17 +29,17 @@ export default function AlbumContextMenu({
 	const items = [
 		{
 			label: "Play",
-			icon: "/img/play-unfilled.svg",
+			icon: <Play width={14} height={14} />,
 			action: () => onPlay(false)
 		},
 		{
 			label: "Shuffle",
-			icon: "/img/shuffle.svg",
+			icon: <Shuffle width={14} height={14} />,
 			action: () => onPlay(true)
 		},
 		{
 			label: "Add to Playlist",
-			icon: "/img/list-plus.svg",
+			icon: <ListPlus width={14} height={14} />,
 			action: () => {
 				window.setModal(
 					<PlaylistAdditionModal tracks={album.tracks} />
@@ -47,7 +48,7 @@ export default function AlbumContextMenu({
 		},
 		{
 			label: "Show Artist",
-			icon: "/img/empty.svg",
+			icon: <User width={14} height={14} />,
 			action: () => {
 				navigation(`/artist/${album.artistId}`);
 			}

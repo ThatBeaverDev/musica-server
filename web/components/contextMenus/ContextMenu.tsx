@@ -3,8 +3,9 @@ import styles from "./ContextMenu.module.css";
 
 export type ContextItems = {
 	label: string;
+	colour?: string;
 	action: () => void;
-	icon: string;
+	icon: React.JSX.Element;
 }[];
 
 export type ContextMenuRequiredEvent = {
@@ -53,22 +54,25 @@ export function contextMenuHelper<T>() {
 
 function ContextEntry({
 	label,
+	colour,
 	onClick,
 	icon
 }: {
 	label: string;
+	colour?: string;
 	onClick: () => void;
-	icon: string;
+	icon: React.JSX.Element;
 }) {
 	return (
 		<p
 			className={styles.item}
+			style={{ color: colour }}
 
 			onPointerDown={() => {
 				onClick();
 			}}
 		>
-			<img src={icon} className={styles.icon} />
+			{icon}
 			<span>{label}</span>
 		</p>
 	);
@@ -103,6 +107,7 @@ export default function ContextMenu({
 			{items.map((item, index) => (
 				<ContextEntry
 					key={index}
+					colour={item.colour}
 					icon={item.icon}
 					label={item.label}
 					onClick={() => item.action()}

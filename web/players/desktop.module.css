@@ -31,7 +31,6 @@
 }
 
 .toolItem {
-	filter: invert(100%);
 	transition: 0.2s ease;
 }
 .toolItem:hover {

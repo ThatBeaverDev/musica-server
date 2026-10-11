@@ -31,7 +31,7 @@ export default function AlbumTrack({
 				<img
 					className={styles.art}
 					src={`/api/track/${track.id}/art`}
-				></img>
+				/>
 			) : (
 				<span className={styles.trackNumber}>
 					{track.number ? track.number : ""}

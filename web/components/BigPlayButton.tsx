@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./BigPlayButton.module.css";
+import { Play } from "@filled-lucide/react";
 
 export default function BigPlayButton({
 	onClick,
@@ -17,8 +18,7 @@ export default function BigPlayButton({
 
 			onClick={() => onClick()}
 		>
-			<img src="/img/play.svg" className={styles.icon} />
-
+			<Play className={styles.icon} color="#000000" />
 			<p className={styles.text}>Play</p>
 		</div>
 	);

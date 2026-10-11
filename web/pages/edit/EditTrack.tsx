@@ -6,6 +6,7 @@ import { getItemColours } from "../../lib/colour";
 import { colourScore } from "../../lib/score";
 import styles from "./editTrack.module.css";
 import { useNavigate } from "react-router-dom";
+import { RotateCcw } from "lucide-react";
 
 function FileInput({
 	name,
@@ -78,12 +79,12 @@ function ValuePair({
 					</datalist>
 				)}
 				{changed ? (
-					<img
+					<RotateCcw
+						color="#ffffff"
 						onClick={() => {
 							setValue(initialValue);
 							onChange(initialValue);
 						}}
-						src="/img/reset.svg"
 						className={styles.valuePairResetButton}
 					/>
 				) : undefined}

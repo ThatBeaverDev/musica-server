@@ -4,6 +4,7 @@ import PlayerControl from "../components/PlayerControl";
 import { Track } from "../musica";
 import { LoopState, player, Queue } from "../Player";
 import styles from "./mobile.module.css";
+import { Pause, Play, SkipForward } from "@filled-lucide/react";
 
 export default function MobilePlayer({
 	track,
@@ -76,16 +77,34 @@ export default function MobilePlayer({
 
 			<div className={styles.playerControls}>
 				<PlayerControl
-					src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
-					onClick={() => player.toggle()}
+					icon={(params) => {
+						const Icon = isPlaying ? Pause : Play;
+
+						return (
+							<Icon
+								color="#ffffff"
+								className={params.className}
+								style={params.style}
+								onClick={() => player.toggle()}
+								width={25}
+								height={25}
+							/>
+						);
+					}}
 					width="25px"
 					height="25px"
 				/>
 				<PlayerControl
-					src="/img/skip-forward.svg"
-					onClick={() => player.skipForward()}
-					width="20px"
-					height="20px"
+					icon={(params) => (
+						<SkipForward
+							color="#ffffff"
+							className={params.className}
+							style={params.style}
+							onClick={() => player.skipForward()}
+							width={20}
+							height={20}
+						/>
+					)}
 				/>
 			</div>
 		</div>

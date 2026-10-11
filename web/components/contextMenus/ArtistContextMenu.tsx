@@ -2,6 +2,7 @@
 import { Artist } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { player } from "../../Player";
+import { Play, Shuffle } from "lucide-react";
 
 export default function ArtistContextMenu({
 	x,
@@ -27,10 +28,14 @@ export default function ArtistContextMenu({
 	const onPlay = (shuffle: boolean) => playArtist(artist, shuffle);
 
 	const items = [
-		{ label: "Play", icon: "/img/play.svg", action: () => onPlay(false) },
+		{
+			label: "Play",
+			icon: <Play width={14} height={14} />,
+			action: () => onPlay(false)
+		},
 		{
 			label: "Shuffle",
-			icon: "/img/shuffle.svg",
+			icon: <Shuffle width={14} height={14} />,
 			action: () => onPlay(true)
 		}
 	];

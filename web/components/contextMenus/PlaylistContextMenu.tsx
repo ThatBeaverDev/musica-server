@@ -1,6 +1,7 @@
 import { Playlist } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { player } from "../../Player";
+import { Play, Shuffle, Trash } from "lucide-react";
 
 export default function PlaylistContextMenu({
 	x,
@@ -27,15 +28,20 @@ export default function PlaylistContextMenu({
 	const onPlay = (shuffle: boolean) => playPlaylist(playlist, shuffle);
 
 	const items = [
-		{ label: "Play", icon: "/img/play.svg", action: () => onPlay(false) },
+		{
+			label: "Play",
+			icon: <Play width={14} height={14} />,
+			action: () => onPlay(false)
+		},
 		{
 			label: "Shuffle",
-			icon: "/img/shuffle.svg",
+			icon: <Shuffle width={14} height={14} />,
 			action: () => onPlay(true)
 		},
 		{
 			label: "Delete Playlist",
-			icon: "/img/dislike.svg",
+			colour: "#ff0000",
+			icon: <Trash width={14} height={14} color="#ff0000" />,
 			action: () => {
 				fetch(`/api/playlist/${playlist.id}/delete`);
 			}

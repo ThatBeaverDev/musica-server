@@ -9,6 +9,7 @@ import PlaylistCreationModal from "./PlaylistCreationModal";
 import { addItemsToPlaylist } from "../../lib/playlists";
 import { formatTrackListDuration } from "../../lib/time";
 import styles from "./PlaylistAdditionModal.module.css";
+import { ListPlus } from "lucide-react";
 
 export default function PlaylistAdditionModal({ tracks }: { tracks: Track[] }) {
 	function PlaylistEntry({ playlist }: { playlist: Playlist }) {
@@ -74,9 +75,9 @@ export default function PlaylistAdditionModal({ tracks }: { tracks: Track[] }) {
 					window.setModal(<PlaylistCreationModal tracks={tracks} />);
 				}}
 			>
-				<img
-					src={`/img/list-plus.svg`}
-					style={{ filter: "invert(1)", transform: "scale(0.75)" }}
+				<ListPlus
+					color="#ffffff"
+					style={{ transform: "scale(0.75)" }}
 					className={styles.art}
 				/>
 

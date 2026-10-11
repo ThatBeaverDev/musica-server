@@ -8,8 +8,17 @@ import { Track } from "../musica";
 import styles from "./fullscreen.module.css";
 import QueueItem from "../components/QueueItem";
 import toolStyleObj from "./desktop.module.css";
+import {
+	Infinity,
+	MoveRight,
+	Repeat,
+	RepeatOff,
+	Route,
+	Shuffle
+} from "lucide-react";
+import { Pause, Play, SkipBack, SkipForward } from "@filled-lucide/react";
 
-export default function DesktopPlayer({
+export default function FullscrenPlayer({
 	track,
 	queue,
 	loop,
@@ -74,22 +83,20 @@ export default function DesktopPlayer({
 		}
 	);
 
-	const loopIcon = (() => {
+	const LoopIcon = (() => {
 		switch (loop) {
 			case LoopState.none:
-				return "/img/no-loop.svg";
+				return RepeatOff;
+
 			case LoopState.one:
-				return "/img/loop-1.svg";
+				return Infinity;
+
 			case LoopState.all:
-				return "/img/loop.svg";
+				return Repeat;
 		}
 	})();
 
-	const shuffleIcon = queue.isDynamic
-		? ""
-		: shuffle
-			? "/img/shuffle.svg"
-			: "/img/no-shuffle.svg";
+	const ShuffleIcon = shuffle ? Shuffle : MoveRight;
 
 	return (
 		<div
@@ -127,34 +134,63 @@ export default function DesktopPlayer({
 
 					<div className={styles.playerControls}>
 						{queue.isDynamic ? (
-							<img
+							<Route
+								color="#ffffff"
 								className={toolStyleObj.toolItem}
-								src={"/img/dynamic-queue.svg"}
+								onClick={() => {}}
 							/>
 						) : (
-							<img
+							<ShuffleIcon
+								color="#ffffff"
 								className={toolStyleObj.toolItem}
-								src={shuffleIcon}
 								onClick={() => player.toggleShuffle()}
 							/>
 						)}
 						<PlayerControl
-							src="/img/skip-back.svg"
-							onClick={() => player.skipBack()}
+							icon={(params) => (
+								<SkipBack
+									color="#ffffff"
+									className={params.className}
+									style={params.style}
+									onClick={() => player.skipBack()}
+									width={30}
+									height={30}
+								/>
+							)}
 						/>
 						<PlayerControl
-							src={isPlaying ? "/img/pause.svg" : "/img/play.svg"}
-							onClick={() => player.toggle()}
+							icon={(params) => {
+								const Icon = isPlaying ? Pause : Play;
+
+								return (
+									<Icon
+										color="#ffffff"
+										className={params.className}
+										style={params.style}
+										onClick={() => player.toggle()}
+										width={40}
+										height={40}
+									/>
+								);
+							}}
 							width="40px"
 							height="40px"
 						/>
 						<PlayerControl
-							src="/img/skip-forward.svg"
-							onClick={() => player.skipForward()}
+							icon={(params) => (
+								<SkipForward
+									color="#ffffff"
+									className={params.className}
+									style={params.style}
+									onClick={() => player.skipForward()}
+									width={30}
+									height={30}
+								/>
+							)}
 						/>
-						<img
+						<LoopIcon
+							color="#ffffff"
 							className={toolStyleObj.toolItem}
-							src={loopIcon}
 							onClick={() => player.toggleLoop()}
 						/>
 					</div>
