@@ -6,7 +6,7 @@ import postcss from "rollup-plugin-postcss";
 
 export default [
 	{
-		input: "./build/client/index.js",
+		input: "./build/index.js",
 		output: {
 			file: `./public/app.js`,
 			format: "es"

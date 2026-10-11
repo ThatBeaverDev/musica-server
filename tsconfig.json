@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"rootDir": "./src",
+		"rootDir": "./web",
 		"outDir": "./build",
 
 		"strict": true,
@@ -18,5 +18,5 @@
 		"incremental": true,
 		"tsBuildInfoFile": "./build/.tsbuildinfo"
 	},
-	"include": ["./src/client", "./src/client/global.d.ts"]
+	"include": ["./web", "./web/global.d.ts"]
 }
