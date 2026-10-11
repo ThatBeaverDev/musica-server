@@ -236,6 +236,16 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 		"./public/img/list-plus.svg",
 		"image/svg+xml",
 	)
+	ws.static(
+		"/img/play-unfilled.svg",
+		"./public/img/play-unfilled.svg",
+		"image/svg+xml",
+	)
+	ws.static(
+		"/img/empty.svg",
+		"./public/img/empty.svg",
+		"image/svg+xml",
+	)
 
 	// CSS
 	ws.static("/styles/styles.css", "./public/app.css", "text/css")

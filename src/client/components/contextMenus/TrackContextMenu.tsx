@@ -28,6 +28,7 @@ export default function TrackContextMenu({
 	const items = [
 		{
 			label: "Play",
+			icon: "/img/play-unfilled.svg",
 			action: () => {
 				onTrackSearchAndPlay(track.id);
 				onPlay(false);
@@ -35,27 +36,36 @@ export default function TrackContextMenu({
 		},
 		{
 			label: "Edit Metadata",
+			icon: "/img/empty.svg",
 			action: () => navigation(`/edit/track/${track.id}`)
 		},
 		{
-			label: "Add to Playlist...",
+			label: "Add to Playlist",
+			icon: "/img/list-plus.svg",
 			action: () => {
 				window.setModal(<PlaylistAdditionModal tracks={[track]} />);
 			}
 		},
-		{ label: "Add to Queue", action: () => onPlay(false) },
+		{
+			label: "Add to Queue",
+			icon: "/img/empty.svg",
+			action: () => onPlay(false)
+		},
 		{
 			label: "Start Dynamic Queue Here",
+			icon: "/img/dynamic-queue.svg",
 			action: () => dynamicQueueFromHere()
 		},
 		{
 			label: "Show Album",
+			icon: "/img/empty.svg",
 			action: () => {
 				navigation(`/album/${track.albumId}`);
 			}
 		},
 		{
 			label: "Show Artist",
+			icon: "/img/empty.svg",
 			action: () => {
 				navigation(`/artist/${track.albumArtistId}`);
 			}

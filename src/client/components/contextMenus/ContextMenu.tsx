@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
+import styles from "./ContextMenu.module.css";
 
-export type ContextItems = { label: string; action: () => void }[];
+export type ContextItems = {
+	label: string;
+	action: () => void;
+	icon: string;
+}[];
 
 export type ContextMenuRequiredEvent = {
 	clientX: number;
@@ -48,25 +53,23 @@ export function contextMenuHelper<T>() {
 
 function ContextEntry({
 	label,
-	onClick
+	onClick,
+	icon
 }: {
 	label: string;
 	onClick: () => void;
+	icon: string;
 }) {
-	const [hover, setIsHovered] = useState(false);
-
 	return (
 		<p
-			style={styles.item(hover)}
-
-			onPointerEnter={() => setIsHovered(true)}
-			onPointerLeave={() => setIsHovered(false)}
+			className={styles.item}
 
 			onPointerDown={() => {
 				onClick();
 			}}
 		>
-			{label}
+			<img src={icon} className={styles.icon} />
+			<span>{label}</span>
 		</p>
 	);
 }
@@ -86,19 +89,21 @@ export default function ContextMenu({
 }) {
 	return (
 		<div
+			className={styles.menu}
+
 			style={{
-				...styles.menu,
 				position: "fixed",
 				left: `${x}px`,
 				top: `${y}px`,
 				zIndex: 1000
 			}}
 		>
-			<p style={styles.title}>{title}</p>
+			<h1 className={styles.title}>{title}</h1>
 
 			{items.map((item, index) => (
 				<ContextEntry
 					key={index}
+					icon={item.icon}
 					label={item.label}
 					onClick={() => item.action()}
 				></ContextEntry>
@@ -106,46 +111,3 @@ export default function ContextMenu({
 		</div>
 	);
 }
-
-const contextMenuEntryBase = {
-	width: "100%",
-
-	padding: "10px",
-
-	marginLeft: "0px",
-
-	borderTop: "1px solid rgba(255, 255, 255, 0.15)",
-	borderBottom: "1px solid rgba(255, 255, 255, 0.15)"
-};
-
-const styles = {
-	menu: {
-		display: "flex",
-		flexDirection: "column" as "column",
-
-		width: "250px",
-		overflow: "hidden",
-
-		backgroundColor: "rgb(58 58 58)",
-		border: "2px solid rgba(255, 255, 255, 0.06)",
-
-		borderRadius: "14px"
-	},
-
-	title: {
-		...contextMenuEntryBase,
-
-		fontSize: "1rem"
-	},
-
-	item(hover: boolean) {
-		return {
-			...contextMenuEntryBase,
-
-			backgroundColor: hover ? "rgb(71, 71, 71)" : "",
-			transition: "ease 0.2s",
-
-			fontSize: "0.95rem"
-		};
-	}
-};

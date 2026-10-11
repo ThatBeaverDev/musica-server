@@ -26,10 +26,19 @@ export default function AlbumContextMenu({
 	const onPlay = (shuffle: boolean) => playAlbum(album, shuffle);
 
 	const items = [
-		{ label: "Play", action: () => onPlay(false) },
-		{ label: "Shuffle", action: () => onPlay(true) },
 		{
-			label: "Add to Playlist...",
+			label: "Play",
+			icon: "/img/play-unfilled.svg",
+			action: () => onPlay(false)
+		},
+		{
+			label: "Shuffle",
+			icon: "/img/shuffle.svg",
+			action: () => onPlay(true)
+		},
+		{
+			label: "Add to Playlist",
+			icon: "/img/list-plus.svg",
 			action: () => {
 				window.setModal(
 					<PlaylistAdditionModal tracks={album.tracks} />
@@ -38,6 +47,7 @@ export default function AlbumContextMenu({
 		},
 		{
 			label: "Show Artist",
+			icon: "/img/empty.svg",
 			action: () => {
 				navigation(`/artist/${album.artistId}`);
 			}

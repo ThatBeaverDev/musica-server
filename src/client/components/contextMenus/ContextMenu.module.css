@@ -1,0 +1,51 @@
+.menu {
+	display: flex;
+	flex-direction: column;
+
+	width: 250px;
+	overflow: hidden;
+
+	background-color: rgba(24, 24, 24, 0.75);
+	backdrop-filter: blur(25px);
+	border: 1px solid #494949;
+
+	border-radius: 14px;
+}
+
+.title,
+.item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 5px;
+
+	width: 100%;
+
+	padding: 10px;
+
+	margin-left: 0px;
+
+	border-top: 1px solid rgba(255, 255, 255, 0.05);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.title {
+	font-size: 1rem;
+}
+
+.item {
+	transition: 0.2s ease;
+	background-color: transparent;
+
+	font-size: 0.95rem;
+}
+.item:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon {
+	width: 20px;
+	height: 20px;
+	filter: invert(1);
+}

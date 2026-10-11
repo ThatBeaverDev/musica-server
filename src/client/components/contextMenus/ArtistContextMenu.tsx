@@ -27,8 +27,12 @@ export default function ArtistContextMenu({
 	const onPlay = (shuffle: boolean) => playArtist(artist, shuffle);
 
 	const items = [
-		{ label: "Play", action: () => onPlay(false) },
-		{ label: "Shuffle", action: () => onPlay(true) }
+		{ label: "Play", icon: "/img/play.svg", action: () => onPlay(false) },
+		{
+			label: "Shuffle",
+			icon: "/img/shuffle.svg",
+			action: () => onPlay(true)
+		}
 	];
 
 	return (
