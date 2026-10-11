@@ -77,6 +77,12 @@ export default function App() {
 
 				<Player mobile={mobile} />
 			</BrowserRouter>
+			{modal ? (
+				<div
+					className={styles.modalBackground}
+					onClick={() => setModal(undefined)}
+				/>
+			) : undefined}
 			{modal}
 		</>
 	);

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Album } from "../../musica";
 import ContextMenu from "./ContextMenu";
 import { player } from "../../Player";
+import PlaylistAdditionModal from "../modals/PlaylistAdditionModal";
 
 export default function AlbumContextMenu({
 	x,
@@ -27,6 +28,14 @@ export default function AlbumContextMenu({
 	const items = [
 		{ label: "Play", action: () => onPlay(false) },
 		{ label: "Shuffle", action: () => onPlay(true) },
+		{
+			label: "Add to Playlist...",
+			action: () => {
+				window.setModal(
+					<PlaylistAdditionModal tracks={album.tracks} />
+				);
+			}
+		},
 		{
 			label: "Show Artist",
 			action: () => {

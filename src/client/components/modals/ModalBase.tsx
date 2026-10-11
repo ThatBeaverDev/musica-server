@@ -4,10 +4,12 @@ import React from "react";
 
 export default function ModalBase({
 	children,
-	title
+	title,
+	description
 }: {
 	children?: React.ReactNode | React.ReactNode[];
 	title: string;
+	description?: string;
 }) {
 	useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
@@ -25,7 +27,8 @@ export default function ModalBase({
 
 	return (
 		<div className={styles.container}>
-			<p>{title}</p>
+			<h1>{title}</h1>
+			{description ? <p>{description}</p> : undefined}
 			{children}
 		</div>
 	);

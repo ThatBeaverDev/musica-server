@@ -7,8 +7,34 @@ import {
 import ModalBase from "./ModalBase";
 import PlaylistCreationModal from "./PlaylistCreationModal";
 import { addItemsToPlaylist } from "../../lib/playlists";
+import { formatTrackListDuration } from "../../lib/time";
+import styles from "./PlaylistAdditionModal.module.css";
 
 export default function PlaylistAdditionModal({ tracks }: { tracks: Track[] }) {
+	function PlaylistEntry({ playlist }: { playlist: Playlist }) {
+		return (
+			<div
+				className={styles.outerEntry}
+				onClick={() => {
+					window.setModal(undefined);
+					addItemsToPlaylist(playlist.id, tracks);
+				}}
+			>
+				<img
+					src={`/api/playlist/${playlist.id}/art`}
+					className={styles.art}
+				/>
+
+				<div className={styles.stack}>
+					<b>
+						<p>{playlist.name}</p>
+					</b>
+					<p>{formatTrackListDuration(playlist.tracks)}</p>
+				</div>
+			</div>
+		);
+	}
+
 	const [playlistList, setPlaylistList] = useState<Playlist[] | undefined>();
 	useEffect(() => {
 		let isMounted = true;
@@ -33,27 +59,36 @@ export default function PlaylistAdditionModal({ tracks }: { tracks: Track[] }) {
 		};
 	}, []);
 
+	const isOne = tracks.length == 1;
+
 	return (
-		<ModalBase title="Select a Playlist">
+		<ModalBase
+			title="Select a Playlist"
+			description={`Select a playlist to add ${isOne ? "this" : "these"} track${isOne ? "" : "s"} to.`}
+		>
+			<hr className={styles.horizontalRule} />
+
 			<div
+				className={styles.outerEntry}
 				onClick={() => {
 					window.setModal(<PlaylistCreationModal tracks={tracks} />);
 				}}
 			>
-				Create new Playlist
+				<img
+					src={`/img/list-plus.svg`}
+					style={{ filter: "invert(1)", transform: "scale(0.75)" }}
+					className={styles.art}
+				/>
+
+				<div className={styles.stack}>
+					<b>
+						<p>Create new Playlist</p>
+					</b>
+				</div>
 			</div>
 
 			{playlistList ? (
-				playlistList.map((item) => (
-					<div
-						onClick={() => {
-							window.setModal(undefined);
-							addItemsToPlaylist(item.id, tracks);
-						}}
-					>
-						{item.name}
-					</div>
-				))
+				playlistList.map((item) => <PlaylistEntry playlist={item} />)
 			) : (
 				<p>Loading...</p>
 			)}

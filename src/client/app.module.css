@@ -51,3 +51,14 @@ body {
 		height: calc(100dvh - (40dvh + 50px));
 	}
 }
+
+.modalBackground {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+
+	width: 100vw;
+	height: 100vh;
+
+	background-color: rgba(0, 0, 0, 0.45);
+}

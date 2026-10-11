@@ -1,0 +1,40 @@
+.outerEntry {
+	display: flex;
+	flex-direction: row;
+
+	gap: 0.5rem;
+
+	background-color: transparent;
+	border-radius: 4px;
+
+	transition: 0.2s ease;
+}
+
+.outerEntry:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.art {
+	width: 3rem;
+	height: 3rem;
+
+	border-radius: 0.25rem;
+
+	pointer-events: none;
+}
+
+.stack {
+	display: flex;
+	flex-direction: column;
+
+	width: max-content;
+	justify-content: center;
+
+	gap: 0.5rem;
+
+	pointer-events: none;
+}
+
+.horizontalRule {
+	background-color: #494949;
+}

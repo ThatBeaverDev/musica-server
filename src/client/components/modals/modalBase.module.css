@@ -16,4 +16,6 @@
 	background-color: var(--sidebarColour);
 
 	border-radius: 16px;
+
+	border: 1px solid #494949;
 }

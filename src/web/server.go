@@ -230,6 +230,13 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 		"image/svg+xml",
 	)
 
+	// utility icons
+	ws.static(
+		"/img/list-plus.svg",
+		"./public/img/list-plus.svg",
+		"image/svg+xml",
+	)
+
 	// CSS
 	ws.static("/styles/styles.css", "./public/app.css", "text/css")
 
