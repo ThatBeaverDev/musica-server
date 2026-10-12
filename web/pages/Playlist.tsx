@@ -13,7 +13,6 @@ import { getPlaylistMetadata } from "../lib/metadata/playlists.js";
 import { EllipsisVertical } from "lucide-react";
 
 export default function Playlist() {
-	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
 	//const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
@@ -168,14 +167,6 @@ export default function Playlist() {
 					className={styles.albumMetadata}
 				>{`${trackCountInfo} - ${playlistDurationInfo}`}</p>
 			</div>
-
-			{contextMenu && (
-				<SmartContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					menu={contextMenu.data}
-				/>
-			)}
 		</>
 	);
 }

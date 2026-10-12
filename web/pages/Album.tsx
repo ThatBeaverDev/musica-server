@@ -15,7 +15,6 @@ import { formatTrackListDuration } from "../lib/time.js";
 import { EllipsisVertical } from "lucide-react";
 
 export default function Album() {
-	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
 	const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
@@ -205,14 +204,6 @@ export default function Album() {
 					className={styles.albumMetadata}
 				>{`${trackCountInfo} - ${albumDurationInfo}`}</p>
 			</div>
-
-			{contextMenu && (
-				<SmartContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					menu={contextMenu.data}
-				></SmartContextMenu>
-			)}
 		</>
 	);
 }

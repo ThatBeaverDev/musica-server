@@ -18,8 +18,6 @@ export default function Search() {
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [searchActive, setSearchActive] = useState(false);
 
-	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
-
 	function newTextboxState(val: string) {
 		setInputtedQuery(val);
 
@@ -150,14 +148,6 @@ export default function Search() {
 						))
 					: undefined}
 			</div>
-
-			{contextMenu && (
-				<SmartContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					menu={contextMenu.data}
-				/>
-			)}
 		</>
 	);
 }

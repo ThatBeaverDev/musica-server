@@ -11,12 +11,22 @@ import { useState } from "react";
 import styles from "./app.module.css";
 import EditTrack from "./pages/edit/EditTrack";
 import Playlist from "./pages/Playlist";
+import SmartContextMenu, {
+	smartContextMenuHelper
+} from "./components/contextMenus/SmartContextMenu";
+
+type ContextMenuActivator = ReturnType<
+	typeof smartContextMenuHelper
+>["activateContextMenu"];
 
 declare global {
 	interface Window {
 		setBackground(background: string): void;
 		setModal(modal: React.ReactNode | undefined): void;
+		activateContextMenu: ContextMenuActivator;
 	}
+
+	const activateContextMenu: ContextMenuActivator;
 }
 
 export default function App() {
@@ -29,6 +39,8 @@ export default function App() {
 	window.setBackground = setBackground;
 	const [modal, setModal] = useState<React.ReactNode | undefined>();
 	window.setModal = setModal;
+	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
+	window.activateContextMenu = activateContextMenu;
 
 	window.addEventListener(
 		"resize",
@@ -76,7 +88,16 @@ export default function App() {
 				</div>
 
 				<Player mobile={mobile} />
+
+				{contextMenu && (
+					<SmartContextMenu
+						x={contextMenu.x}
+						y={contextMenu.y}
+						menu={contextMenu.data}
+					/>
+				)}
 			</BrowserRouter>
+
 			{modal ? (
 				<div
 					className={styles.modalBackground}

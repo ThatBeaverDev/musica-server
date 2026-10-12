@@ -13,8 +13,6 @@ import {
 } from "../lib/metadata/playlists";
 
 export default function Home() {
-	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
-
 	// fetch albums
 	const [albums, setAlbums] = useState<Album[]>([]);
 	useEffect(() => {
@@ -103,14 +101,6 @@ export default function Home() {
 					/>
 				))}
 			</div>
-
-			{contextMenu && (
-				<SmartContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					menu={contextMenu.data}
-				/>
-			)}
 		</>
 	);
 }

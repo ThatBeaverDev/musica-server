@@ -7,7 +7,14 @@ import PlaylistContextMenu from "./PlaylistContextMenu";
 import TrackContextMenu from "./TrackContextMenu";
 
 export type SmartContextMenu =
-	| { type: "track"; track: Track; trackList: Track[]; index: number }
+	| {
+			type: "track";
+			track: Track;
+			allowPlay?: true;
+			trackList: Track[];
+			index: number;
+	  }
+	| { type: "track"; track: Track; allowPlay: false }
 	| { type: "album"; album: Album }
 	| { type: "artist"; artist: Artist }
 	| { type: "playlist"; playlist: Playlist };
@@ -32,8 +39,10 @@ export default function SmartContextMenu({
 					x={x}
 					y={y}
 					track={menu.track}
+					allowPlay={menu.allowPlay}
 					onPlay={() => {
-						if (menu.type != "track") return;
+						if (menu.type != "track" || menu.allowPlay == false)
+							return;
 
 						const { index, track: item } = menu;
 

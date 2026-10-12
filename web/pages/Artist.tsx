@@ -14,9 +14,6 @@ import { formatTrackListDuration } from "../lib/time.js";
 import { EllipsisVertical } from "lucide-react";
 
 export default function Artist() {
-	// context menu, close on any mouse press
-	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
-
 	const id = new URL(window.location.href).pathname.split("/")[2];
 
 	const [artist, setArtist] = useState<Artist | undefined>();
@@ -156,14 +153,6 @@ export default function Artist() {
 					className={styles.artistMetadata}
 				>{`${trackCountInfo} - ${artistDurationInfo}`}</p>
 			</div>
-
-			{contextMenu && (
-				<SmartContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					menu={contextMenu.data}
-				/>
-			)}
 		</>
 	);
 }
