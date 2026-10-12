@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
-import { Album, Artist } from "../musica.js";
+import { Artist } from "../musica.js";
 import LargeAlbum from "../components/LargeAlbum.js";
-import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
+import SmartContextMenu, {
+	smartContextMenuHelper
+} from "../components/contextMenus/SmartContextMenu.js";
 import { getItemColours } from "../lib/colour.js";
 import { getArtistMetadata } from "../lib/metadata/artists.js";
 import styles from "./artist.module.css";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { player } from "../Player.js";
-import AlbumContextMenu from "../components/contextMenus/AlbumContextMenu.js";
 import { formatTrackListDuration } from "../lib/time.js";
+import { EllipsisVertical } from "lucide-react";
 
 export default function Artist() {
 	// context menu, close on any mouse press
-	const { contextMenu, activateContextMenu } = contextMenuHelper<Album>();
+	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
 
@@ -79,7 +81,7 @@ export default function Artist() {
 			<div className={styles.hero}>
 				<img className={styles.art} src={icon} />
 
-				<div>
+				<div className={styles.info}>
 					<p className={styles.text}>Artist</p>
 
 					<h1 className={styles.title}>
@@ -96,16 +98,30 @@ export default function Artist() {
 						{artist ? `Score: ${Math.round(artist.score)}` : ""}
 					</p>
 
-					<BigPlayButton
-						className={styles.bigPlayButton}
+					<div className={styles.utilityBar}>
+						<BigPlayButton
+							className={styles.bigPlayButton}
 
-						onClick={() => {
-							if (!artist) return;
+							onClick={() => {
+								player.setQueue([], tracks[0], tracks.slice(1));
+								player.resume();
+							}}
+						></BigPlayButton>
 
-							player.setQueue([], tracks[0], tracks.slice(1));
-							player.resume();
-						}}
-					></BigPlayButton>
+						<div className={styles.rightUtilityBar}>
+							<EllipsisVertical
+								className={styles.contextButton}
+
+								onClick={(e) => {
+									if (!artist) return;
+									activateContextMenu(e, {
+										type: "artist",
+										artist
+									});
+								}}
+							/>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -118,7 +134,10 @@ export default function Artist() {
 									key={index}
 									album={album}
 									onContextMenu={(e) =>
-										activateContextMenu(e, album)
+										activateContextMenu(e, {
+											type: "album",
+											album
+										})
 									}
 								/>
 							))
@@ -139,10 +158,10 @@ export default function Artist() {
 			</div>
 
 			{contextMenu && (
-				<AlbumContextMenu
+				<SmartContextMenu
 					x={contextMenu.x}
 					y={contextMenu.y}
-					album={contextMenu.data}
+					menu={contextMenu.data}
 				/>
 			)}
 		</>

@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
-import { Album, Track } from "../musica.js";
+import { Album } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
 import { onTrackSearchAndPlay, player } from "../Player.js";
-import { contextMenuHelper } from "../components/contextMenus/ContextMenu.js";
-import TrackContextMenu from "../components/contextMenus/TrackContextMenu.js";
+import SmartContextMenu, {
+	smartContextMenuHelper
+} from "../components/contextMenus/SmartContextMenu.js";
 import { useNavigate } from "react-router-dom";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
 import { getAlbumMetadata } from "../lib/metadata/albums.js";
 import styles from "./album.module.css";
 import { formatTrackListDuration } from "../lib/time.js";
+import { EllipsisVertical } from "lucide-react";
 
 export default function Album() {
-	const { contextMenu, activateContextMenu } = contextMenuHelper<Track>();
+	const { contextMenu, activateContextMenu } = smartContextMenuHelper();
 	const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
@@ -29,13 +31,6 @@ export default function Album() {
 
 		player.resume();
 	}
-	const playTrack = (track: Track) => {
-		if (!album) return;
-
-		const index = album.tracks.map((track) => track.id).indexOf(track.id);
-
-		playByIndex(index);
-	};
 
 	const [album, setAlbum] = useState<Album | undefined>();
 	const [colours, setColours] = useState<[string, string] | undefined>();
@@ -97,7 +92,7 @@ export default function Album() {
 			<div className={styles.hero}>
 				<img className={styles.art} src={icon} />
 
-				<div>
+				<div className={styles.info}>
 					<p className={styles.text}>Album</p>
 
 					<h1 className={styles.title}>
@@ -146,19 +141,35 @@ export default function Album() {
 						{album ? `Score: ${Math.round(album.score)}` : ""}
 					</p>
 
-					<BigPlayButton
-						className={styles.bigPlayButton}
+					<div className={styles.utilityBar}>
+						<BigPlayButton
+							className={styles.bigPlayButton}
 
-						onClick={() => {
-							if (!album) return;
-							player.setQueue(
-								[],
-								album.tracks[0],
-								album.tracks.slice(1)
-							);
-							player.resume();
-						}}
-					></BigPlayButton>
+							onClick={() => {
+								if (!album) return;
+								player.setQueue(
+									[],
+									album.tracks[0],
+									album.tracks.slice(1)
+								);
+								player.resume();
+							}}
+						></BigPlayButton>
+
+						<div className={styles.rightUtilityBar}>
+							<EllipsisVertical
+								className={styles.contextButton}
+
+								onClick={(e) => {
+									if (!album) return;
+									activateContextMenu(e, {
+										type: "album",
+										album
+									});
+								}}
+							/>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -176,7 +187,13 @@ export default function Album() {
 										playByIndex(index);
 									}}
 									onContextMenu={(e) => {
-										activateContextMenu(e, track);
+										if (!track || !album) return;
+										activateContextMenu(e, {
+											type: "track",
+											track,
+											trackList: album.tracks,
+											index
+										});
 									}}
 								/>
 							))
@@ -190,12 +207,11 @@ export default function Album() {
 			</div>
 
 			{contextMenu && (
-				<TrackContextMenu
+				<SmartContextMenu
 					x={contextMenu.x}
 					y={contextMenu.y}
-					track={contextMenu.data}
-					onPlay={() => playTrack(contextMenu.data)}
-				/>
+					menu={contextMenu.data}
+				></SmartContextMenu>
 			)}
 		</>
 	);

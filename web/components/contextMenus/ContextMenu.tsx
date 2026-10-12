@@ -21,6 +21,7 @@ export function contextMenuHelper<T>() {
 		y: number;
 		data: T;
 	} | null>(null);
+
 	useEffect(() => {
 		if (!contextMenu) return;
 
@@ -40,6 +41,7 @@ export function contextMenuHelper<T>() {
 		};
 		window.addEventListener("keydown", keydown);
 	}, [contextMenu]);
+
 	const activateContextMenu = (e: ContextMenuRequiredEvent, data: T) => {
 		e.preventDefault();
 		setContextMenu({
@@ -79,7 +81,7 @@ function ContextEntry({
 }
 
 export default function ContextMenu({
-	x,
+	x: xPos,
 	y,
 
 	title,
@@ -91,6 +93,21 @@ export default function ContextMenu({
 	title: string;
 	items: ContextItems;
 }) {
+	let x = xPos;
+
+	const screenWidth = window.innerWidth;
+	if (x + 250 > screenWidth) {
+		// render it on the other side of the cursor
+		x -= 250;
+	}
+
+	const screenHeight = window.innerHeight;
+	const menuHeight = 74 + 36 * items.length;
+	if (y + menuHeight > screenHeight) {
+		// render it on the other side of the cursor
+		y -= menuHeight;
+	}
+
 	return (
 		<div
 			className={styles.menu}

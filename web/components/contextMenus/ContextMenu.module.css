@@ -37,6 +37,7 @@
 .item {
 	transition: 0.2s ease;
 	background-color: transparent;
+	height: 36px;
 
 	font-size: 0.95rem;
 }

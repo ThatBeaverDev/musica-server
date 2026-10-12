@@ -42,6 +42,44 @@
 	color: #888;
 }
 
+.info {
+	width: calc(100% - 272px /* 240px for image + 32px gap*/);
+}
+
+.utilityBar {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+
+	margin-top: 1rem;
+}
+
+.rightUtilityBar {
+	display: flex;
+	flex-direction: row;
+	justify-content: right;
+	align-items: center;
+
+	flex: 1;
+}
+
+.bigPlayButton {
+	margin: 0px !important;
+}
+
+.contextButton {
+	transition: 0.2s ease;
+}
+
+.contextButton:hover {
+	transform: scale(1.05);
+}
+
+.contextButton:active {
+	transform: scale(0.75);
+}
+
 /* mobile */
 @media (max-aspect-ratio: 7/10) {
 	.hero {
