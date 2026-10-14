@@ -12,7 +12,7 @@ export default function LargeArtist({
 }) {
 	const navigate = useNavigate();
 
-	const showArtist = () => navigate(`/album/${artist.id}`);
+	const showArtist = () => navigate(`/artist/${artist.id}`);
 
 	return (
 		<div
