@@ -11,6 +11,27 @@ export function deleteTrack(id: string) {
 	trackColours.delete(id);
 }
 
+let idListPopulated = false;
+const allTrackIds: string[] = [];
+
+export async function getTrackIds() {
+	if (!idListPopulated) {
+		const idURL = `/api/tracks/list`;
+		const trackIdsRequest = await fetch(idURL);
+
+		if (!trackIdsRequest.ok) {
+			throw new Error(
+				`Failed to list tracks from ${idURL}: HTTP Status ${trackIdsRequest.status}`
+			);
+		}
+
+		allTrackIds.push(...(await trackIdsRequest.json()));
+		idListPopulated = true;
+	}
+
+	return allTrackIds;
+}
+
 export async function getTrackMetadata(id: string): Promise<Track> {
 	const cacheEntry = trackMetadata.get(id);
 	if (cacheEntry) return cacheEntry;
@@ -22,6 +43,31 @@ export async function getTrackMetadata(id: string): Promise<Track> {
 
 	trackMetadata.set(id, track);
 	return track;
+}
+
+export async function getTrackMetadataBulk(ids: string[]): Promise<Track[]> {
+	if (ids.length == 0) return [];
+
+	const idSet = new Set(ids);
+	const knownIds = new Set(trackMetadata.keys());
+
+	const unknownIds = idSet.difference(knownIds);
+
+	if (unknownIds.size !== 0) {
+		const trackStatsRequest = await fetch(`/api/bulk/tracks/info`, {
+			headers: { tracks: JSON.stringify([...unknownIds]) },
+			priority: "high"
+		});
+
+		const fetchedTracks: Track[] = await trackStatsRequest.json();
+		fetchedTracks.forEach((track) => {
+			loadTrack(track);
+		});
+	}
+
+	const results = ids.map((id) => trackMetadata.get(id));
+
+	return results.filter((item) => item !== undefined);
 }
 
 const trackColours = new Map<string, string>();
