@@ -14,6 +14,7 @@ import Playlist from "./pages/Playlist";
 import SmartContextMenu, {
 	smartContextMenuHelper
 } from "./components/contextMenus/SmartContextMenu";
+import Library from "./pages/Library";
 
 type ContextMenuActivator = ReturnType<
 	typeof smartContextMenuHelper
@@ -84,6 +85,7 @@ export default function App() {
 						<Route path="/playlist/:id" element={<Playlist />} />
 						<Route path="/search" element={<Search />} />
 						<Route path="/edit/track/:id" element={<EditTrack />} />
+						<Route path="/library" element={<Library />} />
 					</Routes>
 				</div>
 

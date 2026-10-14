@@ -1,0 +1,33 @@
+.header {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 1rem;
+	align-items: center;
+}
+
+.header > div {
+	display: flex;
+	flex-direction: row;
+	gap: 1rem;
+
+	margin-right: 3rem;
+
+	align-items: center;
+}
+
+.trackView,
+.gridView {
+	display: flex;
+	margin-top: 1rem;
+}
+
+.trackView {
+	flex-direction: column;
+}
+
+.gridView {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 1rem;
+}

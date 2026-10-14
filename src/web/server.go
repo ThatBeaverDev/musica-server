@@ -53,13 +53,13 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 	api.Get("/track/{id}/get", ws.trackFile)
 	api.Get("/track/{id}/art", ws.trackArt)
 	api.Get("/track/{id}/colour", ws.trackColour)
+	api.Get("/bulk/tracks/info", ws.bulkTracks)
+
 	api.Get("/track/{id}/explicitPlay", ws.userSpecificPlay)
 	api.Get("/track/{id}/played", ws.trackPlayed)
 	api.Get("/track/{id}/skipped", ws.trackSkipped)
 	api.Post("/track/{id}/editMetadata", ws.editTrackMetadata)
 	api.Post("/track/{id}/editArt", ws.editTrackArt)
-
-	api.Post("/bulk/tracks/info", ws.bulkTracks)
 
 	// Albums
 	api.Get("/albums/list", ws.listAlbums)
@@ -100,6 +100,7 @@ func New(indexer *indexer.Indexer, idStorage *identityStorage.IdentityStorage, s
 	ws.static("/playlist/*", "./public/index.html", "text/html")
 	ws.static("/search", "./public/index.html", "text/html")
 	ws.static("/edit/*", "./public/index.html", "text/html")
+	ws.static("/library", "./public/index.html", "text/html")
 
 	ws.static(
 		"/apple-touch-icon.png",
