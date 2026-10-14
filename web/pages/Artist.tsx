@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
 import { Artist } from "../musica.js";
 import LargeAlbum from "../components/LargeAlbum.js";
-import SmartContextMenu, {
-	smartContextMenuHelper
-} from "../components/contextMenus/SmartContextMenu.js";
 import { getItemColours } from "../lib/colour.js";
 import { getArtistMetadata } from "../lib/metadata/artists.js";
 import styles from "./artist.module.css";

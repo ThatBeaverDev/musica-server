@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { Playlist } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
 import { onTrackSearchAndPlay, player } from "../Player.js";
-import SmartContextMenu, {
-	smartContextMenuHelper
-} from "../components/contextMenus/SmartContextMenu.js";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
 import styles from "./album.module.css";

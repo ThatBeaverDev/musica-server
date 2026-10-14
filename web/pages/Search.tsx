@@ -6,9 +6,6 @@ import LargeAlbum from "../components/LargeAlbum";
 import AlbumTrack from "../components/AlbumTrack";
 import { onTrackSearchAndPlay, player } from "../Player";
 import LargeArtist from "../components/LargeArtist";
-import SmartContextMenu, {
-	smartContextMenuHelper
-} from "../components/contextMenus/SmartContextMenu";
 
 export default function Search() {
 	const [query, setInputtedQuery] = useState(

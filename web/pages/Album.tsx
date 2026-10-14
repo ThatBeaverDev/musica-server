@@ -3,9 +3,6 @@ import { colourScore } from "../lib/score.js";
 import { Album } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
 import { onTrackSearchAndPlay, player } from "../Player.js";
-import SmartContextMenu, {
-	smartContextMenuHelper
-} from "../components/contextMenus/SmartContextMenu.js";
 import { useNavigate } from "react-router-dom";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";

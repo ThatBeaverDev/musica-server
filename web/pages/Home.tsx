@@ -3,9 +3,6 @@ import { Album, Playlist } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
 import styles from "./home.module.css";
 import LargePlaylist from "../components/LargePlaylist";
-import SmartContextMenu, {
-	smartContextMenuHelper
-} from "../components/contextMenus/SmartContextMenu";
 import { getAlbumIds, getAlbumMetadataBulk } from "../lib/metadata/albums";
 import {
 	getPlaylistIds,
