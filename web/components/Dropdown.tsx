@@ -9,9 +9,11 @@ interface DropdownSelection {
 }
 
 export default function Dropdown({
-	options
+	options,
+	className
 }: {
 	options: DropdownSelection[];
+	className?: string;
 }) {
 	const [currentSelection, setSelection] = useState<DropdownSelection>(
 		options[0]
@@ -31,16 +33,16 @@ export default function Dropdown({
 				window.removeEventListener("click", onClick);
 			};
 		}
-	});
+	}, [isOpen]);
 
 	return (
 		<div
-			className={styles.outer}
+			className={`${styles.outer} ${isOpen ? styles.active : ""} ${className ? className : ""}`}
 			onClick={() => {
 				if (!isOpen) setIsOpen(true);
 			}}
 		>
-			<div className={`${styles.top} ${isOpen ? styles.topOpen : ""}`}>
+			<div className={styles.top}>
 				{currentSelection.icon}
 
 				<span>{currentSelection.name}</span>
@@ -59,6 +61,7 @@ export default function Dropdown({
 							className={`${styles.dropdownItem} ${item == currentSelection ? styles.selectedDropdown : ""}`}
 							onClick={() => {
 								setSelection(item);
+								item.onSelect();
 							}}
 						>
 							{item.icon}
