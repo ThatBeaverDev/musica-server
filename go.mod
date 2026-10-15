@@ -9,7 +9,7 @@ require (
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	go.senan.xyz/taglib v0.14.0
+	go.senan.xyz/taglib v0.15.0
 	golang.org/x/image v0.45.0
 )
 
