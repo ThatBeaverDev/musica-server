@@ -17,3 +17,10 @@
 	transform: translateY(0%);
 	pointer-events: auto;
 }
+
+/* mobile */
+@media (max-aspect-ratio: 7/10) {
+	.fullscreenPlayer {
+		top: 0px;
+	}
+}

@@ -61,7 +61,10 @@ export default function MobilePlayer({
 					draggable={false}
 					className={styles.trackArt}
 					src={`/api/track/${track?.id}/art`}
-					onClick={showAlbum}
+					onClick={(e) => {
+						showAlbum();
+						e.stopPropagation();
+					}}
 				/>
 			) : (
 				<div className={styles.trackArt} />
@@ -85,14 +88,17 @@ export default function MobilePlayer({
 								color="#ffffff"
 								className={params.className}
 								style={params.style}
-								onClick={() => player.toggle()}
-								width={25}
-								height={25}
+								onClick={(e) => {
+									player.toggle();
+									e.stopPropagation();
+								}}
+								width={27}
+								height={27}
 							/>
 						);
 					}}
-					width="25px"
-					height="25px"
+					width="27px"
+					height="27px"
 				/>
 				<PlayerControl
 					icon={(params) => (
@@ -100,11 +106,16 @@ export default function MobilePlayer({
 							color="#ffffff"
 							className={params.className}
 							style={params.style}
-							onClick={() => player.skipForward()}
-							width={20}
-							height={20}
+							onClick={(e) => {
+								player.skipForward();
+								e.stopPropagation();
+							}}
+							width={25}
+							height={25}
 						/>
 					)}
+					width="25px"
+					height="25px"
 				/>
 			</div>
 		</div>

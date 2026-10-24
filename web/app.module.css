@@ -46,6 +46,10 @@ body {
 
 /* mobile */
 @media (max-aspect-ratio: 7/10) {
+	.main {
+		margin-top: 0px;
+	}
+
 	.content {
 		width: 100%;
 		height: calc(100dvh - (40dvh + 50px));

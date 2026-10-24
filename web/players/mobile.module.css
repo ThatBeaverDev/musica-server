@@ -1,6 +1,11 @@
 .queue {
+	position: absolute;
+	left: 0px;
+	bottom: 75px;
+
 	width: 100dvw;
-	height: 7rem;
+	height: 5rem;
+	z-index: 100;
 
 	display: flex;
 	flex-direction: row;
@@ -24,8 +29,8 @@
 }
 
 .trackArt {
-	width: 7rem;
-	height: 7rem;
+	width: 5rem;
+	height: 5rem;
 	padding-right: 10px;
 }
 

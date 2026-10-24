@@ -75,7 +75,7 @@ export default function App() {
 	return (
 		<>
 			<BrowserRouter>
-				<Navbar />
+				<Navbar mobile={mobile} />
 
 				<div className={styles.content} style={{ background }}>
 					<Routes>
