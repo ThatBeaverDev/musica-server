@@ -25,16 +25,6 @@ func resolvePath(base, input string) string {
 }
 
 func main() {
-	workingDirectory, err := os.Getwd()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	idStorage, err := identityStorage.New()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	config, err := config.New()
 	if err != nil {
 		log.Fatalln(err)
@@ -45,11 +35,24 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
+	idStorage, err := identityStorage.New()
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
 	indexerDirectory := resolvePath(workingDirectory, config.MediaLibrary)
 
 	indexer, err := indexer.New(indexerDirectory, idStorage, config, logger)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err)
+		return
 	}
 
 	logger.Log("")
@@ -61,18 +64,21 @@ func main() {
 
 	scorer, err := scores.New(indexer)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err)
+		return
 	}
 
 	playlistManager, err := playlists.New(logger, indexer)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err)
+		return
 	}
 
 	if config.OrganiseLibrary {
 		err := edit.ReorganiseLibrary(indexer)
 		if err != nil {
-			log.Fatalln(err)
+			logger.Error(err)
+			return
 		}
 	}
 
@@ -80,6 +86,7 @@ func main() {
 
 	err = server.Listen(config.Port)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err)
+		return
 	}
 }
