@@ -3,6 +3,7 @@
 	flex-direction: row;
 
 	overflow-x: auto;
+	overflow-y: visible;
 
 	gap: 1rem;
 }
