@@ -22,7 +22,7 @@ type TrackHistoryStore struct {
 	Album  string `json:"album,omitempty"`
 }
 
-type TrackHistoryMap map[string]TrackHistoryStore
+type TrackHistoryMap map[string]*TrackHistoryStore
 
 type History struct {
 	Tracks TrackHistoryMap `json:"t,omitempty"`
@@ -67,7 +67,7 @@ func (history *HistoryManager) OnUpdateScore(track *indexer.Track, oldScore floa
 	trackEntry, ok := history.History.Tracks[track.ID]
 	if !ok {
 		// doesn't exist
-		history.History.Tracks[track.ID] = TrackHistoryStore{
+		history.History.Tracks[track.ID] = &TrackHistoryStore{
 			Scores: ScoreEntryList{entryStore},
 			Plays:  make(PlayRecord),
 			Title:  track.Title,
