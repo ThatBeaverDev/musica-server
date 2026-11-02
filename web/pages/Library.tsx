@@ -5,6 +5,7 @@ import {
 	ArrowDown,
 	ArrowUp,
 	AudioLines,
+	Calendar,
 	DiscAlbum,
 	Letters,
 	ListVideo,
@@ -30,11 +31,17 @@ import LargePlaylist from "../components/LargePlaylist";
 export default function Library() {
 	type FilterType = "tracks" | "albums" | "artists" | "playlists";
 	type SortingType =
-		"duration" | "plays" | "score" | "title" | "album" | "artist";
+		| "modified"
+		| "duration"
+		| "plays"
+		| "score"
+		| "title"
+		| "album"
+		| "artist";
 	type SortingOrder = "highToLow" | "lowToHigh";
 
 	const [filterType, setFilterType] = useState<FilterType>("tracks");
-	const [sortingType, setSortingType] = useState<SortingType>("duration");
+	const [sortingType, setSortingType] = useState<SortingType>("modified");
 	const [sortingOrder, setSortingOrder] = useState<SortingOrder>("highToLow");
 	const [view, setView] = useState<React.JSX.Element | null>(null);
 
@@ -61,6 +68,10 @@ export default function Library() {
 				case "album":
 				case "artist":
 					arr.sort((a, b) => sortType(a).localeCompare(sortType(b)));
+					break;
+
+				case "modified":
+					arr.sort((a, b) => sortType(a) - sortType(b));
 					break;
 
 				case "score":
@@ -194,6 +205,11 @@ export default function Library() {
 					<p>Sort By:</p>
 					<Dropdown
 						options={[
+							{
+								name: "Modified",
+								icon: <Calendar width={15} height={15} />,
+								onSelect: () => setSortingType("modified")
+							},
 							{
 								name: "Duration",
 								icon: <Timer width={15} height={15} />,
