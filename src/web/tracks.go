@@ -194,6 +194,10 @@ func (ws *WebServer) trackColour(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type NewScoreValue struct {
+	NewScore float64 `json:"newScore"`
+}
+
 func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -204,6 +208,12 @@ func (ws *WebServer) userSpecificPlay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws.scores.SpecificPlay(track)
+
+	err := json.NewEncoder(w).Encode(NewScoreValue{NewScore: ws.scores.TrackScore(track.ID)})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) trackPlayed(w http.ResponseWriter, r *http.Request) {
@@ -216,6 +226,12 @@ func (ws *WebServer) trackPlayed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws.scores.Played(track)
+
+	err := json.NewEncoder(w).Encode(NewScoreValue{NewScore: ws.scores.TrackScore(track.ID)})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
@@ -228,6 +244,12 @@ func (ws *WebServer) trackSkipped(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws.scores.Skipped(track)
+
+	err := json.NewEncoder(w).Encode(NewScoreValue{NewScore: ws.scores.TrackScore(track.ID)})
+	if err != nil {
+		ws.logger.Error("failed to encode JSON response: ", err.Error())
+		http.Error(w, "failed to encode JSON response", http.StatusInternalServerError)
+	}
 }
 
 func (ws *WebServer) randomMixTrack(w http.ResponseWriter, r *http.Request) {
