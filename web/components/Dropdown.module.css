@@ -64,6 +64,18 @@
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 	min-width: 100%;
 	z-index: 10;
+
+	animation-name: DropdownLowerAppear;
+	animation-duration: 0.2s;
+}
+
+@keyframes DropdownLowerAppear {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 .dropdownItem {
