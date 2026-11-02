@@ -1,15 +1,8 @@
-import { MouseEventHandler } from "react";
 import { Artist } from "../musica";
 import { useNavigate } from "react-router-dom";
 import styles from "./LargeArtist.module.css";
 
-export default function LargeArtist({
-	artist,
-	onContextMenu
-}: {
-	artist: Artist;
-	onContextMenu: MouseEventHandler<HTMLDivElement>;
-}) {
+export default function LargeArtist({ artist }: { artist: Artist }) {
 	const navigate = useNavigate();
 
 	const showArtist = () => navigate(`/artist/${artist.id}`);
@@ -17,7 +10,9 @@ export default function LargeArtist({
 	return (
 		<div
 			className={styles.card}
-			onContextMenu={onContextMenu}
+			onContextMenu={(e) =>
+				activateContextMenu(e, { type: "artist", artist })
+			}
 
 			onClick={showArtist}
 		>

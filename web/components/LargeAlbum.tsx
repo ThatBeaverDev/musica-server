@@ -1,15 +1,8 @@
-import { MouseEventHandler } from "react";
 import { Album } from "../musica";
 import { useNavigate } from "react-router-dom";
 import styles from "./LargeAlbum.module.css";
 
-export default function LargeAlbum({
-	album,
-	onContextMenu
-}: {
-	album: Album;
-	onContextMenu: MouseEventHandler<HTMLDivElement>;
-}) {
+export default function LargeAlbum({ album }: { album: Album }) {
 	const navigate = useNavigate();
 
 	const showAlbum = () => navigate(`/album/${album.id}`);
@@ -17,7 +10,9 @@ export default function LargeAlbum({
 	return (
 		<div
 			className={styles.card}
-			onContextMenu={onContextMenu}
+			onContextMenu={(e) =>
+				activateContextMenu(e, { type: "album", album })
+			}
 
 			onClick={showAlbum}
 		>

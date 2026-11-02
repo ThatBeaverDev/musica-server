@@ -73,29 +73,14 @@ export default function Home() {
 			<h3 className={styles.heading}>Recently Added</h3>
 			<div className={styles.carousel}>
 				{albums.map((album) => (
-					<LargeAlbum
-						key={album.id}
-						album={album}
-						onContextMenu={(e) =>
-							activateContextMenu(e, { type: "album", album })
-						}
-					/>
+					<LargeAlbum key={album.id} album={album} />
 				))}
 			</div>
 
 			<h3 className={styles.heading}>Playlists</h3>
 			<div className={styles.carousel}>
 				{playlists.map((playlist) => (
-					<LargePlaylist
-						key={playlist.id}
-						playlist={playlist}
-						onContextMenu={(e) =>
-							activateContextMenu(e, {
-								type: "playlist",
-								playlist
-							})
-						}
-					/>
+					<LargePlaylist key={playlist.id} playlist={playlist} />
 				))}
 			</div>
 		</>

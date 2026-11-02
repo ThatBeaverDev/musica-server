@@ -98,11 +98,11 @@ export default function Library() {
 
 					setView(
 						<>
-							{trackMetadata.map((track) => (
+							{trackMetadata.map((track, index) => (
 								<AlbumTrack
 									track={track}
-									onClick={() => {}}
-									onContextMenu={() => {}}
+									trackList={trackMetadata}
+									index={index}
 									art={true}
 								/>
 							))}
@@ -119,10 +119,7 @@ export default function Library() {
 					setView(
 						<>
 							{albumMetadata.map((album) => (
-								<LargeAlbum
-									album={album}
-									onContextMenu={() => {}}
-								/>
+								<LargeAlbum album={album} />
 							))}
 						</>
 					);
@@ -138,10 +135,7 @@ export default function Library() {
 					setView(
 						<>
 							{artistMetadata.map((artist) => (
-								<LargeArtist
-									artist={artist}
-									onContextMenu={() => {}}
-								/>
+								<LargeArtist artist={artist} />
 							))}
 						</>
 					);
@@ -157,10 +151,7 @@ export default function Library() {
 					setView(
 						<>
 							{playlistMetadata.map((playlist) => (
-								<LargePlaylist
-									playlist={playlist}
-									onContextMenu={() => {}}
-								/>
+								<LargePlaylist playlist={playlist} />
 							))}
 						</>
 					);

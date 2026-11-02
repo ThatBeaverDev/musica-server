@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
 import { Album } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
-import { onTrackSearchAndPlay, player } from "../Player.js";
+import { player } from "../Player.js";
 import { useNavigate } from "react-router-dom";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
@@ -15,18 +15,6 @@ export default function Album() {
 	const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
-
-	function playByIndex(index: number) {
-		if (!album) return;
-
-		player.setQueue(
-			album.tracks.slice(0, index - 1),
-			album.tracks[index],
-			album.tracks.slice(index + 1)
-		);
-
-		player.resume();
-	}
 
 	const [album, setAlbum] = useState<Album | undefined>();
 	const [colours, setColours] = useState<[string, string] | undefined>();
@@ -177,20 +165,8 @@ export default function Album() {
 								<AlbumTrack
 									key={index}
 									track={track}
-									onClick={() => {
-										onTrackSearchAndPlay(track.id);
-
-										playByIndex(index);
-									}}
-									onContextMenu={(e) => {
-										if (!track || !album) return;
-										activateContextMenu(e, {
-											type: "track",
-											track,
-											trackList: album.tracks,
-											index
-										});
-									}}
+									trackList={album.tracks}
+									index={index}
 								/>
 							))
 						: undefined}

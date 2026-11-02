@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Playlist } from "../musica.js";
 import AlbumTrack from "../components/AlbumTrack.js";
-import { onTrackSearchAndPlay, player } from "../Player.js";
+import { player } from "../Player.js";
 import { getItemColours } from "../lib/colour.js";
 import BigPlayButton from "../components/BigPlayButton.js";
 import styles from "./album.module.css";
@@ -13,18 +13,6 @@ export default function Playlist() {
 	//const navigate = useNavigate();
 
 	const id = new URL(window.location.href).pathname.split("/")[2];
-
-	function playByIndex(index: number) {
-		if (!playlist) return;
-
-		player.setQueue(
-			playlist.tracks.slice(0, index - 1),
-			playlist.tracks[index],
-			playlist.tracks.slice(index + 1)
-		);
-
-		player.resume();
-	}
 
 	const [playlist, setPlaylist] = useState<Playlist | undefined>();
 	const [colours, setColours] = useState<[string, string] | undefined>();
@@ -140,20 +128,9 @@ export default function Playlist() {
 								<AlbumTrack
 									key={index}
 									track={track}
+									trackList={playlist.tracks}
+									index={index}
 									art={true}
-									onClick={() => {
-										onTrackSearchAndPlay(track.id);
-
-										playByIndex(index);
-									}}
-									onContextMenu={(e) => {
-										activateContextMenu(e, {
-											type: "track",
-											track,
-											trackList: playlist.tracks,
-											index
-										});
-									}}
 								/>
 							))
 						: undefined}

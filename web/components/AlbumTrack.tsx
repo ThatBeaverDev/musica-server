@@ -1,17 +1,17 @@
 import { colourScore } from "../lib/score";
 import { Track } from "../musica";
-import { ContextMenuRequiredEvent } from "./contextMenus/ContextMenu";
+import { onTrackSearchAndPlay, player } from "../Player";
 import styles from "./AlbumTrack.module.css";
 
 export default function AlbumTrack({
 	track,
-	onClick,
-	onContextMenu,
+	trackList,
+	index,
 	art: showArt = false
 }: {
 	track: Track;
-	onClick: () => void;
-	onContextMenu: (e: ContextMenuRequiredEvent) => void;
+	trackList: Track[];
+	index: number;
 	art?: boolean;
 }) {
 	const durationMinutesComponent = Math.floor(track.duration / 60);
@@ -24,8 +24,25 @@ export default function AlbumTrack({
 		<div
 			className={styles.track}
 
-			onClick={() => onClick()}
-			onContextMenu={(e) => onContextMenu(e)}
+			onClick={() => {
+				onTrackSearchAndPlay(track.id);
+
+				player.setQueue(
+					trackList.slice(0, index - 1),
+					trackList[index],
+					trackList.slice(index + 1)
+				);
+
+				player.resume();
+			}}
+			onContextMenu={(e) =>
+				activateContextMenu(e, {
+					type: "track",
+					track,
+					trackList,
+					index
+				})
+			}
 		>
 			{showArt ? (
 				<img

@@ -124,16 +124,7 @@ export default function Artist() {
 				<div className={styles.albumList}>
 					{artist
 						? artist.albums.map((album, index) => (
-								<LargeAlbum
-									key={index}
-									album={album}
-									onContextMenu={(e) =>
-										activateContextMenu(e, {
-											type: "album",
-											album
-										})
-									}
-								/>
+								<LargeAlbum key={index} album={album} />
 							))
 						: undefined}
 				</div>

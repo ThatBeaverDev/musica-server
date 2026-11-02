@@ -4,7 +4,6 @@ import { useRef } from "preact/hooks";
 import { SearchResult } from "../musica";
 import LargeAlbum from "../components/LargeAlbum";
 import AlbumTrack from "../components/AlbumTrack";
-import { onTrackSearchAndPlay, player } from "../Player";
 import LargeArtist from "../components/LargeArtist";
 
 export default function Search() {
@@ -76,31 +75,17 @@ export default function Search() {
 			) : undefined}
 			<div style={styles.resultPanelList}>
 				{results
-					? results.tracks.slice(0, 10).map((item, index) => (
-							<AlbumTrack
-								track={item}
-								key={index}
-								onClick={() => {
-									onTrackSearchAndPlay(item.id);
-
-									player.setQueue(
-										results.tracks.slice(0, index - 1),
-										item,
-										results.tracks.slice(index + 1)
-									);
-									player.resume();
-								}}
-								onContextMenu={(e) =>
-									activateContextMenu(e, {
-										type: "track",
-										track: item,
-										trackList: results.tracks,
-										index
-									})
-								}
-								art={true}
-							></AlbumTrack>
-						))
+					? results.tracks
+							.slice(0, 10)
+							.map((item, index) => (
+								<AlbumTrack
+									track={item}
+									trackList={results.tracks}
+									index={index}
+									key={index}
+									art={true}
+								></AlbumTrack>
+							))
 					: undefined}
 			</div>
 
@@ -110,18 +95,14 @@ export default function Search() {
 			) : undefined}
 			<div style={styles.resultPanelGrid}>
 				{results
-					? results.albums.slice(0, 10).map((item, index) => (
-							<LargeAlbum
-								album={item}
-								key={index}
-								onContextMenu={(e) =>
-									activateContextMenu(e, {
-										type: "album",
-										album: item
-									})
-								}
-							></LargeAlbum>
-						))
+					? results.albums
+							.slice(0, 10)
+							.map((item, index) => (
+								<LargeAlbum
+									album={item}
+									key={index}
+								></LargeAlbum>
+							))
 					: undefined}
 			</div>
 
@@ -131,18 +112,14 @@ export default function Search() {
 			) : undefined}
 			<div style={styles.resultPanelGrid}>
 				{results
-					? results.artists.slice(0, 10).map((item, index) => (
-							<LargeArtist
-								artist={item}
-								key={index}
-								onContextMenu={(e) =>
-									activateContextMenu(e, {
-										type: "artist",
-										artist: item
-									})
-								}
-							></LargeArtist>
-						))
+					? results.artists
+							.slice(0, 10)
+							.map((item, index) => (
+								<LargeArtist
+									artist={item}
+									key={index}
+								></LargeArtist>
+							))
 					: undefined}
 			</div>
 		</>
