@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { RandomMixTrackResult, Track } from "./musica";
-import { getTrackMetadata } from "./lib/metadata/tracks";
+import { getTrackMetadata, loadTrack } from "./lib/metadata/tracks";
 import { useEffect } from "preact/hooks";
 import { getItemColours } from "./lib/colour";
 import MobilePlayer from "./players/player.mobile";
 import DesktopPlayer from "./players/player.desktop";
 import FullscreenPlayer from "./players/player.fullscreen";
 import styles from "./player.module.css";
+import { getScoreSubset } from "./lib/subset";
 
 const willDebug = true;
 function debug(...data: any[]) {
@@ -549,15 +550,31 @@ class AudioPlayer {
 export const player = new AudioPlayer();
 // @ts-expect-error
 globalThis.player = player;
-player.onTrackPlayed = (track) => {
-	fetch(`/api/track/${track.id}/played`);
+player.onTrackPlayed = async (track) => {
+	const request = await fetch(`/api/track/${track.id}/played`);
+	const { newScore } = await request.json();
+
+	track.score = newScore;
+	track.subset = getScoreSubset(track.score);
+	loadTrack(track);
 };
-player.onTrackSkipped = (track) => {
-	fetch(`/api/track/${track.id}/skipped`);
+player.onTrackSkipped = async (track) => {
+	const request = await fetch(`/api/track/${track.id}/skipped`);
+	const { newScore } = await request.json();
+
+	track.score = newScore;
+	track.subset = getScoreSubset(track.score);
+	loadTrack(track);
 };
 
-export function onTrackSearchAndPlay(id: string) {
-	fetch(`/api/track/${id}/explicitPlay`);
+export async function onTrackSearchAndPlay(id: string) {
+	const request = await fetch(`/api/track/${id}/explicitPlay`);
+	const { newScore } = await request.json();
+
+	const track = await getTrackMetadata(id);
+	track.score = newScore;
+	track.subset = getScoreSubset(track.score);
+	loadTrack(track);
 }
 
 export function playerHooks() {

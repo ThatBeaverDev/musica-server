@@ -57,3 +57,20 @@ export function GetSubsetIcon(subset: Subset): LucideIcon {
 			return Ellipsis;
 	}
 }
+
+export function getScoreSubset(score: number): Subset {
+	if (score <= -25) {
+		// none will match
+		return "dislike";
+	}
+
+	if (-25 < score && score <= -10) {
+		return "wildcard";
+	} else if (-10 < score && score <= 10) {
+		return "exploration";
+	} else if (10 < score && score <= 50) {
+		return "standard";
+	}
+
+	return "other";
+}
