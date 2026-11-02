@@ -40,6 +40,7 @@ export interface Artist {
 
 	albums: Album[];
 
+	modified: number;
 	score: number;
 
 	label?: string;
@@ -74,6 +75,7 @@ export interface Playlist {
 
 	tracks: Track[];
 	id: string;
+	modified: number;
 }
 
 export type Subset =

@@ -61,6 +61,8 @@ type Artist struct {
 
 	Albums []*Album
 
+	Modified int64
+
 	Extra *ExtraArtistMetadata
 }
 

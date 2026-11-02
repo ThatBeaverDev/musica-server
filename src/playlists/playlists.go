@@ -7,6 +7,7 @@ import (
 	"musica-server/src/logging"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Playlist struct {
@@ -16,6 +17,7 @@ type Playlist struct {
 
 	TrackIds []string `json:"tracks"`
 	ID       string   `json:"id"`
+	Modified int64    `json:"modified"`
 }
 
 type PlaylistMap map[string]*Playlist
@@ -82,6 +84,7 @@ func (p *PlaylistManager) NewPlaylist(title string, description string, tracks [
 
 		TrackIds: ids,
 		ID:       id,
+		Modified: time.Now().Unix(),
 	}
 
 	p.playlists[id] = playlist
@@ -126,6 +129,7 @@ func (p *PlaylistManager) SetPlaylistItems(playlistId string, tracks []*indexer.
 		return fmt.Errorf("failed to retrieve track: %w", err)
 	}
 
+	playlist.Modified = time.Now().Unix()
 	playlist.TrackIds = []string{}
 	for _, track := range tracks {
 		playlist.TrackIds = append(playlist.TrackIds, track.ID)

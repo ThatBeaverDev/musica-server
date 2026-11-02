@@ -289,6 +289,13 @@ func (s *Indexer) addTrackToAlbumLocked(album *Album, track *Track) {
 		album.Modified = track.Modified
 	}
 
+	artist, ok := s.Index.Artists[album.ArtistId]
+	if ok {
+		if track.Modified > artist.Modified {
+			artist.Modified = track.Modified
+		}
+	}
+
 	album.Tracks = append(album.Tracks, track)
 }
 

@@ -112,7 +112,8 @@ type WebExportedArtist struct {
 
 	Albums []*WebExportedAlbum `json:"albums"`
 
-	Score float64 `json:"score"`
+	Modified int64   `json:"modified"`
+	Score    float64 `json:"score"`
 
 	Label string `json:"label,omitempty"`
 
@@ -206,7 +207,8 @@ func ArtistToWeb(artist *indexer.Artist, scoresManager *scores.ScoreManager) *We
 
 		Albums: albums,
 
-		Score: artistScore,
+		Modified: artist.Modified,
+		Score:    artistScore,
 
 		Label: label,
 
@@ -240,8 +242,9 @@ type WebExportedPlaylist struct {
 	Description    string `json:"description"`
 	PictureTrackId string `json:"pictureTrackId"`
 
-	Tracks []*WebExportedTrack `json:"tracks"`
-	Id     string              `json:"id"`
+	Tracks   []*WebExportedTrack `json:"tracks"`
+	Id       string              `json:"id"`
+	Modified int64               `json:"modified"`
 }
 
 func PlaylistToWeb(playlist *playlists.Playlist, indexer *indexer.Indexer, scoresManager *scores.ScoreManager) *WebExportedPlaylist {
@@ -264,8 +267,9 @@ func PlaylistToWeb(playlist *playlists.Playlist, indexer *indexer.Indexer, score
 		Description:    playlist.Description,
 		PictureTrackId: playlist.PictureTrackId,
 
-		Tracks: tracks,
-		Id:     playlist.ID,
+		Tracks:   tracks,
+		Id:       playlist.ID,
+		Modified: playlist.Modified,
 	}
 
 	sort.Slice(exported.Tracks, func(i, j int) bool {
