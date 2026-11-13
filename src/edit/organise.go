@@ -93,8 +93,19 @@ func moveTrackNoExtUnsafe(indexer *indexer.Indexer, track *indexer.Track, newPat
 		return errors.New("target path is outside of mediaLibrary, cannot move to here.")
 	}
 
-	ext := filepath.Ext(track.Path)
+	absoluteOldPath, err := filepath.Abs(track.Path)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute old track path: %w", err)
+	}
+
+	ext := filepath.Ext(absoluteOldPath)
 	realNewPath := newPath + ext
+
+	if absoluteOldPath == realNewPath {
+		return nil // no move needed
+	}
+
+	indexer.Logger.Log("Moved", absoluteOldPath+" -> "+realNewPath)
 
 	bakFile := backupFileName(track)
 	newBakFile := newPath + ".bak" + ext
