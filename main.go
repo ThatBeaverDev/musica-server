@@ -55,13 +55,6 @@ func main() {
 		return
 	}
 
-	logger.Log("")
-	logger.Log("Indexed:")
-	logger.Log("-", len(indexer.Index.Tracks), "Tracks,")
-	logger.Log("-", len(indexer.Index.Albums), "Albums and")
-	logger.Log("-", len(indexer.Index.Artists), "Artists!")
-	logger.Log("")
-
 	scorer, err := scores.New(indexer)
 	if err != nil {
 		logger.Error(err)

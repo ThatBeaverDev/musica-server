@@ -101,6 +101,7 @@ type Indexer struct {
 
 	WorkingDirectory string
 	CacheDirectory   string
+	Root             string
 
 	IdentityStorage *identityStorage.IdentityStorage
 	Config          *config.Config
@@ -134,25 +135,52 @@ func New(directory string, idStorage *identityStorage.IdentityStorage, config *c
 
 		WorkingDirectory: workingDirectory,
 		CacheDirectory:   libraryCache,
+		Root:             directory,
 
 		IdentityStorage: idStorage,
 		Config:          config,
 		Logger:          logger,
 	}
 
+	go indexer.IndexMedia()
+
+	indexer.SetupSlowArtistExtraMetadataLoop()
+
+	return &indexer, nil
+}
+
+func (indexer *Indexer) IndexMedia() {
+	logger := indexer.Logger
+	logger.Log("Indexing Media library (at " + indexer.Root + ")")
+
+	indexer.Index = &trackIndex{
+		Root:    indexer.Root,
+		Tracks:  make(map[string]*Track),
+		Albums:  make(map[string]*Album),
+		Artists: make(map[string]*Artist),
+
+		HasDuplicates: false,
+
+		Mutex: sync.RWMutex{},
+	}
+
 	waitGroup := sync.WaitGroup{}
-	err = indexer.walk(indexer.Index.Root, &waitGroup)
+	err := indexer.walk(indexer.Index.Root, &waitGroup)
 	if err != nil {
-		return &Indexer{}, fmt.Errorf("Failed to walk IndexRoot: %w", err)
+		panic(
+			fmt.Errorf("Failed to walk IndexRoot: %w", err),
+		)
 	}
 	waitGroup.Wait()
 
 	indexer.cleanupAlbums()
 	indexer.cleanupArtists()
 
-	indexer.SetupSlowArtistExtraMetadataLoop()
-
-	return &indexer, nil
+	logger.Log("Finished indexing (",
+		len(indexer.Index.Tracks), "tracks,",
+		len(indexer.Index.Albums), "albums and",
+		len(indexer.Index.Artists), "artists )",
+	)
 }
 
 func (s *Indexer) indexTrack(directory string) error {
