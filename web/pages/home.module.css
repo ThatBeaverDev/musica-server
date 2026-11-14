@@ -1,3 +1,10 @@
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 13rem));
+
+	gap: 1rem;
+}
+
 .carousel {
 	display: flex;
 	flex-direction: row;

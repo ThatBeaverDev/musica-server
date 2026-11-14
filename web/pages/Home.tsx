@@ -64,24 +64,43 @@ export default function Home() {
 		};
 	}, []);
 
+	type AlbumEntry = { type: "album"; entry: Album };
+	type PlaylistEntry = { type: "playlist"; entry: Playlist };
+
+	const [items, setItems] = useState<(AlbumEntry | PlaylistEntry)[]>([]);
+	useEffect(() => {
+		const itemlist: typeof items = [
+			...albums.map((item): AlbumEntry => {
+				return { type: "album", entry: item };
+			}),
+			...playlists.map((item): PlaylistEntry => {
+				return { type: "playlist", entry: item };
+			})
+		];
+
+		itemlist.sort((a, b) => b.entry.modified - a.entry.modified);
+
+		setItems(itemlist);
+	}, [albums, playlists]);
+
 	document.title = "Home - Musica";
 
 	return (
 		<>
 			<h1>Welcome</h1>
 
-			<h3 className={styles.heading}>Recently Added</h3>
-			<div className={styles.carousel}>
-				{albums.map((album) => (
-					<LargeAlbum key={album.id} album={album} />
-				))}
-			</div>
-
-			<h3 className={styles.heading}>Playlists</h3>
-			<div className={styles.carousel}>
-				{playlists.map((playlist) => (
-					<LargePlaylist key={playlist.id} playlist={playlist} />
-				))}
+			<h3 className={styles.heading}>Your Library</h3>
+			<div className={styles.grid}>
+				{items.map((item) =>
+					item.type == "album" ? (
+						<LargeAlbum key={item.entry.id} album={item.entry} />
+					) : (
+						<LargePlaylist
+							key={item.entry.id}
+							playlist={item.entry}
+						/>
+					)
+				)}
 			</div>
 		</>
 	);
