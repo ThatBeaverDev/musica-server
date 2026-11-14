@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { colourScore } from "../lib/score.js";
-import { Artist } from "../musica.js";
+import { Artist, Track } from "../musica.js";
 import LargeAlbum from "../components/LargeAlbum.js";
 import { getItemColours } from "../lib/colour.js";
 import { getArtistMetadata } from "../lib/metadata/artists.js";
@@ -9,21 +9,32 @@ import BigPlayButton from "../components/BigPlayButton.js";
 import { player } from "../Player.js";
 import { formatTrackListDuration } from "../lib/time.js";
 import { EllipsisVertical } from "lucide-react";
+import AlbumTrack from "../components/AlbumTrack.js";
 
 export default function Artist() {
 	const id = new URL(window.location.href).pathname.split("/")[2];
 
 	const [artist, setArtist] = useState<Artist | undefined>();
+	const [topTenTracks, setTopTenTracks] = useState<Track[] | undefined>();
 	const [colours, setColours] = useState<[string, string] | undefined>();
 	useEffect(() => {
 		let isMounted = true;
 
-		const fetchartists = async () => {
+		const fetchArtist = async () => {
 			try {
 				const artist = await getArtistMetadata(id);
 
 				if (isMounted) {
 					setArtist(artist);
+
+					const tracks: Track[] = [];
+					artist.albums.forEach((album) =>
+						tracks.push(...album.tracks)
+					);
+
+					tracks.sort((a, b) => b.score - a.score);
+
+					setTopTenTracks(tracks.slice(0, 10));
 
 					const [colour, darker] = await getItemColours("artist", id);
 
@@ -36,7 +47,7 @@ export default function Artist() {
 			}
 		};
 
-		fetchartists();
+		fetchArtist();
 
 		return () => {
 			isMounted = false;
@@ -120,6 +131,23 @@ export default function Artist() {
 			</div>
 
 			<div>
+				{topTenTracks ? (
+					<>
+						<h3>Your Favourites</h3>
+
+						<div className={styles.trackList}>
+							{topTenTracks.map((track, index) => (
+								<AlbumTrack
+									track={track}
+									index={index}
+									trackList={topTenTracks}
+									art={true}
+								/>
+							))}
+						</div>
+					</>
+				) : undefined}
+
 				<h3>Albums</h3>
 				<div className={styles.albumList}>
 					{artist
