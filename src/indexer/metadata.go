@@ -128,7 +128,7 @@ func (s *Indexer) fileMetaData(directory string) (*Track, error) {
 	if err != nil {
 		return &Track{}, err
 	}
-	modified := stats.ModTime().UnixMilli()
+	modified := stats.ModTime().Unix()
 
 	props, err := taglib.ReadProperties(directory)
 	if err != nil {
