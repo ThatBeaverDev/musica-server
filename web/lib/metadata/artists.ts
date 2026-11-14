@@ -3,9 +3,9 @@ import { loadAlbum } from "./albums";
 
 const artistMetadata = new Map<string, Artist>();
 export function loadArtist(artist: Artist) {
-	artistMetadata.set(artist.id, artist);
+	if (artist) artist.albums.forEach((album) => loadAlbum(album));
 
-	artist.albums.forEach((album) => loadAlbum(album));
+	artistMetadata.set(artist.id, artist);
 }
 export function deleteArtist(id: string) {
 	artistMetadata.delete(id);

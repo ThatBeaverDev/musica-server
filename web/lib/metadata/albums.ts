@@ -3,9 +3,9 @@ import { loadTrack } from "./tracks";
 
 const albumMetadata = new Map<string, Album>();
 export function loadAlbum(album: Album) {
-	albumMetadata.set(album.id, album);
+	if (album) album.tracks.forEach((track) => loadTrack(track));
 
-	album.tracks.forEach((track) => loadTrack(track));
+	albumMetadata.set(album.id, album);
 }
 export function deleteAlbum(id: string) {
 	albumMetadata.delete(id);
