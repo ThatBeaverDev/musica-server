@@ -1,10 +1,6 @@
 .queue {
-	position: absolute;
-	left: 0px;
-	bottom: 75px;
-
 	width: 100dvw;
-	height: 5rem;
+	height: 65px !important;
 	z-index: 100;
 
 	display: flex;
@@ -13,8 +9,6 @@
 
 	background: #181818;
 	border-top: 1px solid rgba(255, 255, 255, 0.06);
-
-	overflow: hidden;
 }
 
 .properties {

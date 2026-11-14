@@ -52,7 +52,7 @@ body {
 
 	.content {
 		width: 100%;
-		height: calc(100dvh - (40dvh + 50px));
+		height: calc(100dvh - (65px + 5rem));
 	}
 }
 

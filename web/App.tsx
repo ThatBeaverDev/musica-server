@@ -75,7 +75,7 @@ export default function App() {
 	return (
 		<>
 			<BrowserRouter>
-				<Navbar mobile={mobile} />
+				{mobile ? undefined : <Navbar mobile={mobile} key={"navbar"} />}
 
 				<div className={styles.content} style={{ background }}>
 					<Routes>
@@ -90,6 +90,8 @@ export default function App() {
 				</div>
 
 				<Player mobile={mobile} />
+
+				{mobile ? <Navbar mobile={mobile} key={"navbar"} /> : undefined}
 
 				{contextMenu && (
 					<SmartContextMenu
