@@ -184,7 +184,7 @@ func (s *Indexer) indexTrack(directory string) error {
 
 	// write data
 	s.Index.Tracks[track.ID] = track
-	s.Logger.Debug("Indexed file at", track.Path)
+	s.Logger.Debug("Indexed file at", track.Path, "ID", track.ID)
 
 	return nil
 }

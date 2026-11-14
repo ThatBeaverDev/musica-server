@@ -45,58 +45,58 @@ func asStrings(values []any) []string {
 	return result
 }
 
-func (l *Logger) Debug(values ...any) {
-	if !l.DebugMode {
+func (logger *Logger) Debug(values ...any) {
+	if !logger.DebugMode {
 		return
 	}
 
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
 
 	strs := asStrings(values)
 
 	pre := "[" + now() + "] DEBUG:"
 	msg := pre + " " + strings.Join(strs, " ")
 
-	l.file.WriteString(msg + "\n")
+	logger.file.WriteString(msg + "\n")
 	fmt.Println(msg)
 }
 
-func (l *Logger) Log(values ...any) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+func (logger *Logger) Log(values ...any) {
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
 
 	strs := asStrings(values)
 
 	pre := "[" + now() + "] INFO:"
 	msg := pre + " " + strings.Join(strs, " ")
 
-	l.file.WriteString(msg + "\n")
+	logger.file.WriteString(msg + "\n")
 	fmt.Println(msg)
 }
 
-func (l *Logger) Warn(values ...any) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+func (logger *Logger) Warn(values ...any) {
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
 
 	strs := asStrings(values)
 
 	pre := "[" + now() + "] WARNING:"
 	msg := pre + " " + strings.Join(strs, " ")
 
-	l.file.WriteString(msg + "\n")
+	logger.file.WriteString(msg + "\n")
 	fmt.Fprintln(os.Stderr, msg)
 }
 
-func (l *Logger) Error(values ...any) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
+func (logger *Logger) Error(values ...any) {
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
 
 	strs := asStrings(values)
 
 	pre := "[" + now() + "] ERROR:"
 	msg := pre + " " + strings.Join(strs, " ")
 
-	l.file.WriteString(msg + "\n")
+	logger.file.WriteString(msg + "\n")
 	fmt.Fprintln(os.Stderr, msg)
 }

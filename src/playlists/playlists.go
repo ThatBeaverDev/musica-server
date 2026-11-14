@@ -68,12 +68,15 @@ func (p *PlaylistManager) generatePlaylistIdUnsafe() string {
 }
 
 func (p *PlaylistManager) NewPlaylist(title string, description string, tracks []*indexer.Track) *Playlist {
+	p.logger.Log("Creating new playlist", title, "with", strconv.Itoa(len(tracks)), "track(s).")
+
 	p.mutex.Lock()
 
 	id := p.generatePlaylistIdUnsafe()
 
 	var ids []string
 	for _, track := range tracks {
+		p.logger.Debug("Adding", track.Title, "id", track.ID+"to playlist")
 		ids = append(ids, track.ID)
 	}
 
@@ -87,6 +90,7 @@ func (p *PlaylistManager) NewPlaylist(title string, description string, tracks [
 		Modified: time.Now().Unix(),
 	}
 
+	p.logger.Debug("Playlist created.")
 	p.playlists[id] = playlist
 	p.mutex.Unlock()
 
