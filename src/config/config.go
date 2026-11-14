@@ -19,6 +19,7 @@ type Config struct {
 	PlaylistsFile string `json:"playlistsFile"`
 
 	OrganiseLibrary bool `json:"organise"`
+	NoWeb           bool `json:"noWeb"`
 
 	DebugMode bool `json:"debugMode"`
 }
@@ -45,6 +46,11 @@ func New() (*Config, error) {
 			HistoryFile:   defaultHistoryFile,
 			LogFile:       defaultLogFile,
 			PlaylistsFile: defaultPlaylistsFile,
+
+			OrganiseLibrary: false,
+			NoWeb:           false,
+
+			DebugMode: false,
 		}, nil
 	}
 	defer file.Close()
@@ -74,7 +80,7 @@ func New() (*Config, error) {
 	if Cfg.PlaylistsFile == "" {
 		Cfg.PlaylistsFile = defaultPlaylistsFile
 	}
-	// zero value of bool is false, therefore `organise` defaults to false, as does `DebugMode`
+	// zero value of bool is false, therefore `organise` defaults to false, as does `DebugMode` and `noWeb`
 
 	return &Cfg, nil
 }

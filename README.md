@@ -43,4 +43,5 @@ through docker mappings.
 | `history`       | `./history.json`      | File for history data to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder) |
 | `logFile`       | `./musica-server.log` | File for program logs to be appended to.                                                                                               |
 | `organise`      | `false`               | Whether to re-organise the media library on startup                                                                                    |
+| `noWeb`         | `false`               | Used to disable the webserver, meaning musica wakes up and then exits. Used for testing the organiser.                                 |
 | `playlistsFile` | `./playlists.json`    | File for playlists to be stored in. Must be atomically-writable (don't map specifically this file in docker, map the parent folder)    |

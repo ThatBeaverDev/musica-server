@@ -82,6 +82,10 @@ func main() {
 		}
 	}
 
+	if config.NoWeb {
+		return
+	}
+
 	server := webServer.New(indexer, idStorage, scorer, playlistManager)
 
 	err = server.Listen(config.Port)
