@@ -13,3 +13,4 @@ history.json
 __pycache__
 public/app.css
 playlists.json
+testing/public
