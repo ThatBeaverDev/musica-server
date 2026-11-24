@@ -77,6 +77,7 @@ type trackIndex struct {
 	Artists map[string]*Artist
 
 	HasDuplicates bool
+	Duplicates    [][2]*Track
 
 	Mutex sync.RWMutex
 }
@@ -179,6 +180,7 @@ func (s *Indexer) indexTrack(directory string) error {
 	if pre_existing, ok := s.Index.Tracks[track.ID]; ok {
 		// already exists
 		s.Index.HasDuplicates = true
+		s.Index.Duplicates = append(s.Index.Duplicates, [2]*Track{pre_existing, track})
 		return errors.New("Two tracks of the same ID are present (both are titled '" + track.Title + "' by '" + track.Artist + "'), files are '" + directory + "' and '" + pre_existing.Path + "'")
 	}
 

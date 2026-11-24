@@ -12,7 +12,13 @@ import (
 
 func ReorganiseLibrary(indexer *indexer.Indexer) error {
 	if indexer.Index.HasDuplicates {
-		return errors.New("cannot reorganise library while there are duplicate named tracks.")
+		str := "cannot reorganise library while there are duplicate named tracks:\n"
+
+		for _, duplicates := range indexer.Index.Duplicates {
+			str += duplicates[0].Path + " and " + duplicates[1].Path + "\n"
+		}
+
+		return errors.New(str)
 	}
 
 	indexer.Index.Mutex.Lock()
